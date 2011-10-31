@@ -14,6 +14,7 @@
 	<array>
 		<string>LogoTerra.png</string>
 		<string>Logo_iPadTerra.png</string>
+		<string>LogoiPhone.png</string>
 	</array>
 	<key>CFBundleIcons</key>
 	<dict>
@@ -23,6 +24,7 @@
 			<array>
 				<string>LogoTerra.png</string>
 				<string>Logo_iPadTerra.png</string>
+				<string>LogoiPhone.png</string>
 			</array>
 			<key>UIPrerenderedIcon</key>
 			<false/>
