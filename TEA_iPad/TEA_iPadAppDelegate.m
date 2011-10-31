@@ -1,0 +1,335 @@
+//
+//  TEA_iPadAppDelegate.m
+//  TEA_iPad
+//
+//  Created by Oguz Demir on 8/7/2011.
+//  Copyright 2011 Dualware. All rights reserved.
+//
+
+#import "TEA_iPadAppDelegate.h"
+#import "MediaPlayer.h"
+#import "LocalDatabase.h"
+#import "Quiz.h"
+#import "BonjourService.h"
+#import "BonjourSessionInfoHandler.h"
+#import "BonjourQuizHandler.h"
+#import "BonjourQuizAnswerHandler.h"
+#import "BonjourImageHandler.h"
+#import "BonjourVideoHandler.h"
+#import "BonjourDocumentHandler.h"
+#import "BonjourAudioHandler.h"
+#import "Reachability.h"
+
+#include <SystemConfiguration/SystemConfiguration.h>
+
+@implementation TEA_iPadAppDelegate
+
+
+
+
+@synthesize window=_window, bonjourBrowser, session, state, connectedHost;
+
+@synthesize viewController=_viewController, bonjourBrowserThread, selectedItemView;
+
+void PrintReachabilityFlags(
+                            const char *                hostname, 
+                            SCNetworkConnectionFlags    flags, 
+                            const char *                comment,
+                            TEA_iPadAppDelegate *appDelegateObject
+                            )
+// Prints a line that records a reachability transition. 
+// This includes the current time, the new state of the 
+// reachability flags (from the flags parameter), and the 
+// name of the host (from the hostname parameter).
+{
+    
+    
+    if((flags & kSCNetworkFlagsConnectionRequired))
+    {
+        NSLog(@"Connection required...");
+    }
+    else
+    {
+        NSLog(@"Has connection...");
+        [appDelegateObject resetBonjourServer];
+    }
+}
+
+void MyReachabilityCallback(
+                            SCNetworkReachabilityRef    target,
+                            SCNetworkConnectionFlags    flags,
+                            void *                      info
+                            )
+// This routine is a System Configuration framework callback that 
+// indicates that the reachability of a given host has changed.  
+// It's call from the runloop.  target is the host whose reachability 
+// has changed, the flags indicate the new reachability status, and 
+// info is the context parameter that we passed in when we registered 
+// the callback.  In this case, info is a pointer to the host name.
+// 
+// Our response to this notification is simply to print a line 
+// recording the transition.
+{
+    assert(target != NULL);
+    assert(info   != NULL);
+    
+    PrintReachabilityFlags( (const char *) info, flags, NULL, info );
+}
+
+- (void) restartBonjourBrowser
+{
+     
+    [bonjourBrowser.clients removeAllObjects];
+    [bonjourBrowser.netServiceBrowser stop];
+    [bonjourBrowser.services removeAllObjects];
+    
+    self.state = kAppStateIdle;
+    
+    [bonjourBrowser startBrowse];
+    
+  //  [bonjourBrowser.clients release];
+    
+   /* [bonjourBrowser.netServiceBrowser stop];
+    [bonjourBrowser.clients removeAllObjects];
+    [bonjourBrowser.services removeAllObjects];
+    [bonjourBrows   er.netServiceBrowser release];*/
+  //  [self performSelector:@selector(stopBonjourBrowser) onThread:bonjourBrowserThread withObject:nil waitUntilDone:YES];
+   // sleep(2);
+    
+//    [bonjourBrowserThread cancel];
+ //   [bonjourBrowserThread release];
+//    bonjourBrowserThread = nil;
+    
+   // bonjourBrowserThread = [[NSThread alloc] initWithTarget:self selector:@selector(startBonjourBrowser) object:nil];
+   // [bonjourBrowserThread start];
+//    [bonjourBrowser release];
+    NSLog(@"Bonjour service restarted...");
+}
+
+- (void) stopBonjourBrowser
+{
+    [self.bonjourBrowser release];
+}
+
+- (void) startBonjourBrowser
+{
+    NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+    
+    
+    Reachability *reachibility = [Reachability reachabilityForLocalWiFi];
+    [reachibility startNotifier];
+    
+    [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(reachabilityChanged:) name: kReachabilityChangedNotification object: nil];
+
+    bonjourBrowser = [[BonjourBrowser alloc] init];
+    [bonjourBrowser startBrowse];
+    [[NSRunLoop currentRunLoop] run];
+    [pool release];
+    
+    
+}
+
+- (void) reachabilityChanged: (NSNotification* )note
+{
+    Reachability* curReach = [note object];
+    if(![curReach currentReachabilityStatus])
+    {
+        self.state = kAppStateIdle;
+    }
+    else
+    {
+        [self restartBonjourBrowser];
+    }
+}
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+    application.idleTimerDisabled = YES;
+    
+    
+    BonjourMessageHandlerManager *handlerManager = [BonjourMessageHandlerManager sharedInstance];
+    [handlerManager.bonjourMessageHandlers addObject:[[[BonjourSessionInfoHandler alloc] init] autorelease]];
+    [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizHandler alloc] init] autorelease]];
+    [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizAnswerHandler alloc] init] autorelease]];
+    [handlerManager.bonjourMessageHandlers addObject:[[[BonjourImageHandler alloc] init] autorelease]];
+    [handlerManager.bonjourMessageHandlers addObject:[[[BonjourVideoHandler alloc] init] autorelease]];
+    [handlerManager.bonjourMessageHandlers addObject:[[[BonjourDocumentHandler alloc] init] autorelease]];
+    [handlerManager.bonjourMessageHandlers addObject:[[[BonjourAudioHandler alloc] init] autorelease]];
+    self.state = kAppStateIdle;
+    
+    
+    
+    
+    //bonjourBrowserThread = [[NSThread alloc] initWithTarget:self selector:@selector(startBonjourBrowser) object:nil];
+    //[bonjourBrowserThread start];
+    
+    [self performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
+    
+   // bonjourBrowser = [[BonjourBrowser alloc] init];
+   // [bonjourBrowser startBrowse];
+    
+   // [NSThread detachNewThreadSelector:@selector(startBonjourBrowser) toTarget:self withObject:nil];
+    
+    
+    
+    
+    Session *tSession = [[Session alloc] init];
+    self.session = tSession;
+    [tSession release];
+    
+    
+        
+    
+    self.window.rootViewController = self.viewController;
+    [self.window makeKeyAndVisible];
+    
+   return YES;
+}
+
+- (void) setState:(int)aState
+{
+    state = aState;
+    
+    if (aState == kAppStateLogon) 
+    {
+        [UIView beginAnimations:nil context:NULL];
+        [UIView setAnimationDuration:1.0];
+        self.viewController.logonGlow.alpha = 1.0;
+        [UIView commitAnimations];   
+        
+        
+        NSLog(@"logged in host is %@", connectedHost);
+        
+        NSMutableArray *clientsToRemove = [[NSMutableArray alloc] init];
+        for(BonjourClient *client in bonjourBrowser.clients)
+        {
+            if(! [[client hostName] isEqualToString:connectedHost])
+            {
+                [clientsToRemove addObject:client];
+                NSLog(@"Removing host %@", client.hostName);
+            }
+        }
+        
+        for(BonjourClient *client in clientsToRemove)
+        {
+            [bonjourBrowser.services removeObject:client];
+            [bonjourBrowser.clients removeObject:client];
+        }
+        
+        [clientsToRemove release];
+    }
+    else
+    {
+        [UIView beginAnimations:nil context:NULL];
+        [UIView setAnimationDuration:1.0];
+        self.viewController.logonGlow.alpha = 0.0;
+        [UIView commitAnimations]; 
+        
+       
+        
+    }
+}
+
+- (void)applicationWillResignActive:(UIApplication *)application
+{
+    
+    NSLog(@"App is not active");
+ 
+    /*
+     Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
+     Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
+     */
+}
+
+- (void)applicationDidEnterBackground:(UIApplication *)application
+{
+    NSLog(@"App did enter background");
+    if(!exitingApp)
+    {
+        BonjourMessage *notificationMessage = [[[BonjourMessage alloc] init] autorelease];
+        notificationMessage.messageType = kMessageTypeNotificaiton;
+        
+        NSMutableDictionary *userData = [[[NSMutableDictionary alloc] init] autorelease];
+        [userData setValue:[NSNumber numberWithInt:kNotificationCodeAppInBg] forKey:@"NotificationCode"];
+        notificationMessage.userData = userData;
+        [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
+    }
+}
+
+- (void)applicationWillEnterForeground:(UIApplication *)application
+{
+    NSLog(@"App did enter foreground");
+   
+    BonjourMessage *notificationMessage = [[[BonjourMessage alloc] init] autorelease];
+    notificationMessage.messageType = kMessageTypeNotificaiton;
+    
+    NSMutableDictionary *userData = [[[NSMutableDictionary alloc] init] autorelease];
+    [userData setValue:[NSNumber numberWithInt:kNotificationCodeAppInFg] forKey:@"NotificationCode"];
+    notificationMessage.userData = userData;
+    [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
+}
+
+- (void)applicationDidBecomeActive:(UIApplication *)application
+{
+    NSLog(@"App did enter active mode");
+    
+    /*
+     Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+     */
+}
+
+- (void)applicationWillTerminate:(UIApplication *)application
+{
+    NSLog(@"App will be terminated");
+    exitingApp = YES;
+    
+    /*
+     Called when the application is about to terminate.
+     Save data if appropriate.
+     See also applicationDidEnterBackground:.
+     */
+}
+
+- (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)url
+{
+    if (!url) {  return NO; }
+    
+    NSString *URLString = [url absoluteString];
+    [[NSUserDefaults standardUserDefaults] setObject:URLString forKey:@"url"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    return YES;
+}
+
+- (NSString *) getDeviceUniqueIdentifier
+{
+    #if TARGET_IPHONE_SIMULATOR
+        return @"11111-22222-33333-44444-55555";
+    #else
+        return [[UIDevice currentDevice] uniqueIdentifier];
+    #endif  
+}
+
+- (void) showQuizWindow:(Quiz*) quizView
+{
+    
+    quizView.modalPresentationStyle = UIModalPresentationFormSheet;
+    [self.viewController presentModalViewController:quizView animated:YES];
+    
+}
+
+- (void)dealloc
+{
+    if(bonjourBrowserThread)
+    {
+        [bonjourBrowserThread cancel];
+        [bonjourBrowserThread release];
+    }
+    [selectedItemView release];
+    [connectedHost release];
+    [session release];
+    [_window release];
+    [_viewController release];
+    [super dealloc];
+}
+
+@end
