@@ -32,6 +32,7 @@
 @synthesize selectedMonth;
 @synthesize selectedDate;
 @synthesize logonGlow;
+@synthesize guestEnterButton;
 
 - (void) refreshDate:(NSDate*)aDate
 {
@@ -64,7 +65,7 @@
     {
         [self setNotebookHidden:YES];
         [self setNotebookViewHidden:YES];
-        [backgroundView setImage:[UIImage imageNamed:@"LibraryBGTerra.jpg"]];
+        [backgroundView setImage:[UIImage imageNamed:@"LibraryBG.jpg"]];
     }
     
     [sessionNameScrollView setHidden:hidden];
@@ -82,7 +83,7 @@
     {
         [self setNotebookHidden:YES];
         [self setLibraryViewHidden:YES];
-        [backgroundView setImage:[UIImage imageNamed:@"LibraryEmptyTerra.jpg"]];
+        [backgroundView setImage:[UIImage imageNamed:@"LibraryEmpty.jpg"]];
         
     }
     
@@ -96,7 +97,7 @@
     {
         [self setNotebookViewHidden:YES];
         [self setLibraryViewHidden:YES];
-        [backgroundView setImage:[UIImage imageNamed:@"NoteBookBGTerra.jpg"]];
+        [backgroundView setImage:[UIImage imageNamed:@"NoteBookBG.jpg"]];
     }
     
     [notebook setHidden:hidden];
@@ -255,7 +256,7 @@
         [notebookWorkspace release];
     
     [lectureViews release];
-    
+    [guestEnterButton release];
     [sessionNameScrollView release];
     [monthsScrollView release];
     [lectureNamesScrollView release];
@@ -277,9 +278,33 @@
 
 #pragma mark - View lifecycle
 
+- (void)accelerometer:(UIAccelerometer *)accelerometer didAccelerate:(UIAcceleration *)acceleration
+{
+
+    if (acceleration.z >= 0.8 && !screenClosed)
+    {
+        [self.view addSubview:blackScreen];
+    }
+    else
+    {
+        [blackScreen removeFromSuperview];
+        screenClosed = NO;
+    }
+    
+}
+
+
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    
+    [[UIAccelerometer sharedAccelerometer] setUpdateInterval:0.2];
+    [[UIAccelerometer sharedAccelerometer] setDelegate:self];
+    
+    blackScreen = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
+    [blackScreen setBackgroundColor:[UIColor blackColor]];
     
     if(!compactMode)
     {
@@ -297,6 +322,13 @@
         [self.view addSubview:notebookButton];
         [notebookButton release];
     
+#ifdef DK_TARGET
+        guestEnterButton = [[UIButton alloc] initWithFrame:CGRectMake(19, 280, 62, 71)];
+        [guestEnterButton setImage:[UIImage imageNamed:@"LibraryGuestEnter.png"] forState:UIControlStateNormal];
+        [guestEnterButton addTarget:self action:@selector(guestStudentEnterClicked:) forControlEvents:UIControlEventTouchUpInside];
+        [self.view addSubview:guestEnterButton];
+        [guestEnterButton release];
+#endif        
         notebookWorkspace = [[NotebookWorkspace alloc] initWithFrame:CGRectMake(136, 34, 855, 706)];
         [notebookWorkspace  setHidden:YES];
         [self.view addSubview:notebookWorkspace ];
@@ -363,13 +395,10 @@
     [self setBackgroundView:nil];
     [self setLogonGlow:nil];
     [super viewDidUnload];
-    // Release any retained subviews of the main view.
-    // e.g. self.myOutlet = nil;
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
-    // Return YES for supported orientations
     if(UIInterfaceOrientationIsLandscape(interfaceOrientation))
         return YES;
     else
@@ -384,12 +413,18 @@
 
 - (IBAction) notebookButtonClicked:(id) sender
 {
-    
-   // TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-   // [appDelegate restartBonjourBrowser];
-    
     [self setNotebookViewHidden:NO];
     [self setLibraryViewHidden:YES];
+}
+
+- (IBAction) guestStudentEnterClicked:(id) sender
+{
+    NumericPad *numericPad = [[NumericPad alloc] initWithNibName:@"NumericPad" bundle:nil];
+    UIPopoverController *popover = [[UIPopoverController alloc] initWithContentViewController:numericPad];
+    numericPad.popup = popover;
+    popover.popoverContentSize = numericPad.view.frame.size;
+    [popover presentPopoverFromRect:((UIButton*)sender).frame inView:self.view permittedArrowDirections:UIPopoverArrowDirectionDown animated:YES];
+    
 }
 
 - (IBAction) calendarButtonClicked:(id) sender

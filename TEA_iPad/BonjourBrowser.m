@@ -109,6 +109,8 @@
 
 - (void) initClient:(NSNetService *)pService
 {
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
     BonjourClient *client = [[BonjourClient alloc] init];
     client.bonjourBrowser = self;
     [clients addObject:client];
@@ -125,7 +127,6 @@
     [client openStreams];
 
     /* Send device id */
-    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     NSString *deviceIdentifier = [appDelegate getDeviceUniqueIdentifier];
 
     
@@ -134,6 +135,13 @@
 
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
     [dict setValue:deviceIdentifier forKey:@"device_id"];
+    
+    if(appDelegate.guestEnterNumber > 0)
+    {
+        [dict setValue:[NSNumber numberWithInt:appDelegate.guestEnterNumber] forKey:@"guest_number"];
+        appDelegate.guestEnterNumber = 0;
+    }
+    
     [client sendDictionary:dict];
     message.userData = dict;
     [dict release];
@@ -207,9 +215,6 @@
         
         [self initClient:pService];
     }
-    
-    
-    
 }
 
 

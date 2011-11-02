@@ -24,6 +24,7 @@ enum appState
     BonjourBrowser *bonjourBrowser;
     Session     *session;
     int         state;
+    int         guestEnterNumber;
     NSString *connectedHost;
     BOOL exitingApp;
     NSThread *bonjourBrowserThread;
@@ -40,6 +41,8 @@ enum appState
 @property (nonatomic, assign) int state;
 @property (nonatomic, assign) NSThread *bonjourBrowserThread;
 @property (nonatomic, retain) SessionLibraryItemView *selectedItemView;
+
+@property (nonatomic, assign) int guestEnterNumber;
 
 - (NSString *) getDeviceUniqueIdentifier;
 - (void) showQuizWindow:(Quiz*) quizView;
