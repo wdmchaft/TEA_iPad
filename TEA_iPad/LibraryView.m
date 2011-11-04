@@ -281,7 +281,7 @@
 - (void)accelerometer:(UIAccelerometer *)accelerometer didAccelerate:(UIAcceleration *)acceleration
 {
 
-    if (acceleration.z >= 0.8 && !screenClosed)
+    if (acceleration.z >= 0.7 && !screenClosed)
     {
         [self.view addSubview:blackScreen];
     }
