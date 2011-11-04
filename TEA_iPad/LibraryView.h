@@ -10,13 +10,15 @@
 #import "DateView.h"
 #import "NotebookWorkspace.h"
 #import "Notebook.h"
+#import "NumericPad.h"
 
 @class DWDrawingViewController, LectureView, MonthView;
-@interface LibraryView : UIViewController {
+@interface LibraryView : UIViewController <UIAccelerometerDelegate> {
     
     UIButton *libraryButton;
     UIButton *notebookButton;
     UIButton *calendarButton;
+    UIButton *guestEnterButton;
     
     UIScrollView *sessionNameScrollView;
     UIScrollView *monthsScrollView;
@@ -37,8 +39,12 @@
     MonthView *selectedMonth;
     int selectedDate;
     UIImageView *logonGlow;
+    
+    UIView *blackScreen;
+    BOOL screenClosed;
 }
 @property (nonatomic, retain) IBOutlet UIProgressView *contentProgress;
+@property (nonatomic, assign) UIButton *guestEnterButton;
 @property (nonatomic, retain) IBOutlet UIScrollView *sessionNameScrollView;
 @property (nonatomic, retain) IBOutlet UIScrollView *monthsScrollView;
 @property (nonatomic, retain) IBOutlet UIScrollView *lectureNamesScrollView;

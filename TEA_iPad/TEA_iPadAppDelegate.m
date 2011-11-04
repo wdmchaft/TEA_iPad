@@ -19,6 +19,7 @@
 #import "BonjourDocumentHandler.h"
 #import "BonjourAudioHandler.h"
 #import "Reachability.h"
+#import "BonjourStudentLockHandler.h"
 
 #include <SystemConfiguration/SystemConfiguration.h>
 
@@ -27,7 +28,7 @@
 
 
 
-@synthesize window=_window, bonjourBrowser, session, state, connectedHost;
+@synthesize window=_window, bonjourBrowser, session, state, connectedHost, guestEnterNumber;
 
 @synthesize viewController=_viewController, bonjourBrowserThread, selectedItemView;
 
@@ -145,7 +146,7 @@ void MyReachabilityCallback(
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     application.idleTimerDisabled = YES;
-    
+    guestEnterNumber = 0;
     
     BonjourMessageHandlerManager *handlerManager = [BonjourMessageHandlerManager sharedInstance];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourSessionInfoHandler alloc] init] autorelease]];
@@ -155,6 +156,7 @@ void MyReachabilityCallback(
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourVideoHandler alloc] init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourDocumentHandler alloc] init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourAudioHandler alloc] init] autorelease]];
+    [handlerManager.bonjourMessageHandlers addObject:[[[BonjourStudentLockHandler alloc] init] autorelease]];
     self.state = kAppStateIdle;
     
     
@@ -217,6 +219,8 @@ void MyReachabilityCallback(
         }
         
         [clientsToRemove release];
+        
+        [self.viewController.guestEnterButton setHidden:YES];
     }
     else
     {
@@ -225,7 +229,7 @@ void MyReachabilityCallback(
         self.viewController.logonGlow.alpha = 0.0;
         [UIView commitAnimations]; 
         
-       
+        [self.viewController.guestEnterButton setHidden:NO];
         
     }
 }

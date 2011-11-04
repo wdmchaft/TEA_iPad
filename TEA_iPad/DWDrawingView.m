@@ -108,7 +108,7 @@
 
 - (void) willDrawFrom:(CGPoint) pFromPoint 
 {
-    
+    [currentTool.drawingItem addPoint:pFromPoint];
     /*if(ibSelectionMode)
     {
         
@@ -198,6 +198,7 @@
        currentTool == eraserTool ||
        currentTool == ovalTool)
     {
+        
         contextImage = [[[currentTool drawingItem] drawIntoImage:contextImage withRect:self.frame] retain];
     }
     
@@ -240,13 +241,11 @@
 {
     
     drawingContext = UIGraphicsGetCurrentContext();
-    
-    
-    
+
     // draw context cache image
-    CGContextSaveGState(drawingContext);
-    CGContextDrawImage(drawingContext, rect, [contextImage CGImage]);
-    CGContextRestoreGState(drawingContext);
+   // CGContextSaveGState(drawingContext);
+   // CGContextDrawImage(drawingContext, rect, [contextImage CGImage]);
+   // CGContextRestoreGState(drawingContext);
     
     [[currentTool drawingItem] drawIntoContext:drawingContext];
     

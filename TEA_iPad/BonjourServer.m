@@ -7,6 +7,7 @@
 //
 
 #import "BonjourService.h"
+#import "ConfigurationManager.h"
 
 @implementation BonjourServer
 @synthesize clients, server;
