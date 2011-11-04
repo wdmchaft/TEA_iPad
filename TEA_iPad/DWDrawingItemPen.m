@@ -116,7 +116,7 @@ CGPoint tangent(CGPoint p1, CGPoint p2) {
         CGContextFillEllipseInRect(pContext, CGRectMake(startPos.x, startPos.y, lineWidth.lineWidth, lineWidth.lineWidth));
     }
     else
-    if([points count] >= 3)
+    if([points count] >= 4)
     {
         
        // [self drawCatmullRomSplines];
@@ -127,13 +127,13 @@ CGPoint tangent(CGPoint p1, CGPoint p2) {
         CGContextBeginPath(pContext);
         
         CGContextMoveToPoint(pContext, startPos.x, startPos.y);
-        for (int i=2; i<[points count]; i+=2) {
-            CGPoint cp1 = [[points objectAtIndex:i-1 ] CGPointValue];
-       //     CGPoint cp2 = [[points objectAtIndex:i-1 ] CGPointValue];
+        for (int i=3; i<[points count]; i+=3) {
+            CGPoint cp1 = [[points objectAtIndex:i-2 ] CGPointValue];
+            CGPoint cp2 = [[points objectAtIndex:i-1 ] CGPointValue];
             CGPoint lastPos = [[points objectAtIndex:i ] CGPointValue];
             
-            CGContextAddQuadCurveToPoint(pContext, cp1.x * cp1.x, cp1.y * cp1.y, lastPos.x, lastPos.y);
-           // CGContextAddCurveToPoint(pContext, cp1.x, cp1.y, cp2.x, cp2.y, lastPos.x, lastPos.y);
+           // CGContextAddQuadCurveToPoint(pContext, cp1.x * cp1.x, cp1.y * cp1.y, lastPos.x, lastPos.y);
+            CGContextAddCurveToPoint(pContext, cp1.x, cp1.y, cp2.x, cp2.y, lastPos.x, lastPos.y);
             
            // CGContextAddLineToPoint(pContext, lastPos.x, lastPos.y);
         }
