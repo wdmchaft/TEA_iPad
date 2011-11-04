@@ -109,8 +109,14 @@ CGPoint tangent(CGPoint p1, CGPoint p2) {
 
 -(void)drawIntoContext:(CGContextRef)pContext
 {
-
-    if([points count] >= 2)
+    if([points count] == 1)
+    {
+        CGPoint startPos = [[points objectAtIndex:0 ] CGPointValue];
+        CGContextSetRGBFillColor(pContext, [lineColor redColorValue],[lineColor greenColorValue], [lineColor blueColorValue], [lineColor alphaColorValue]);
+        CGContextFillEllipseInRect(pContext, CGRectMake(startPos.x, startPos.y, lineWidth.lineWidth, lineWidth.lineWidth));
+    }
+    else
+    if([points count] >= 3)
     {
         
        // [self drawCatmullRomSplines];
@@ -119,12 +125,25 @@ CGPoint tangent(CGPoint p1, CGPoint p2) {
         
         
         CGContextBeginPath(pContext);
+        
         CGContextMoveToPoint(pContext, startPos.x, startPos.y);
+        for (int i=2; i<[points count]; i+=2) {
+            CGPoint cp1 = [[points objectAtIndex:i-1 ] CGPointValue];
+       //     CGPoint cp2 = [[points objectAtIndex:i-1 ] CGPointValue];
+            CGPoint lastPos = [[points objectAtIndex:i ] CGPointValue];
+            
+            CGContextAddQuadCurveToPoint(pContext, cp1.x * cp1.x, cp1.y * cp1.y, lastPos.x, lastPos.y);
+           // CGContextAddCurveToPoint(pContext, cp1.x, cp1.y, cp2.x, cp2.y, lastPos.x, lastPos.y);
+            
+           // CGContextAddLineToPoint(pContext, lastPos.x, lastPos.y);
+        }
+        
+      /*  CGContextMoveToPoint(pContext, startPos.x, startPos.y);
         for (int i=1; i<[points count]; i++) {
             CGPoint lastPos = [[points objectAtIndex:i ] CGPointValue];
             CGContextAddLineToPoint(pContext, lastPos.x, lastPos.y);
         }
-        
+        */
         
        /* CGPoint startPos = [[vertices objectAtIndex:0 ] CGPointValue];
         
@@ -141,7 +160,7 @@ CGPoint tangent(CGPoint p1, CGPoint p2) {
         }*/
         
         CGContextSetRGBStrokeColor(pContext, [lineColor redColorValue],[lineColor greenColorValue], [lineColor blueColorValue], [lineColor alphaColorValue]);
-        
+        CGContextSetLineCap(pContext, kCGLineCapRound);
         CGContextSetLineWidth(pContext, lineWidth.lineWidth);
         CGContextStrokePath(pContext);
         
