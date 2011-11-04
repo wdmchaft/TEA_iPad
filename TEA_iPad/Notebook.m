@@ -24,6 +24,7 @@
 @synthesize state;
 @synthesize pages;
 @synthesize currentPageIndex;
+@synthesize lastOpenedPage;
 
 -(void) initNotebook
 {
@@ -70,6 +71,8 @@
     initialXMLString = [initialXMLString stringByReplacingOccurrencesOfString:@"%name%" withString:self.name];
     initialXMLString = [initialXMLString stringByReplacingOccurrencesOfString:@"%type%" withString:self.type];
     initialXMLString = [initialXMLString stringByReplacingOccurrencesOfString:@"%lectureGuid%" withString:self.lectureGuid];
+    initialXMLString = [initialXMLString stringByReplacingOccurrencesOfString:@"%lastOpenedPage%" withString:[NSString stringWithFormat:@"%d", currentPageIndex]];
+    
     //initialXMLString = [initialXMLString stringByReplacingOccurrencesOfString:@"%creationDate%" withString:self.creationDate];
 
     int counter = 0;
@@ -133,7 +136,10 @@
     {
         [self notebookAddPageAfterPage:0];
     }
-    [self notebookShowPage:1];
+    if(lastOpenedPage == 0)
+        lastOpenedPage = 1;
+    
+    [self notebookShowPage:lastOpenedPage];
 
     state = kStateOpened;
 }
@@ -194,7 +200,10 @@
         [currentPage.drawingViewController.view removeFromSuperview];
     }
     
+    NSLog(@"removing page %d", currentPageIndex);
     currentPageIndex = pPageIndex;
+    
+    NSLog(@"current page index %d", currentPageIndex);
     
     currentPage = (NotebookPage*) [pages objectAtIndex:currentPageIndex - 1];
     

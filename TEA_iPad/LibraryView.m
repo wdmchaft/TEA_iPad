@@ -322,7 +322,7 @@
         [self.view addSubview:notebookButton];
         [notebookButton release];
     
-#ifdef DK_TARGET
+#ifdef HAS_GUEST_ENTER
         guestEnterButton = [[UIButton alloc] initWithFrame:CGRectMake(19, 280, 62, 71)];
         [guestEnterButton setImage:[UIImage imageNamed:@"LibraryGuestEnter.png"] forState:UIControlStateNormal];
         [guestEnterButton addTarget:self action:@selector(guestStudentEnterClicked:) forControlEvents:UIControlEventTouchUpInside];

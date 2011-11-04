@@ -12,8 +12,6 @@
 	<string></string>
 	<key>CFBundleIconFiles</key>
 	<array>
-		<string>LogoEU.png</string>
-		<string>Logo_iPadEU.png</string>
 		<string>LogoiPhone.png</string>
 		<string>Logo_iPadTerra.png</string>
 	</array>

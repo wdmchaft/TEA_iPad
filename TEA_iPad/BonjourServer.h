@@ -8,7 +8,6 @@
 
 #import <Foundation/Foundation.h>
 #import "TCPServer.h"
-#import "ConfigurationManager.h"
 
 @class DWDevice, BonjourMessage, BonjourClient;
 @interface BonjourServer : NSObject <TCPServerDelegate>

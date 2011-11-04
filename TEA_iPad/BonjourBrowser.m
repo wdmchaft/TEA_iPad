@@ -7,9 +7,9 @@
 //
 
 #import "BonjourBrowser.h"
-#import "ConfigurationManager.h"
 #import "TEA_iPadAppDelegate.h"
 #import "BonjourService.h"
+#import "ConfigurationManager.h"
 
 @implementation BonjourBrowser
 
