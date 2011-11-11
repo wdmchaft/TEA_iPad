@@ -35,6 +35,7 @@ enum kNotebookState {
     int state;
     int currentPageIndex;
     int totalPageCount;
+    int lastOpenedPage;
     
     NSMutableArray *pages;
     
@@ -64,6 +65,7 @@ enum kNotebookState {
 @property (nonatomic, retain) NSString *coverColor;
 @property (nonatomic, retain) NSMutableArray *pages;
 @property (nonatomic, assign) int currentPageIndex;
+@property (nonatomic, assign) int lastOpenedPage;
 
 - (IBAction) prevPageClicked:(id) sender;
 - (IBAction) nextPageClicked:(id) sender;

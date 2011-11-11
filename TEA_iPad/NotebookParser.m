@@ -38,7 +38,7 @@
 	[parser parse];
 	[parser release];
     
-    self.notebook.currentPageIndex = 0;
+   // self.notebook.currentPageIndex = 0;
 }
 
 -(void) parser:(NSXMLParser *)parser foundCharacters:(NSString *)string
@@ -95,7 +95,7 @@
         notebook.version = [attributeDict valueForKey:@"version"];
         notebook.type = [attributeDict valueForKey:@"type"];
         notebook.lectureGuid = [attributeDict valueForKey:@"lectureGuid"];
-        
+        notebook.lastOpenedPage = [[attributeDict valueForKey:@"lastOpenedPage"] intValue];
     }
     else if([elementName isEqualToString:@"page"])
 	{

@@ -12,6 +12,7 @@
 @interface DWDrawingItemPen : DWDrawingItem {
     
     NSMutableArray *vertices;
+    BOOL firstLoop;
 }
 
 

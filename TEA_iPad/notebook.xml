@@ -1,4 +1,4 @@
-<notebook version="%version%" name="%name%" type="%type%" guid="%guid%" lectureGuid="%lectureGuid%" creationDate="%creationDate%" path="%path%" points="%points%" coverColor="%coverColor%">
+<notebook version="%version%" name="%name%" type="%type%" guid="%guid%" lectureGuid="%lectureGuid%" creationDate="%creationDate%" path="%path%" points="%points%" coverColor="%coverColor%" lastOpenedPage="%lastOpenedPage%">
     
 	<!--pages-->
     
