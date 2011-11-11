@@ -243,9 +243,9 @@
     drawingContext = UIGraphicsGetCurrentContext();
 
     // draw context cache image
-   // CGContextSaveGState(drawingContext);
-   // CGContextDrawImage(drawingContext, rect, [contextImage CGImage]);
-   // CGContextRestoreGState(drawingContext);
+    CGContextSaveGState(drawingContext);
+    CGContextDrawImage(drawingContext, rect, [contextImage CGImage]);
+    CGContextRestoreGState(drawingContext);
     
     [[currentTool drawingItem] drawIntoContext:drawingContext];
     
