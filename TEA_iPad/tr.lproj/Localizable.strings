@@ -1,0 +1,19 @@
+/* 
+ Localizable.strings
+ TEA_iPad
+ 
+ Created by Oguz Demir on 14/11/2011.
+ Copyright (c) 2011 Dualware. All rights reserved.
+ */
+
+
+"Object Delete Message"="Nesneyi silmek istediğinizden emin misiniz?";
+"Delete"="Sil";
+"Yes"="Evet";
+"No"="Hayır";
+"Cancel"="Vazgeç";
+"Caution"="Uyarı";
+"Send"="Gönder";
+"Answer Send Message"="Cevabınızı '%c' olarak seçtiniz. Göndermek istiyor musunuz?";
+"Move To Notebook"="Deftere taşı";
+"Rename"="İsmini Değiştir";

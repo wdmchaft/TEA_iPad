@@ -54,11 +54,17 @@
 - (void) sendSolution
 {
     
-    int asciiCode = 97;
-    NSString *alertString = [NSString stringWithFormat:@"Cevabınızı '%c' olarak seçtiniz. Devam etmek istiyor musunuz?", asciiCode + currentAnswer]; 
     
     
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Dikkat" message:alertString delegate:self cancelButtonTitle:@"Vazgeç" otherButtonTitles: @"Gönder", nil];
+    int asciiCode = 97; // ascii code of a
+    NSString *alertString = [NSString stringWithFormat:NSLocalizedString(@"Answer Send Message", NULL), asciiCode + currentAnswer]; 
+    
+    NSString *cancel = NSLocalizedString(@"Cancel", NULL);
+    NSString *send = NSLocalizedString(@"Send", NULL);
+    NSString *caution = NSLocalizedString(@"Caution", NULL);
+    
+    
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:caution message:alertString delegate:self cancelButtonTitle:cancel otherButtonTitles: send, nil];
     
     [alertView show];
     

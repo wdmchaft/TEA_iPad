@@ -233,8 +233,13 @@
         CGPoint location = [gestureRecognizer locationInView:[gestureRecognizer view]];
         UIMenuController *menuController = [UIMenuController sharedMenuController];
         
-        UIMenuItem *addToNotebookMenu = [[UIMenuItem alloc] initWithTitle:@"Deftere Ekle" action:@selector(menuAddToNotebookClicked:)];
-        UIMenuItem *changeNameMenu = [[UIMenuItem alloc] initWithTitle:@"İsmini Değiştir" action:@selector(menuChangeNameClicked:)];
+        
+        NSString *moveToNotebook = NSLocalizedString(@"Move To Notebook", NULL);
+        NSString *rename = NSLocalizedString(@"Rename", NULL);
+ 
+        
+        UIMenuItem *addToNotebookMenu = [[UIMenuItem alloc] initWithTitle:moveToNotebook action:@selector(menuAddToNotebookClicked:)];
+        UIMenuItem *changeNameMenu = [[UIMenuItem alloc] initWithTitle:rename action:@selector(menuChangeNameClicked:)];
         
         
         [[gestureRecognizer view] becomeFirstResponder];

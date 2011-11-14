@@ -29,9 +29,13 @@
 
 - (void) closeClicked
 {
-    NSString *alertString = @"Nesneyi silmek istediğinizden emin misiniz?";
     
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Dikkat" message:alertString delegate:self cancelButtonTitle:@"Vazgeç" otherButtonTitles: @"Sil", nil];
+    NSString *alertString = NSLocalizedString(@"Object Delete Message", NULL);
+    NSString *cancel = NSLocalizedString(@"Cancel", NULL);
+    NSString *delete = NSLocalizedString(@"Delete", NULL);
+    NSString *caution = NSLocalizedString(@"Caution", NULL);
+    
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:caution message:alertString delegate:self cancelButtonTitle:cancel otherButtonTitles: delete, nil];
     
     [alertView show];
     

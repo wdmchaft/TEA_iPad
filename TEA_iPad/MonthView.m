@@ -15,6 +15,11 @@
 
 - (NSString *) monthString
 {
+    NSDateFormatter *df = [[NSDateFormatter alloc] init];
+    NSString *monthName = [[df monthSymbols] objectAtIndex:month - 1];
+    
+    
+    /*
     switch (month) {
         case 1:  return @"Ocak"; break;
         case 2:  return @"Şubat"; break;
@@ -30,7 +35,8 @@
         case 12: return @"Aralık"; break;
     }
     
-    return @"";
+    return @"";*/
+    return monthName;
 }
 
 - (void) setSelected:(BOOL)pSelected
