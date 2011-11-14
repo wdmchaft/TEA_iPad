@@ -15,9 +15,28 @@
 @implementation DWViewItem
 @synthesize lineColor, lineWidth, lineStyle, fillColor, font, transparency, scale, rotate, flip, itemState, viewObject, selected, guid, container;
 
+
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    if(buttonIndex == 1) //ok
+    {
+        [container removeViewItem:self];
+    }
+}
+
+
+
 - (void) closeClicked
 {
-    [container removeViewItem:self];
+    NSString *alertString = @"Nesneyi silmek istediğinizden emin misiniz?";
+    
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Dikkat" message:alertString delegate:self cancelButtonTitle:@"Vazgeç" otherButtonTitles: @"Sil", nil];
+    
+    [alertView show];
+    
+    
+    
     
 }
 
@@ -106,7 +125,7 @@
 {
     [viewObject setFrame:CGRectMake(15, 40, self.bounds.size.width - 30, self.bounds.size.height - 55)];
     
-    [moveAnchor setFrame:CGRectMake(15, 15, self.bounds.size.width - 30,  25)];
+    [moveAnchor setFrame:CGRectMake(15, 15, self.bounds.size.width - 30,  40)];
     [southEastAnchor setFrame:CGRectMake(self.frame.size.width - 28, self.frame.size.height - 28, 28,  28)];
     [closeAnchor setFrame:CGRectMake(self.frame.size.width - 28, 0, 28,  28)];
 }

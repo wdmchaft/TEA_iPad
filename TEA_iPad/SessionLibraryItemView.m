@@ -35,6 +35,14 @@
         }
         
         UIImage *image = [UIImage imageWithContentsOfFile:previewPath];
+        
+        previewImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
+        [previewImage setImage:image];
+        [self addSubview:previewImage];
+        [previewImage.layer setCornerRadius:10];
+        [previewImage.layer setMasksToBounds:YES];
+        [previewImage release];
+        
         return  image;
     }
     else
@@ -85,8 +93,12 @@
         previewPath = filePath;
         [db release];
         
-        [previewImage setImage:[self getFilePreview]];
-        
+        previewImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
+        [previewImage setImage:anImage];
+        [self addSubview:previewImage];
+        [previewImage.layer setCornerRadius:10];
+        [previewImage.layer setMasksToBounds:YES];
+        [previewImage release];
     }
     
     [webView setDelegate:nil];
@@ -137,12 +149,8 @@
     
     if (!([type isEqualToString:@"video"] || [type isEqualToString:@"audio"])) 
     {
-        previewImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
-        [previewImage setImage:[self getFilePreview]];
-        [self addSubview:previewImage];
-        [previewImage.layer setCornerRadius:10];
-        [previewImage.layer setMasksToBounds:YES];
-        [previewImage release];
+        [self getFilePreview];
+        
     }
     
     UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];

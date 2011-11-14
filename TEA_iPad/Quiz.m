@@ -28,6 +28,7 @@
 @synthesize guid;
 @synthesize correctAnswer;
 @synthesize image;
+@synthesize optionCount;
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
@@ -134,6 +135,65 @@
     [timerControl startTimer];
     
     [quizImage setImage:image];
+    
+}
+
+- (void) viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    
+    if(optionCount == 2)
+    {
+        [answerA setHidden:NO];
+        [answerB setHidden:NO];
+        [answerC setHidden:YES];
+        [answerD setHidden:YES];
+        [answerE setHidden:YES];
+  
+        [answerA setFrame:CGRectMake(202, 513, 56, 56)];
+        [answerB setFrame:CGRectMake(283, 513, 56, 56)];
+        
+    }
+    else if(optionCount == 3)
+    {
+        [answerA setHidden:NO];
+        [answerB setHidden:NO];
+        [answerC setHidden:NO];
+        [answerD setHidden:YES];
+        [answerE setHidden:YES];
+        
+        [answerA setFrame:CGRectMake(160, 513, 56, 56)];
+        [answerB setFrame:CGRectMake(243, 513, 56, 56)];
+        [answerC setFrame:CGRectMake(324, 513, 56, 56)];
+
+    }
+    else if(optionCount == 4)
+    {
+        [answerA setHidden:NO];
+        [answerB setHidden:NO];
+        [answerC setHidden:NO];
+        [answerD setHidden:NO];
+        [answerE setHidden:YES];
+        
+        [answerA setFrame:CGRectMake(119, 513, 56, 56)];
+        [answerB setFrame:CGRectMake(202, 513, 56, 56)];
+        [answerC setFrame:CGRectMake(285, 513, 56, 56)];
+        [answerD setFrame:CGRectMake(366, 513, 56, 56)];
+    }
+    else if(optionCount == 5)
+    {
+        [answerA setHidden:NO];
+        [answerB setHidden:NO];
+        [answerC setHidden:NO];
+        [answerD setHidden:NO];
+        [answerE setHidden:NO];
+        
+        [answerA setFrame:CGRectMake(77,  513, 56, 56)];
+        [answerB setFrame:CGRectMake(160, 513, 56, 56)];
+        [answerC setFrame:CGRectMake(243, 513, 56, 56)];
+        [answerD setFrame:CGRectMake(324, 513, 56, 56)];
+        [answerE setFrame:CGRectMake(405, 513, 56, 56)];
+    }
     
 }
 

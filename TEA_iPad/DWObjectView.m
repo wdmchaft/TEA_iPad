@@ -15,6 +15,7 @@
 - (void) initObjectView
 {
     viewItems = [[NSMutableArray alloc] init];
+    self.clipsToBounds = YES;
 }
 
 - (id)initWithFrame:(CGRect)frame
