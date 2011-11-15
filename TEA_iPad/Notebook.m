@@ -253,6 +253,9 @@
     NSLog(@"removing page %d", currentPageIndex);
     currentPageIndex = pPageIndex;
     
+    if(currentPageIndex > [pages count])
+        currentPageIndex = [pages count];
+    
     NSLog(@"current page index %d", currentPageIndex);
     
     currentPage = (NotebookPage*) [pages objectAtIndex:currentPageIndex - 1];
