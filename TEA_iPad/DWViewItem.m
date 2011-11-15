@@ -21,7 +21,14 @@
 {
     if(buttonIndex == 1) //ok
     {
-        [container removeViewItem:self];
+        TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+        
+        if(appDelegate.viewController.notebook.state == kStateOpened)
+        {
+            [appDelegate.viewController.notebook notebookRemoveViewItem:self];
+
+            
+        }
     }
 }
 
@@ -39,10 +46,8 @@
     
     [alertView show];
     
-    
-    
-    
 }
+
 
 - (void) setContainer:(DWObjectView *)aContainer
 {
@@ -127,7 +132,7 @@
 
 - (void) resized
 {
-    [viewObject setFrame:CGRectMake(15, 40, self.bounds.size.width - 30, self.bounds.size.height - 55)];
+    [viewObject setFrame:CGRectMake(15, 55, self.bounds.size.width - 30, self.bounds.size.height - 55)];
     
     [moveAnchor setFrame:CGRectMake(15, 15, self.bounds.size.width - 30,  40)];
     [southEastAnchor setFrame:CGRectMake(self.frame.size.width - 28, self.frame.size.height - 28, 28,  28)];

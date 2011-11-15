@@ -52,7 +52,7 @@ void PrintReachabilityFlags(
     else
     {
         NSLog(@"Has connection...");
-        [appDelegateObject resetBonjourServer];
+        [appDelegateObject restartBonjourBrowser];
     }
 }
 
@@ -87,30 +87,11 @@ void MyReachabilityCallback(
     self.state = kAppStateIdle;
     
     [bonjourBrowser startBrowse];
-    
-  //  [bonjourBrowser.clients release];
-    
-   /* [bonjourBrowser.netServiceBrowser stop];
-    [bonjourBrowser.clients removeAllObjects];
-    [bonjourBrowser.services removeAllObjects];
-    [bonjourBrows   er.netServiceBrowser release];*/
-  //  [self performSelector:@selector(stopBonjourBrowser) onThread:bonjourBrowserThread withObject:nil waitUntilDone:YES];
-   // sleep(2);
-    
-//    [bonjourBrowserThread cancel];
- //   [bonjourBrowserThread release];
-//    bonjourBrowserThread = nil;
-    
-   // bonjourBrowserThread = [[NSThread alloc] initWithTarget:self selector:@selector(startBonjourBrowser) object:nil];
-   // [bonjourBrowserThread start];
-//    [bonjourBrowser release];
+
     NSLog(@"Bonjour service restarted...");
 }
 
-- (void) stopBonjourBrowser
-{
-    [self.bonjourBrowser release];
-}
+
 
 - (void) startBonjourBrowser
 {

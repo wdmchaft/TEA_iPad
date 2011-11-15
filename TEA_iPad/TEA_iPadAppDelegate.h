@@ -46,7 +46,6 @@ enum appState
 
 - (NSString *) getDeviceUniqueIdentifier;
 - (void) showQuizWindow:(Quiz*) quizView;
-- (void) stopBonjourBrowser;
 - (void) restartBonjourBrowser;
 
 @end

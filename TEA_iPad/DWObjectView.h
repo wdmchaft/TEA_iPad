@@ -9,15 +9,16 @@
 #import <UIKit/UIKit.h>
 #import "DWViewItem.h"
 
+@class DWDrawingViewController;
 @interface DWObjectView : UIView 
 {
-    NSMutableArray *viewItems;
+   DWDrawingViewController *drawingViewController;
 }
 
 - (void) addViewItem:(DWViewItem*) viewItem;
 - (void) setAllSelected:(BOOL) selected;
 - (void) removeViewItem:(DWViewItem *) aViewItem;
 
-@property (nonatomic, assign) NSMutableArray *viewItems;
+@property (nonatomic, assign) DWDrawingViewController *drawingViewController;
 
 @end

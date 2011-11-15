@@ -20,7 +20,7 @@ enum kNotebookState {
 @interface Notebook : UIView 
 {
 
-    //DWDrawingViewController *drawingViewController;
+    DWDrawingViewController *drawingViewController;
     
     NSString *version;
     NSString *name;
@@ -53,6 +53,12 @@ enum kNotebookState {
 - (void) notebookAddPageAfterPage:(int) aPageIndex withImage:(UIImage*) pImage;
 - (void) setPageChangeSelector:(SEL) aSelector andTarget:(id) aTarget;
 
+- (void) notebookAddViewItem:(int) viewItemIndex;
+- (void) notebookCleanViewItems;
+
+- (void) notebookRemoveViewItem:(DWViewItem*) viewItem;
+
+
 @property (nonatomic, assign) int state;
 @property (nonatomic, retain) NSString *version;
 @property (nonatomic, retain) NSString *name;
@@ -66,6 +72,9 @@ enum kNotebookState {
 @property (nonatomic, retain) NSMutableArray *pages;
 @property (nonatomic, assign) int currentPageIndex;
 @property (nonatomic, assign) int lastOpenedPage;
+
+@property (nonatomic, retain) DWDrawingViewController *drawingViewController;
+
 
 - (IBAction) prevPageClicked:(id) sender;
 - (IBAction) nextPageClicked:(id) sender;

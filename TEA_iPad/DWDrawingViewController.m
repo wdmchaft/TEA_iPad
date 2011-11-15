@@ -16,12 +16,13 @@
 #import "DWViewItemWebClip.h"
 #import "DWViewItemSound.h"
 #import "DWViewItemLlibraryItemClip.h"
+#import "Notebook.h"
 
 @implementation DWDrawingViewController
 @synthesize drawingLayer;
 @synthesize objectLayer;
 
-@synthesize toolPen, currentPage;
+@synthesize toolPen, currentPage, pageEdited;
 @synthesize toolSelect;
 //@synthesize colorBlack;
 @synthesize toolRect;
@@ -43,7 +44,7 @@
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        // Custom initialization
+        
     }
     return self;
 }
@@ -64,9 +65,9 @@
     // Do any additional setup after loading the view from its nib.
     
     audioFileName = [[[LocalDatabase stringWithUUID] stringByAppendingString:@".caf"] retain];
-    
-   
-   }
+    drawingLayer.drawingViewController = self;
+    objectLayer.drawingViewController = self;
+}
 
 - (void)viewDidUnload
 {
@@ -224,15 +225,7 @@
     [self editModeOnOffChanged:editModeSwitch];
 }
 
-- (IBAction)toolTypeClicked:(id)sender
-{
-    DWViewItemText *viewItemText = [[DWViewItemText alloc] initWithFrame:CGRectMake(150, 15, 200, 200)];
-    [objectLayer addViewItem:viewItemText];
-    [viewItemText release];
-    
-    [editModeSwitch setOn:YES];
-    [self editModeOnOffChanged:editModeSwitch];
-}
+
 
 
 - (IBAction)toolEraserClicked:(id)sender 
@@ -294,23 +287,64 @@
 
 - (IBAction)toolLibraryClipClicked:(id)sender 
 {
-    DWViewItemLlibraryItemClip *viewItemWebClip = [[DWViewItemLlibraryItemClip alloc] initWithFrame:CGRectMake(150, 15, 200, 200)];
-    [objectLayer addViewItem:viewItemWebClip];
-    viewItemWebClip.container = self.objectLayer;
-    [viewItemWebClip release];
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
-    [editModeSwitch setOn:YES];
-    [self editModeOnOffChanged:editModeSwitch];
+    if(appDelegate.viewController.notebook.state == kStateOpened)
+    {
+        DWViewItemLlibraryItemClip *viewItemWebClip = [[DWViewItemLlibraryItemClip alloc] initWithFrame:CGRectMake(150, 15, 200, 200)];
+        
+        int pageIndex = appDelegate.viewController.notebook.currentPageIndex - 1;
+        NotebookPage *page = (NotebookPage*) [appDelegate.viewController.notebook.pages objectAtIndex:pageIndex];
+        [page.pageObjects addObject:viewItemWebClip];
+        [appDelegate.viewController.notebook notebookAddViewItem:[page.pageObjects count] - 1];
+        
+        viewItemWebClip.container = self.objectLayer;
+        [viewItemWebClip release];
+        
+        [editModeSwitch setOn:YES];
+        [self editModeOnOffChanged:editModeSwitch];
+    }
 }
 
 - (IBAction)toolWebClipClicked:(id)sender 
 {
-    DWViewItemWebClip *viewItemWebClip = [[DWViewItemWebClip alloc] initWithFrame:CGRectMake(150, 15, 200, 200)];
-    [objectLayer addViewItem:viewItemWebClip];
-    [viewItemWebClip release];
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
-    [editModeSwitch setOn:YES];
-    [self editModeOnOffChanged:editModeSwitch];
+    if(appDelegate.viewController.notebook.state == kStateOpened)
+    {
+        DWViewItemWebClip *viewItemWebClip = [[DWViewItemWebClip alloc] initWithFrame:CGRectMake(150, 15, 200, 200)];
+        int pageIndex = appDelegate.viewController.notebook.currentPageIndex - 1;
+        NotebookPage *page = (NotebookPage*) [appDelegate.viewController.notebook.pages objectAtIndex:pageIndex];
+        [page.pageObjects addObject:viewItemWebClip];
+        [appDelegate.viewController.notebook notebookAddViewItem:[page.pageObjects count] - 1];
+        [viewItemWebClip release];
+        
+        [editModeSwitch setOn:YES];
+        [self editModeOnOffChanged:editModeSwitch];
+    }
+    
+    
+}
+
+- (IBAction)toolTypeClicked:(id)sender
+{
+    
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
+    if(appDelegate.viewController.notebook.state == kStateOpened)
+    {
+        DWViewItemText *viewItemText = [[DWViewItemText alloc] initWithFrame:CGRectMake(150, 15, 200, 200)];
+        int pageIndex = appDelegate.viewController.notebook.currentPageIndex - 1;
+        NotebookPage *page = (NotebookPage*) [appDelegate.viewController.notebook.pages objectAtIndex:pageIndex];
+        [page.pageObjects addObject:viewItemText];
+        [appDelegate.viewController.notebook notebookAddViewItem:[page.pageObjects count] - 1];
+        [viewItemText release];
+        
+        [editModeSwitch setOn:YES];
+        [self editModeOnOffChanged:editModeSwitch];
+    }
+    
+    
 }
 
 - (IBAction)recordAudioButtonClicked:(id)sender
@@ -318,10 +352,15 @@
     
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
-    if(appDelegate.state == kAppStateIdle)
+    if(appDelegate.state == kAppStateIdle && appDelegate.viewController.notebook.state == kStateOpened)
     {
         DWViewItemSound *viewItemSound = [[DWViewItemSound alloc] initWithFrame:CGRectMake(150, 15, 200, 200)];
-        [objectLayer addViewItem:viewItemSound];
+        int pageIndex = appDelegate.viewController.notebook.currentPageIndex - 1;
+        NotebookPage *page = (NotebookPage*) [appDelegate.viewController.notebook.pages objectAtIndex:pageIndex];
+        [page.pageObjects addObject:viewItemSound];
+        [appDelegate.viewController.notebook notebookAddViewItem:[page.pageObjects count] - 1];
+        
+        
         [viewItemSound release];
         
         [editModeSwitch setOn:YES];

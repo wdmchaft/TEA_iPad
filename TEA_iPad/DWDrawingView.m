@@ -8,9 +8,10 @@
 
 #import "DWDrawingView.h"
 #import <QuartzCore/QuartzCore.h>
+#import "DWDrawingViewController.h"
 
 @implementation DWDrawingView
-@synthesize drawingItemList, currentTool, penTool, rectangleTool, lineTool, eraserTool, ovalTool, contextImage;
+@synthesize drawingItemList, currentTool, penTool, rectangleTool, lineTool, eraserTool, ovalTool, contextImage, drawingViewController;
 
 
 
@@ -200,6 +201,7 @@
     {
         
         contextImage = [[[currentTool drawingItem] drawIntoImage:contextImage withRect:self.frame] retain];
+        [drawingViewController.target performSelector:drawingViewController.pageEdited];
     }
     
     [currentTool resetTool];
@@ -223,7 +225,8 @@
 
 - (void)dealloc
 {
-    
+  
+    NSLog(@"drawing view dealloc");
     [penTool release];
     [rectangleTool release];
     [lineTool release];
@@ -232,9 +235,14 @@
     
     [contextImage release];
     [zoomLevel release];
-    [currentTool release];
     [drawingItemList release];
     [super dealloc];
+}
+
+- (void) setContextImage:(UIImage *)pContextImage
+{
+    contextImage = [pContextImage retain];
+  //  [self setNeedsDisplay];
 }
 
 - (void) drawRect:(CGRect)rect
@@ -243,10 +251,12 @@
     drawingContext = UIGraphicsGetCurrentContext();
 
     // draw context cache image
-    CGContextSaveGState(drawingContext);
-    CGContextDrawImage(drawingContext, rect, [contextImage CGImage]);
-    CGContextRestoreGState(drawingContext);
-    
+    if(contextImage)
+    {
+        CGContextSaveGState(drawingContext);
+        CGContextDrawImage(drawingContext, rect, [contextImage CGImage]);
+        CGContextRestoreGState(drawingContext);
+    }
     [[currentTool drawingItem] drawIntoContext:drawingContext];
     
     //[[currentTool drawingItem] drawIntoContext:drawingContext];
@@ -367,40 +377,19 @@
 -(void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     UITouch *touch = [touches anyObject];
-    CGPoint location = [touch locationInView:self];
-    firstTouchLocation = location;
-    [self didDrawFrom:firstTouchLocation To:location];
     
-/*
-
+    if([touch tapCount] == 2)
     {
-        currentTool.drawingItem.ibRotate = FALSE;
-        
-        if(currentTool.drawingItem.ibResize)
-            currentTool.drawingItem.ibResize = FALSE;
-        
-        if(!ibSelectionMode )
-        {
-            [drawingItemList addObject:[currentTool drawingItem]];
-           
-            [[currentTool drawingItem] release];
-            
-        }
-        else
-        {
-            UIGraphicsBeginImageContext(self.bounds.size);
-            [self.layer renderInContext:UIGraphicsGetCurrentContext()];
-            contextImage = [UIGraphicsGetImageFromCurrentImageContext() retain];
-            UIGraphicsEndImageContext();
-            
-            //[currentTool.drawingItem.points removeAllObjects];
-        }
-        
-
+        [drawingViewController.editModeSwitch setOn:YES];
+        [drawingViewController editModeOnOffChanged:drawingViewController.editModeSwitch];
+    }
+    else
+    {
+        CGPoint location = [touch locationInView:self];
+        firstTouchLocation = location;
+        [self didDrawFrom:firstTouchLocation To:location];
     }
     
-    currentTool.drawingItem = [[DWDrawingItemPen alloc] init];
-    */
 }
 
 /*
