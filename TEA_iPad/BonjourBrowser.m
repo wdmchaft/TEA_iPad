@@ -90,7 +90,7 @@
 {
 
     self.netServiceBrowser = [[NSNetServiceBrowser alloc] init];
-	
+
     NSString *serviceName = [NSString stringWithFormat:@"_%@._tcp.", [ConfigurationManager getConfigurationValueForKey:@"BonjourServiceName"]];
     
     //serviceName = @"_teaservice._tcp.";

@@ -15,9 +15,9 @@
 
 - (id)init
 {
-    points = [[NSMutableArray alloc]init];
-    lineColor = [[DWColor alloc] init];
-    lineWidth = [[DWLineWidth alloc] init];
+    self.points = [[NSMutableArray alloc]init];
+    self.lineColor = [[DWColor alloc] init];
+    self.lineWidth = [[DWLineWidth alloc] init];
  
     return self;
 }
@@ -90,6 +90,7 @@ CGContextRef createBitmapContext (int pixelsWide,
 
 - (void) dealloc
 {
+    [points release];
     [lineColor release];
     [lineWidth release];
     [lineStyle release];

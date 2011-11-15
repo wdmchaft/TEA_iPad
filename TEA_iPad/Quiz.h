@@ -27,6 +27,7 @@
     
     int currentAnswer;
     int correctAnswer;
+    int optionCount;
     
     UIImage *image;
 }
@@ -39,6 +40,7 @@
 @property (nonatomic, retain) IBOutlet UIButton *answerD;
 @property (nonatomic, retain) IBOutlet UIButton *answerE;
 @property (nonatomic, assign) int solveTime;
+@property (nonatomic, assign) int optionCount;
 @property (nonatomic, retain) IBOutlet UIView *bgView;
 @property (nonatomic, retain) IBOutlet Timer *timerControl;
 @property (nonatomic, retain) NSString *guid;

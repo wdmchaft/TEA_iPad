@@ -35,6 +35,14 @@
         }
         
         UIImage *image = [UIImage imageWithContentsOfFile:previewPath];
+        
+        previewImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
+        [previewImage setImage:image];
+        [self addSubview:previewImage];
+        [previewImage.layer setCornerRadius:10];
+        [previewImage.layer setMasksToBounds:YES];
+        [previewImage release];
+        
         return  image;
     }
     else
@@ -85,8 +93,12 @@
         previewPath = filePath;
         [db release];
         
-        [previewImage setImage:[self getFilePreview]];
-        
+        previewImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
+        [previewImage setImage:anImage];
+        [self addSubview:previewImage];
+        [previewImage.layer setCornerRadius:10];
+        [previewImage.layer setMasksToBounds:YES];
+        [previewImage release];
     }
     
     [webView setDelegate:nil];
@@ -137,12 +149,8 @@
     
     if (!([type isEqualToString:@"video"] || [type isEqualToString:@"audio"])) 
     {
-        previewImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
-        [previewImage setImage:[self getFilePreview]];
-        [self addSubview:previewImage];
-        [previewImage.layer setCornerRadius:10];
-        [previewImage.layer setMasksToBounds:YES];
-        [previewImage release];
+        [self getFilePreview];
+        
     }
     
     UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
@@ -225,8 +233,13 @@
         CGPoint location = [gestureRecognizer locationInView:[gestureRecognizer view]];
         UIMenuController *menuController = [UIMenuController sharedMenuController];
         
-        UIMenuItem *addToNotebookMenu = [[UIMenuItem alloc] initWithTitle:@"Deftere Ekle" action:@selector(menuAddToNotebookClicked:)];
-        UIMenuItem *changeNameMenu = [[UIMenuItem alloc] initWithTitle:@"İsmini Değiştir" action:@selector(menuChangeNameClicked:)];
+        
+        NSString *moveToNotebook = NSLocalizedString(@"Move To Notebook", NULL);
+        NSString *rename = NSLocalizedString(@"Rename", NULL);
+ 
+        
+        UIMenuItem *addToNotebookMenu = [[UIMenuItem alloc] initWithTitle:moveToNotebook action:@selector(menuAddToNotebookClicked:)];
+        UIMenuItem *changeNameMenu = [[UIMenuItem alloc] initWithTitle:rename action:@selector(menuChangeNameClicked:)];
         
         
         [[gestureRecognizer view] becomeFirstResponder];

@@ -45,7 +45,6 @@
 
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    NSLog(@"began");
     UITouch *touch = [touches anyObject];
     CGPoint location = [touch locationInView:self];
     startPoint = location;
@@ -57,7 +56,6 @@
 {
     if(startSize)
     {
-        NSLog(@"moved");
         UITouch *touch = [touches anyObject];
         CGPoint newMouseLocation = [touch locationInView:self];
         
@@ -116,10 +114,12 @@
             newFrame.size.width += delta.x;
         }
         
-        if(CGRectContainsRect(containerView.frame, newFrame))
-           {
-               [viewToResize setFrame:newFrame];
-           }
+       
+        CGRect rect = CGRectMake(containerView.frame.origin.x - 250, containerView.frame.origin.y, containerView.frame.size.width + 250, containerView.frame.size.height + 250);
+        if(CGRectContainsRect(rect, newFrame))
+        {
+            [viewToResize setFrame:newFrame];
+        }
         
         if([self tag] != kAnchorMove)
         {
@@ -134,7 +134,6 @@
 
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    NSLog(@"ended");
     startSize = NO;
     
     [target performSelector:actionSelector];

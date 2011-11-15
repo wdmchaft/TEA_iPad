@@ -173,7 +173,7 @@
 
 - (NSString *) getXML
 {
-     NSString *xml = [NSString stringWithFormat:@"<sounditem path=\"%@\" position=\"%@\"></sounditem>", audioFilePath, [self getPosition]];
+     NSString *xml = [NSString stringWithFormat:@"<sounditem title=\"%@\"  path=\"%@\" position=\"%@\"></sounditem>", soundItemName.text, audioFilePath, [self getPosition]];
     return xml;
 }
 

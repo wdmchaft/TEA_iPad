@@ -7,14 +7,15 @@
 //
 
 #import "DWObjectView.h"
-
+#import "DWDrawingViewController.h"
 
 @implementation DWObjectView
-@synthesize viewItems;
+@synthesize drawingViewController;
 
 - (void) initObjectView
 {
-    viewItems = [[NSMutableArray alloc] init];
+  // viewItems = [[NSMutableArray alloc] init];
+    self.clipsToBounds = YES;
 }
 
 - (id)initWithFrame:(CGRect)frame
@@ -34,6 +35,18 @@
     return self;
 }
 
+-(void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    UITouch *touch = [touches anyObject];
+    
+    if([touch tapCount] == 2)
+    {
+        [drawingViewController.editModeSwitch setOn:NO];
+        [drawingViewController editModeOnOffChanged:drawingViewController.editModeSwitch];
+    }
+}
+
+
 /*
 // Only override drawRect: if you perform custom drawing.
 // An empty implementation adversely affects performance during animation.
@@ -45,30 +58,31 @@
 
 - (void) setAllSelected:(BOOL) selected
 {
-    for(DWViewItem *viewItem in viewItems)
+    for(DWViewItem *viewItem in self.subviews)
     {
         [viewItem setSelected:selected];
     }
 }
 
+/*
 - (void) removeViewItem:(DWViewItem *) aViewItem
 {
     [aViewItem removeFromSuperview];
     [viewItems removeObject:aViewItem];
     
 }
+*/
 
 - (void) addViewItem:(DWViewItem*) viewItem
 {
-    [viewItems addObject:viewItem];
+  //  [viewItems addObject:viewItem];
     viewItem.container = self;
     [self addSubview:viewItem];
-    [viewItem setFrame:CGRectMake(150, 150, 300, 300)];
  }
 
 - (void)dealloc
 {
-    [viewItems release];
+  //  [viewItems release];
     [super dealloc];
 }
 

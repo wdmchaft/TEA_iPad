@@ -235,10 +235,17 @@
             
             if(len >=0) 
             {
-                [dataHandler._data appendBytes:(const void *)buf length:len];
-                [dataHandler handleData];
-                
-                NSLog(@"** reading data from stream %@", [(NSInputStream *)stream description]);
+                @try 
+                {
+                    [dataHandler._data appendBytes:(const void *)buf length:len];
+                    [dataHandler handleData];
+                }
+                @catch (NSException *exception) 
+                {
+                    NSLog(@"*** !!! Has problem on reading data from stream %@", [(NSInputStream *)stream description]);
+                    NSLog(@"*** !!! Length is %d", len);
+                }
+
             }
             else
             {

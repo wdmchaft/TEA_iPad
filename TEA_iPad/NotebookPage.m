@@ -7,18 +7,22 @@
 //
 
 #import "NotebookPage.h"
-
+#import "Notebook.h"
 
 @implementation NotebookPage
-@synthesize image, drawingViewController, edited;
+@synthesize image, edited, notebook, pageObjects; //drawingViewController
 
+- (id)init {
+    self = [super init];
+    if (self) {
+        pageObjects = [[NSMutableArray alloc] init];
+    }
+    return self;
+}
 
 - (void)dealloc {
-    if(drawingViewController)
-    {
-        //[drawingViewController release];
-    }
-    //
+
+    [pageObjects release];
     [image release];
     [super dealloc];
 }
@@ -27,9 +31,7 @@
 {
     NSString *xml = @"<page image=\"%@\">";
     
-    DWObjectView *objectLayer = drawingViewController.objectLayer;
-    
-    for(DWViewItem *item in objectLayer.viewItems)
+    for(DWViewItem *item in pageObjects)
     {
         xml = [xml stringByAppendingString:[item getXML]];
     }
