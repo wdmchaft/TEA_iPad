@@ -96,6 +96,20 @@
     {
         notebookName.text = notebookCover.notebookName;
         [deleteButton setHidden:NO];
+        
+        if([notebookCover.notebookType isEqualToString:@"squared"])
+        {
+            notebookType.selectedSegmentIndex = 0;
+        } 
+        else if([notebookCover.notebookType isEqualToString:@"lined"])
+        {
+            notebookType.selectedSegmentIndex = 1;
+        } 
+        else if([notebookCover.notebookType isEqualToString:@"blank"])
+        {
+            notebookType.selectedSegmentIndex = 2;
+        } 
+        
     }
     else
     {
@@ -122,7 +136,19 @@
     if(notebookCover)
     {
         notebookCover.notebookName = notebookName.text;
-        notebookCover.notebookType = [NSString stringWithFormat:@"%d", [notebookType selectedSegmentIndex]];
+        if([notebookType selectedSegmentIndex] == 0)
+        {
+            notebookCover.notebookType = @"squared";
+        }
+        else if([notebookType selectedSegmentIndex] == 1)
+        {
+            notebookCover.notebookType = @"lined";
+        }
+        else if([notebookType selectedSegmentIndex] == 2)
+        {
+            notebookCover.notebookType = @"blank";
+        }
+
         
         [notebookWorkspace updateNotebookCover:notebookCover];
     }
@@ -132,7 +158,22 @@
         cover.notebookWorkspace = notebookWorkspace;
         cover.notebookGuid = [LocalDatabase stringWithUUID];
         cover.notebookName = notebookName.text;
-        cover.notebookType = [NSString stringWithFormat:@"%d", [notebookType selectedSegmentIndex]];
+        
+        
+        if([notebookType selectedSegmentIndex] == 0)
+        {
+            cover.notebookType = @"squared";
+        }
+        else if([notebookType selectedSegmentIndex] == 1)
+        {
+            cover.notebookType = @"lined";
+        }
+        else if([notebookType selectedSegmentIndex] == 2)
+        {
+            cover.notebookType = @"blank";
+        }
+        
+        
         
         [notebookWorkspace addNotebookCover:cover];
         [cover release];

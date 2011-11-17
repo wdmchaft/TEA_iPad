@@ -49,7 +49,10 @@
     {
         if(!previewWebView)
         {
-            previewWebView = [[UIWebView alloc] initWithFrame:self.bounds];
+            previewWebView = [[UIWebView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
+            [previewWebView.layer setOpacity:0.5];
+            [previewWebView.layer setCornerRadius:10];
+            [previewWebView.layer setMasksToBounds:YES];
             [self addSubview:previewWebView];
         }
         [previewWebView setHidden:NO];
@@ -70,6 +73,8 @@
 
 - (void) webViewDidFinishLoad:(UIWebView *)webView
 {
+     [previewWebView.layer setOpacity:1.0];
+    
     UIGraphicsBeginImageContext(webView.frame.size);
     [webView.layer renderInContext:UIGraphicsGetCurrentContext()];
     UIImage *anImage = UIGraphicsGetImageFromCurrentImageContext();
@@ -93,16 +98,21 @@
         previewPath = filePath;
         [db release];
         
+        
+        
+        
         previewImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
         [previewImage setImage:anImage];
         [self addSubview:previewImage];
         [previewImage.layer setCornerRadius:10];
         [previewImage.layer setMasksToBounds:YES];
         [previewImage release];
+        
+        [self bringSubviewToFront:borderImage];
     }
     
-    [webView setDelegate:nil];
-    
+    [previewWebView setHidden:YES];
+    [previewWebView setDelegate:nil];
 }
 
 
@@ -153,38 +163,38 @@
         
     }
     
-    UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
+    borderImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
     
     if(sessionView.libraryViewController.compactMode)
     {
-        [imageView setFrame:CGRectMake(0, 0, 41 , 45)];
+        [borderImage setFrame:CGRectMake(0, 0, 41 , 45)];
         [previewImage setFrame:CGRectMake(0, 0, 41, 45)];
         
     }
     
     if ([type isEqualToString:@"video"]) 
     {
-        [imageView setImage:[UIImage imageNamed:@"LibraryItemVideo.png"]];
+        [borderImage setImage:[UIImage imageNamed:@"LibraryItemVideo.png"]];
     }
     else if ([type isEqualToString:@"audio"]) 
     {
-        [imageView setImage:[UIImage imageNamed:@"LibraryItemAudio.png"]];
+        [borderImage setImage:[UIImage imageNamed:@"LibraryItemAudio.png"]];
     }
     else if ([type isEqualToString:@"quiz"]) 
     {
-        [imageView setImage:[UIImage imageNamed:@"LibraryItemQuestion.png"]];
+        [borderImage setImage:[UIImage imageNamed:@"LibraryItemQuestion.png"]];
     }
     else if ([type isEqualToString:@"image"]) 
     {
-        [imageView setImage:[UIImage imageNamed:@"LibraryItemImage.png"]];
+        [borderImage setImage:[UIImage imageNamed:@"LibraryItemImage.png"]];
     }
     else if ([type isEqualToString:@"document"]) 
     {
-        [imageView setImage:[UIImage imageNamed:@"LibraryItemDocument.png"]];
+        [borderImage setImage:[UIImage imageNamed:@"LibraryItemDocument.png"]];
     }
     
-    [self addSubview:imageView];
-    [imageView release];
+    [self addSubview:borderImage];
+    [borderImage release];
     
     
     if(sessionView.libraryViewController.compactMode)

@@ -35,13 +35,14 @@
     NSString *documentName = [NSString stringWithFormat:@"%@.%@", [LocalDatabase stringWithUUID], [aMessage.userData objectForKey:@"extension"]];
     NSString *documentPath = [NSString stringWithFormat:@"%@/%@",  [paths objectAtIndex:0], documentName];
 
+    [documentData writeToFile:documentPath atomically:YES];
     
     LibraryDocumentItem *documentItem = [[LibraryDocumentItem alloc] init];
     [documentItem setName:[aMessage.userData objectForKey:@"name"]];
     [documentItem setPath:documentPath];
     
     [documentItem saveLibraryItem];
-    [documentData writeToFile:documentPath atomically:YES];
+    
     
     [documentItem release];
     

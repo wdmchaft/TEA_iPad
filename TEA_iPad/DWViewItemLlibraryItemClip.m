@@ -62,7 +62,7 @@
             [quiz setupView];
 
             /* Save quiz image */
-            NSData *data = UIImageJPEGRepresentation([quiz captureImage], 0.5);
+            NSData *data = UIImageJPEGRepresentation([quiz captureImage], 1.0);
             NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
             NSString *imageName = [[LocalDatabase stringWithUUID] stringByAppendingString:@".jpg"]; 
             NSString *imagePath = [NSString stringWithFormat:@"%@/%@",  [paths objectAtIndex:0], imageName];

@@ -31,7 +31,7 @@ enum kState {
     SessionView *sessionView;
     
     UIImageView *previewImage;
-    
+    UIImageView *borderImage;
     UIWebView *previewWebView;
     
     

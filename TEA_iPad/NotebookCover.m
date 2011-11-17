@@ -93,7 +93,7 @@
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
    // [notebookWorkspace removeFromSuperview];
-    [appDelegate.viewController setNotebookHidden:NO];
+    
     
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *fileName = [NSString stringWithFormat:@"%@/notebook_%@.xml", [paths objectAtIndex:0], self.notebookGuid];
@@ -105,6 +105,8 @@
     appDelegate.viewController.notebook.lectureGuid = self.notebookLectureGuid;
     appDelegate.viewController.notebook.type = self.notebookType;
     appDelegate.viewController.notebook.guid = self.notebookGuid;
+    
+    [appDelegate.viewController setNotebookHidden:NO];
     
     [appDelegate.viewController.notebook notebookOpen:self.notebookGuid];
     [parser release];
