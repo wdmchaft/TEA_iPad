@@ -64,6 +64,7 @@
 @property (nonatomic, assign) SEL prevPageAction;
 @property (nonatomic, assign) SEL nextPageAction;
 @property (retain, nonatomic) IBOutlet UISwitch *editModeSwitch;
+@property (retain, nonatomic) IBOutlet UILabel *notebookName;
 
 - (IBAction)editModeOnOffChanged:(id)sender;
 

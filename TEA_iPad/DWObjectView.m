@@ -34,7 +34,7 @@
     }
     return self;
 }
-
+/*
 -(void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     UITouch *touch = [touches anyObject];
@@ -44,7 +44,7 @@
         [drawingViewController.editModeSwitch setOn:NO];
         [drawingViewController editModeOnOffChanged:drawingViewController.editModeSwitch];
     }
-}
+}*/
 
 
 /*

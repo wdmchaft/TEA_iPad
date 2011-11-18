@@ -39,6 +39,7 @@
     self.points = @"";
     self.coverColor = @"";
     self.path = @"";
+    self.type = @"";
     
     [dateFormatter release];
     
@@ -173,7 +174,7 @@
     
     
     
-    
+    drawingViewController.notebookName.text = self.name;
     [self notebookShowPage:lastOpenedPage];
 
     state = kStateOpened;

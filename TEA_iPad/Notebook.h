@@ -17,6 +17,8 @@ enum kNotebookState {
     kStateOpened = 3
     };
 
+
+
 @interface Notebook : UIView 
 {
 

@@ -30,6 +30,13 @@
         case 2: [answerC setImage:[UIImage imageNamed:@"option_c_wrong.png"] forState:UIControlStateNormal]; break;
         case 3: [answerD setImage:[UIImage imageNamed:@"option_d_wrong.png"] forState:UIControlStateNormal]; break;
         case 4: [answerE setImage:[UIImage imageNamed:@"option_e_wrong.png"] forState:UIControlStateNormal]; break;
+        default:
+            [answerA setImage:[UIImage imageNamed:@"option_a_wrong.png"] forState:UIControlStateNormal]; 
+            [answerB setImage:[UIImage imageNamed:@"option_b_wrong.png"] forState:UIControlStateNormal]; 
+            [answerC setImage:[UIImage imageNamed:@"option_c_wrong.png"] forState:UIControlStateNormal]; 
+            [answerD setImage:[UIImage imageNamed:@"option_d_wrong.png"] forState:UIControlStateNormal]; 
+            [answerE setImage:[UIImage imageNamed:@"option_e_wrong.png"] forState:UIControlStateNormal]; 
+            break;
     }
     
     switch (correctAnswer) 

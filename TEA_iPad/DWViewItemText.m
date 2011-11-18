@@ -16,8 +16,9 @@
     [super initViewItem];
     
     UITextView *textView = [[UITextView alloc] initWithFrame:CGRectNull];
-    [textView setBackgroundColor:[UIColor clearColor]];
+    [textView setBackgroundColor:[UIColor whiteColor]];
     [self addSubview:textView];
+    [textView setFont:[UIFont fontWithName:@"Helvetica" size:12]];
     textView.text = @"Yeni metin alanı...";
     [textView release];
     

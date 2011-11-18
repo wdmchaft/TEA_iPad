@@ -35,6 +35,7 @@
 @synthesize prevPageAction;
 @synthesize nextPageAction;
 @synthesize editModeSwitch;
+@synthesize notebookName;
 
 @synthesize toolSelectionChanger;
 @synthesize recordButton;
@@ -87,6 +88,7 @@
     [self setObjectLayer:nil];
     [self setPageLabel:nil];
     [self setEditModeSwitch:nil];
+    [self setNotebookName:nil];
     [super viewDidUnload];
 
 }
@@ -118,6 +120,7 @@
     [pageLabel release];
     
     [editModeSwitch release];
+    [notebookName release];
     [super dealloc];
 }
 

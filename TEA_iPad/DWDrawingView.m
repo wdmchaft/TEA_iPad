@@ -378,12 +378,12 @@
 {
     UITouch *touch = [touches anyObject];
     
-    if([touch tapCount] == 2)
+    /*if([touch tapCount] == 2)
     {
-        [drawingViewController.editModeSwitch setOn:YES];
+       // [drawingViewController.editModeSwitch setOn:YES];
         [drawingViewController editModeOnOffChanged:drawingViewController.editModeSwitch];
     }
-    else
+    else*/
     {
         CGPoint location = [touch locationInView:self];
         firstTouchLocation = location;
