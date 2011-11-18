@@ -15,7 +15,7 @@ enum kState {
     };
 
 @class SessionView;
-@interface SessionLibraryItemView : UIView <UIWebViewDelegate> {
+@interface SessionLibraryItemView : UIView <UIWebViewDelegate, UITextFieldDelegate> {
     NSString *name;
     NSString *path;
     NSString *type;
@@ -34,7 +34,7 @@ enum kState {
     UIImageView *borderImage;
     UIWebView *previewWebView;
     
-    
+    int viewScrollSize;
 }
 
 @property (nonatomic, retain) NSString *name;
@@ -49,5 +49,5 @@ enum kState {
 @property (nonatomic, assign) int answer;
 
 - (void) initLibraryItemView;
-
+- (void) savePreviewForPDFPage;
 @end
