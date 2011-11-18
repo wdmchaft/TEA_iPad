@@ -54,19 +54,40 @@
 - (void) sendSolution
 {
     
+    if(currentAnswer == -1) // empty answer
+    {
+        TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+        BonjourMessage *solutionMessage = [[[BonjourMessage alloc] init] autorelease];
+        solutionMessage.messageType = kMessageTypeQuizAnswer;
+        
+        int time = solveTime - timerControl.currentSecond;
+        
+        NSMutableDictionary *userData = [[[NSMutableDictionary alloc] init] autorelease];
+        [userData setValue:self.guid forKey:@"guid"];
+        [userData setValue:[NSNumber numberWithInt:currentAnswer] forKey:@"answer"];
+        [userData setValue:[NSNumber numberWithInt:time] forKey:@"solutionTime"];
+        solutionMessage.userData = userData;
+        [appDelegate.bonjourBrowser sendBonjourMessageToAllClients:solutionMessage];
+        
+        [appDelegate.viewController dismissModalViewControllerAnimated:YES];
+
+    }
+    else
+    {
+        int asciiCode = 97; // ascii code of a
+        NSString *alertString = [NSString stringWithFormat:NSLocalizedString(@"Answer Send Message", NULL), asciiCode + currentAnswer]; 
+        
+        NSString *cancel = NSLocalizedString(@"Cancel", NULL);
+        NSString *send = NSLocalizedString(@"Send", NULL);
+        NSString *caution = NSLocalizedString(@"Caution", NULL);
+        
+        
+        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:caution message:alertString delegate:self cancelButtonTitle:cancel otherButtonTitles: send, nil];
+        
+        [alertView show];
+    }
     
     
-    int asciiCode = 97; // ascii code of a
-    NSString *alertString = [NSString stringWithFormat:NSLocalizedString(@"Answer Send Message", NULL), asciiCode + currentAnswer]; 
-    
-    NSString *cancel = NSLocalizedString(@"Cancel", NULL);
-    NSString *send = NSLocalizedString(@"Send", NULL);
-    NSString *caution = NSLocalizedString(@"Caution", NULL);
-    
-    
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:caution message:alertString delegate:self cancelButtonTitle:cancel otherButtonTitles: send, nil];
-    
-    [alertView show];
     
     
 }
