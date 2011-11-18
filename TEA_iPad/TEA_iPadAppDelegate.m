@@ -164,6 +164,8 @@ void MyReachabilityCallback(
         
     
     self.window.rootViewController = self.viewController;
+    LocationService *locationService = [[LocationService alloc] init];
+    [locationService startService];
     [self.window makeKeyAndVisible];
     
    return YES;

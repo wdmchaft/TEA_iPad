@@ -11,6 +11,8 @@
 #import "LibraryView.h"
 #import "Session.h"
 #import "SessionLibraryItemView.h"
+#import "LocationService.h"
+
 
 enum appState 
 {
