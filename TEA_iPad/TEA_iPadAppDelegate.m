@@ -124,8 +124,37 @@ void MyReachabilityCallback(
     }
 }
 
+- (void) screenDidConnect:(NSNotification *)aNotification{
+    NSLog(@"A new screen got connected: %@", [aNotification object]);
+    [blackScreen setMessage:@"Bu uygulama monitör bağlantısı ile çalışmaz..."];
+    [self.viewController.view addSubview:blackScreen];
+
+}
+
+
+- (void) screenDidDisconnect:(NSNotification *)aNotification{
+    NSLog(@"A screen got disconnected: %@", [aNotification object]);
+    [blackScreen removeFromSuperview];
+}
+
+- (void) screenModeDidChange:(NSNotification *)aNotification{
+    UIScreen *someScreen = [aNotification object];
+    NSLog(@"The screen mode for a screen did change: %@", [someScreen currentMode]);
+    
+}
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    
+    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+    [center addObserver:self selector:@selector(screenDidConnect:) name:UIScreenDidConnectNotification object:nil];
+    [center addObserver:self selector:@selector(screenDidDisconnect:) name:UIScreenDidDisconnectNotification object:nil];
+    [center addObserver:self selector:@selector(screenModeDidChange:) name:UIScreenModeDidChangeNotification object:nil];
+
+ 
+    
+    
+    
     application.idleTimerDisabled = YES;
     guestEnterNumber = 0;
     
@@ -165,6 +194,9 @@ void MyReachabilityCallback(
     
     self.window.rootViewController = self.viewController;
     LocationService *locationService = [[LocationService alloc] init];
+    blackScreen = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
+    
+    
     [locationService startService];
     [self.window makeKeyAndVisible];
     

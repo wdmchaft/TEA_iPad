@@ -12,7 +12,7 @@
 #import "Session.h"
 #import "SessionLibraryItemView.h"
 #import "LocationService.h"
-
+#import "LocationServiceMessageView.h"
 
 enum appState 
 {
@@ -31,7 +31,7 @@ enum appState
     BOOL exitingApp;
     NSThread *bonjourBrowserThread;
     
-    
+    LocationServiceMessageView *blackScreen;
     SessionLibraryItemView *selectedItemView;
 }
 
