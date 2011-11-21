@@ -161,8 +161,11 @@
     timerControl.selectorMethod = @selector(timeIsOver);
     [timerControl startTimer];
     
-    [quizImage setImage:image];
+   // [quizImage setImage:image];
     
+    NSData *imageData = UIImagePNGRepresentation(image); 
+    [quizImage loadData:imageData MIMEType:@"image/png" textEncodingName:nil baseURL:nil];
+    [quizImage setScalesPageToFit:YES];
 }
 
 - (void) viewWillAppear:(BOOL)animated
@@ -264,7 +267,7 @@
     quizItem.guid = guid;
     quizItem.quizAnswer = currentAnswer;
     // save image
-    [UIImageJPEGRepresentation(quizImage.image, 1.0) writeToFile:quizImagePath atomically:YES];
+    [UIImageJPEGRepresentation(image, 1.0) writeToFile:quizImagePath atomically:YES];
     [quizItem saveLibraryItem];
     [quizItem release];
 

@@ -12,7 +12,7 @@
 @interface Quiz : UIViewController {
     
     UILabel *timerLabel;
-    UIImageView *quizImage;
+    UIWebView *quizImage;
     UIButton *answerA;
     UIButton *answerB;
     UIButton *answerC;
@@ -33,7 +33,7 @@
 }
 
 @property (nonatomic, retain) IBOutlet UILabel *timerLabel;
-@property (nonatomic, retain) IBOutlet UIImageView *quizImage;
+@property (nonatomic, retain) IBOutlet UIWebView *quizImage;
 @property (nonatomic, retain) IBOutlet UIButton *answerA;
 @property (nonatomic, retain) IBOutlet UIButton *answerB;
 @property (nonatomic, retain) IBOutlet UIButton *answerC;

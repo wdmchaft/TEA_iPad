@@ -56,7 +56,11 @@
             
             QuizViewer *quiz = [[QuizViewer alloc] initWithNibName:@"QuizViewerForScreenCapture" bundle:nil];
             //[appDelegate.viewController.view addSubview:quiz.view];
-            [quiz.quizImage setImage:[UIImage imageWithContentsOfFile:appDelegate.selectedItemView.quizImagePath]];
+            
+            NSData *imageData = UIImagePNGRepresentation([UIImage imageWithContentsOfFile:appDelegate.selectedItemView.quizImagePath]); 
+            [quiz.quizImage loadData:imageData MIMEType:@"image/png" textEncodingName:nil baseURL:nil];
+            
+
             quiz.correctAnswer = appDelegate.selectedItemView.correctAnswer;
             quiz.answer = appDelegate.selectedItemView.answer;
             [quiz setupView];

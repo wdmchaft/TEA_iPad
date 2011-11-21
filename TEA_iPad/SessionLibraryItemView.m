@@ -437,27 +437,28 @@
             
             QuizViewer *quiz = [[QuizViewer alloc] initWithNibName:@"QuizViewer" bundle:nil];
             [appDelegate.viewController.view addSubview:quiz.view];
-            [quiz.quizImage setImage:[UIImage imageWithContentsOfFile:self.quizImagePath]];
+            //[quiz.quizImage setImage:[UIImage imageWithContentsOfFile:self.quizImagePath]];
+            [quiz.quizImage loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:self.quizImagePath]]];
             quiz.correctAnswer = self.correctAnswer;
             quiz.answer = self.answer;
             [quiz setupView];
-            
-            
-            
-            /*  QuizViewer *notebookAddView = [[QuizViewer alloc] initWithNibName:@"QuizViewer" bundle:nil];
-             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-             [notebookAddView.quizImage setImage:[UIImage imageWithContentsOfFile:self.quizImagePath]];
-             [appDelegate.viewController.view addSubview:notebookAddView.view];
-             */
+
             
         }
         else if( [type isEqualToString:@"image"])
         {
-            ImageViewer *viewer = [[ImageViewer alloc] initWithFrame:CGSizeMake(500, 500) andImagePath:self.path];
+            LibraryDocumentItem *libraryDocumentItem = [[LibraryDocumentItem alloc] init];
+            libraryDocumentItem.path = self.path;
+            libraryDocumentItem.name = self.name;
+            
+            DocumentViewer *documentViewer = [[DocumentViewer alloc] initWithLibraryItem:libraryDocumentItem];
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
             
-            [appDelegate.viewController.view addSubview:viewer];
-            [viewer release];
+            [appDelegate.viewController.view addSubview:documentViewer];
+            [libraryDocumentItem release];
+            [documentViewer release];
+            
+ 
         }
         else if([type isEqualToString:@"document"])
         {

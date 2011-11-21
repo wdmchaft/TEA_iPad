@@ -19,7 +19,7 @@
     
     int answer;
     int correctAnswer;
-    UIImageView *quizImage;
+    UIWebView *quizImage;
     
 }
 @property (nonatomic, retain) IBOutlet UIButton *answerA;
@@ -30,7 +30,7 @@
 
 @property (nonatomic, assign) int answer;
 @property (nonatomic, assign) int correctAnswer;
-@property (nonatomic, retain) IBOutlet UIImageView *quizImage;
+@property (nonatomic, retain) IBOutlet UIWebView *quizImage;
 
 - (void) setupView;
 - (UIImage *) captureImage;
