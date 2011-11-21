@@ -106,6 +106,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    [quizImage setScalesPageToFit:YES];
     // Do any additional setup after loading the view from its nib.
 }
 
