@@ -18,10 +18,18 @@
     NSString *allowedBSSID;
     int locationCount;
     int allowedRange;
+    int originalRange;
     CLLocation *currentLocation;
     CLLocation *allowedLocation;
     float sumX;
     float sumY;
+    
+<<<<<<< Updated upstream
+    
+    BOOL generatingRecord;
+=======
+    BOOL runningOperation;
+>>>>>>> Stashed changes
 }
 
 - (void) startService;
