@@ -16,9 +16,9 @@
 
 - (NSString*) getBSSID
 {
+    runningOperation = YES;
     NSString *bssid;
     NSArray *ifs = (id)CNCopySupportedInterfaces();
-    NSLog(@"%s: Supported interfaces: %@", __func__, ifs);
     id info = nil;
     for (NSString *ifnam in ifs) 
     {
@@ -32,6 +32,7 @@
     }
     [info autorelease];
     [ifs release];
+    runningOperation = NO;
     return bssid;
 }
 
@@ -40,6 +41,7 @@
 {
     generatingRecord = YES;
     // Get user current location
+    runningOperation = YES;
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     NSString *deviceUDID = [appDelegate getDeviceUniqueIdentifier];
     NSString *sql = [NSString stringWithFormat:@"select * from location where device_id='%@'", deviceUDID];
@@ -52,18 +54,27 @@
         float lon = [[[rows objectAtIndex:0] valueForKey:@"lon"] floatValue];
         allowedLocation = [[CLLocation alloc] initWithLatitude:lat longitude:lon];
         allowedRange = [[[rows objectAtIndex:0] valueForKey:@"range"] intValue];
+        originalRange = allowedRange;
         allowedBSSID = [[[rows objectAtIndex:0] valueForKey:@"acp_address"] retain];
     }
     else
     {
         [locationServiceMessageView setMessage:@"Eşleştirme kaydı bulunamadı..."];
     }
+<<<<<<< Updated upstream
     generatingRecord = NO;
+=======
+    runningOperation = NO;
+>>>>>>> Stashed changes
 }
 
 - (void) generateAllowedConnectionRecord
 {
+<<<<<<< Updated upstream
     generatingRecord = YES;
+=======
+    runningOperation = YES;
+>>>>>>> Stashed changes
     // Get user current location
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     [locationServiceMessageView setMessage:@"İlk kullanım için eşleştirme kaydı oluşturulyor..."];
@@ -74,8 +85,12 @@
     [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:sql];
     
     [self getAllowedLocation];
+<<<<<<< Updated upstream
     
     generatingRecord = NO;
+=======
+    runningOperation = NO;
+>>>>>>> Stashed changes
 }
 
 - (void) startService
@@ -134,15 +149,21 @@
     sumY += newLocation.coordinate.longitude;
     locationCount ++;
     
+<<<<<<< Updated upstream
     if(generatingRecord)
+=======
+    if(runningOperation)
+>>>>>>> Stashed changes
     {
         return;
     }
     
     currentLocation = [[[CLLocation alloc] initWithLatitude:sumX / (float) locationCount  longitude:sumY / (float) locationCount] autorelease];
     
-    if([allowedBSSID isEqualToString:[self getBSSID]]) //BSSID same, gps locaiton check is not necessary
+    // Define distance
+    if([allowedBSSID isEqualToString:[self getBSSID]]) //extend range, trust access point
     {
+<<<<<<< Updated upstream
         NSString *message = [NSString stringWithFormat: @"Uygulama kullanımda, ACP tanımlaması yapıldı\n"];
         message = [message stringByAppendingFormat:@"Şu Anki Lokasyon :%f, %f\n", currentLocation.coordinate.latitude, currentLocation.coordinate.longitude];
         message = [message stringByAppendingFormat:@"Alınan Sinyal Sayısı : %d\n", locationCount];
@@ -153,11 +174,28 @@
         
         [locationServiceMessageView setMessage:message];
         [locationServiceMessageView setHidden:YES];
+=======
+        allowedRange = 100;
     }
     else
     {
-        if(!allowedLocation)
+        originalRange = originalRange;
+    }
+    
+    // Check distance...
+    if(!allowedLocation)
+    {
+        [self generateAllowedConnectionRecord];
+        [self getAllowedLocation];
+>>>>>>> Stashed changes
+    }
+    else
+    {
+        CLLocationDistance distanceInMeters = [currentLocation distanceFromLocation:allowedLocation];
+        
+        if ( distanceInMeters > allowedRange ) 
         {
+<<<<<<< Updated upstream
             [self generateAllowedConnectionRecord];
          //   [self getAllowedLocation];
         }
@@ -195,6 +233,22 @@
     
     
        
+=======
+            NSString *message = [NSString stringWithFormat: @"Uygulama kullanım dışı bırakıldı. \n(Uzaklık:%f)\n", distanceInMeters];
+            message = [message stringByAppendingFormat:@"Geçerli bölge : %f, %f\n", currentLocation.coordinate.latitude, currentLocation.coordinate.longitude];
+            message = [message stringByAppendingFormat:@"Lokasyon Güncelleme Sayısı : %d\n", locationCount];
+            message = [message stringByAppendingFormat:@"Yatay Hassasiyet : %f\n", newLocation.verticalAccuracy];
+            message = [message stringByAppendingFormat:@"Dikey Hassasiyet :  %f", newLocation.horizontalAccuracy];
+            
+            [locationServiceMessageView setMessage:message];
+            [locationServiceMessageView setHidden:NO];
+        }
+        else
+        {
+            [locationServiceMessageView setHidden:YES];
+        }  
+    }     
+>>>>>>> Stashed changes
 }
 
 
