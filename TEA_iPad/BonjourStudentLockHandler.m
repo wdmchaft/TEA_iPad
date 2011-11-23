@@ -30,8 +30,6 @@
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
-    BOOL lockValue = [[aMessage.userData objectForKey:@"lock"] boolValue];
-    
     LockScreen *lockScreen = [[LockScreen alloc] init];
     [appDelegate.viewController.view addSubview:lockScreen];
     [lockScreen release];

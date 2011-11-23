@@ -90,12 +90,13 @@
 {
 
     self.netServiceBrowser = [[NSNetServiceBrowser alloc] init];
-	
+
     NSString *serviceName = [NSString stringWithFormat:@"_%@._tcp.", [ConfigurationManager getConfigurationValueForKey:@"BonjourServiceName"]];
     
     //serviceName = @"_teaservice._tcp.";
 	netServiceBrowser.delegate = self;
-     
+    
+
 	[netServiceBrowser searchForServicesOfType:serviceName inDomain:@""];
    
 }
@@ -150,6 +151,12 @@
     [message release];
 }
 
+
+- (void)netServiceBrowserDidStopSearch:(NSNetServiceBrowser *)netServiceBrowser
+{
+    NSLog(@"[BONJOUR] tea browsing stoped!");
+}
+
 - (void)netServiceDidResolveAddress:(NSNetService *)pService 
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
@@ -157,12 +164,13 @@
     NSArray *components = [[pService description] componentsSeparatedByString:@" "];
     NSString *hostName = [components objectAtIndex:[components count] - 1];
     
-    
+    NSLog(@"[BONJOUR] tea service resolved from host %@", hostName);
+    NSLog(@"App State is %d", appDelegate.state);
+    NSLog(@"HostNames are %@, %@", appDelegate.connectedHost, hostName);
     if(appDelegate.state == kAppStateLogon) 
     {
         if([hostName isEqualToString:appDelegate.connectedHost])
         {
-            NSLog(@"[BONJOUR] tea service resolved from host %@", hostName);
             
             // Remove clients already connected...
             
@@ -257,6 +265,8 @@
     [clientsToRemove release];
    }
 
+
+
 - (void)netServiceBrowser:(NSNetServiceBrowser *)netServiceBrowser didFindService:(NSNetService *)netService moreComing:(BOOL)moreServicesComing 
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
@@ -323,6 +333,10 @@
 		{
             
 			NSLog(@"[BONJOUR] Event error %d", (int) eventCode);
+            TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate * )[[UIApplication sharedApplication] delegate];
+            
+            [appDelegate restartBonjourBrowser];
+
             break;
 		}
 			

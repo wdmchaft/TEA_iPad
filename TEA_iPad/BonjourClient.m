@@ -235,10 +235,17 @@
             
             if(len >=0) 
             {
-                [dataHandler._data appendBytes:(const void *)buf length:len];
-                [dataHandler handleData];
-                
-                NSLog(@"** reading data from stream %@", [(NSInputStream *)stream description]);
+                @try 
+                {
+                    [dataHandler._data appendBytes:(const void *)buf length:len];
+                    [dataHandler handleData];
+                }
+                @catch (NSException *exception) 
+                {
+                    NSLog(@"*** !!! Has problem on reading data from stream %@", [(NSInputStream *)stream description]);
+                    NSLog(@"*** !!! Length is %d", len);
+                }
+
             }
             else
             {
@@ -250,22 +257,22 @@
 		case NSStreamEventErrorOccurred:
 		{
             NSLog(@"[BONJOUR] event error %d", (int) eventCode);
-			[bonjourBrowser.clients removeObject:self];
-            [bonjourServer.clients removeObject:self];
+			
+            TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate * )[[UIApplication sharedApplication] delegate];
+            
+            [appDelegate restartBonjourBrowser];
+            
             break;
 		}
 			
 		case NSStreamEventEndEncountered:
 		{
-            NSLog(@"[BONJOUR] client closed or droped connection");
-            
-           /* Attendance *attendanceWindow = (Attendance*) [WindowFactory getOpenedWindowByClass:[Attendance class]];
-            if(attendanceWindow)
-            {
-                [attendanceWindow deviceLooseConnectionToService:self.deviceid ];
-            }*/
-            
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+            
+            NSLog(@"[BONJOUR] server %@ closed or droped connection", self.hostName);
+            NSLog(@"[BONJOUR] connected host : %@", appDelegate.connectedHost);
+            
+            
             if([appDelegate.connectedHost isEqualToString:self.hostName])
             {
                 appDelegate.session.sessionGuid = nil;

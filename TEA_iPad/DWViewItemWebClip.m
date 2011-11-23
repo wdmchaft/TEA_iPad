@@ -35,7 +35,10 @@
         // self.text = htmlCopyValue;
         //  webField.delegate = self;
     }
-    
+    else
+    {
+        htmlString = [htmlString initWithString:@""];
+    }
     
     [webField setBackgroundColor:[UIColor clearColor]];
     //[htmlCopyValue release];

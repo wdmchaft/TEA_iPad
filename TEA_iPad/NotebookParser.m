@@ -45,9 +45,10 @@
 {
     if ([currentElement isEqualToString:@"textviewitem"])
     {
-        NotebookPage *page = (NotebookPage *) [notebook.pages objectAtIndex:notebook.currentPageIndex -1];
-        int lastIndex = [page.drawingViewController.objectLayer.viewItems count] - 1;
-        DWViewItemText *viewItemText = (DWViewItemText*) [page.drawingViewController.objectLayer.viewItems objectAtIndex:lastIndex];
+        NotebookPage *page = (NotebookPage *) [notebook.pages objectAtIndex:[notebook.pages count] -1];
+        
+        int lastIndex = [page.pageObjects count] - 1;
+        DWViewItemText *viewItemText = (DWViewItemText*)[page.pageObjects objectAtIndex:lastIndex];
         
         UITextView *textView = (UITextView*) viewItemText.viewObject;
         textView.text = [textView.text stringByAppendingString: string];
@@ -59,9 +60,10 @@
 {
     if ([currentElement isEqualToString:@"webclipitem"])
     {
-        NotebookPage *page = (NotebookPage *) [notebook.pages objectAtIndex:notebook.currentPageIndex -1];
-        int lastIndex = [page.drawingViewController.objectLayer.viewItems count] - 1;
-        DWViewItemWebClip *viewItemWebClip = (DWViewItemWebClip*) [page.drawingViewController.objectLayer.viewItems objectAtIndex:lastIndex];
+        NotebookPage *page = (NotebookPage *) [notebook.pages objectAtIndex:[notebook.pages count] -1];
+        
+        int lastIndex = [page.pageObjects count] - 1;
+        DWViewItemWebClip *viewItemWebClip = (DWViewItemWebClip*) [page.pageObjects objectAtIndex:lastIndex];
         
         NSString *htmlString = [[NSString alloc] initWithData:CDATABlock encoding:NSUTF8StringEncoding];
         viewItemWebClip.htmlString = htmlString;
@@ -70,9 +72,10 @@
     }
     if ([currentElement isEqualToString:@"libraryitem"])
     {
-        NotebookPage *page = (NotebookPage *) [notebook.pages objectAtIndex:notebook.currentPageIndex -1];
-        int lastIndex = [page.drawingViewController.objectLayer.viewItems count] - 1;
-        DWViewItemLlibraryItemClip *viewItemLibraryClip = (DWViewItemLlibraryItemClip*) [page.drawingViewController.objectLayer.viewItems objectAtIndex:lastIndex];
+        NotebookPage *page = (NotebookPage *) [notebook.pages objectAtIndex:[notebook.pages count] -1];
+        
+        int lastIndex = [page.pageObjects count] - 1;
+        DWViewItemLlibraryItemClip *viewItemLibraryClip = (DWViewItemLlibraryItemClip*) [page.pageObjects objectAtIndex:lastIndex];
         
         NSString *htmlString = [[NSString alloc] initWithData:CDATABlock encoding:NSUTF8StringEncoding];
         viewItemLibraryClip.htmlString = htmlString;
@@ -110,58 +113,53 @@
         DWViewItemText *textItem = [[DWViewItemText alloc] initWithFrame:CGRectMake(150, 15, 200, 200)];
         UITextView *textView = (UITextView*) textItem.viewObject;
         textView.text = @"";
-        
-        NotebookPage *page = (NotebookPage *) [notebook.pages objectAtIndex:notebook.currentPageIndex -1];
-        [page.drawingViewController.objectLayer addViewItem:textItem];
         textItem.selected = NO;
-        [textItem release];
-        
         textItem.frame = [textItem getPositionByString:[attributeDict valueForKey:@"position"]];
+        
+        NotebookPage *page = (NotebookPage *) [notebook.pages objectAtIndex:[notebook.pages count] -1];
+        [page.pageObjects addObject:textItem];
+        
+        [textItem release];
+
     }
     else if([elementName isEqualToString:@"sounditem"])
     {
         DWViewItemSound *soundItem = [[DWViewItemSound alloc] initWithFrame:CGRectMake(150, 15, 200, 200)];
-        soundItem.soundItemName.text = @"";
-        
-        NotebookPage *page = (NotebookPage *) [notebook.pages objectAtIndex:notebook.currentPageIndex -1];
-        [page.drawingViewController.objectLayer addViewItem:soundItem];
+        soundItem.soundItemName.text = [attributeDict valueForKey:@"title"];;
         soundItem.selected = NO;
-        [soundItem release];
-        
         soundItem.frame = [soundItem getPositionByString:[attributeDict valueForKey:@"position"]];
         soundItem.audioFilePath = [attributeDict valueForKey:@"path"];
         soundItem.state = kPlayerStateIdle;
         [soundItem setupActionButton];
         [soundItem resized];
+        
+        NotebookPage *page = (NotebookPage *) [notebook.pages objectAtIndex:[notebook.pages count] -1];
+        [page.pageObjects addObject:soundItem];
+        
+        [soundItem release];
     }
     else if([elementName isEqualToString:@"webclipitem"])
     {
         DWViewItemWebClip *webClipItem = [[DWViewItemWebClip alloc] initWithFrame:CGRectMake(150, 15, 200, 200)];
-        
-        NotebookPage *page = (NotebookPage *) [notebook.pages objectAtIndex:notebook.currentPageIndex -1];
-        [page.drawingViewController.objectLayer addViewItem:webClipItem];
         webClipItem.selected = NO;
-        [webClipItem release];
-        
         webClipItem.frame = [webClipItem getPositionByString:[attributeDict valueForKey:@"position"]];
-
+        
+        NotebookPage *page = (NotebookPage *) [notebook.pages objectAtIndex:[notebook.pages count] -1];
+        [page.pageObjects addObject:webClipItem];
+        
+        [webClipItem release];
     }
     else if([elementName isEqualToString:@"libraryitem"])
     {
         DWViewItemLlibraryItemClip *libraryItemClip = [[DWViewItemLlibraryItemClip alloc] initWithFrame:CGRectMake(150, 15, 200, 200)];
-        
-        NotebookPage *page = (NotebookPage *) [notebook.pages objectAtIndex:notebook.currentPageIndex -1];
-        [page.drawingViewController.objectLayer addViewItem:libraryItemClip];
-        libraryItemClip.selected = NO;
-        [libraryItemClip release];
-        
         libraryItemClip.frame = [libraryItemClip getPositionByString:[attributeDict valueForKey:@"position"]];
+        libraryItemClip.selected = NO;
         
+        NotebookPage *page = (NotebookPage *) [notebook.pages objectAtIndex:[notebook.pages count] -1];
+        [page.pageObjects addObject:libraryItemClip];
+        
+        [libraryItemClip release];
     }
-            
-            
-            
-	
 }
 
 // "<sounditem path=\"%@\" position=\"%@\"></sounditem>"

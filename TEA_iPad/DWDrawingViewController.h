@@ -39,6 +39,7 @@
     id target;
     SEL prevPageAction;
     SEL nextPageAction;
+    SEL pageEdited;
     
     int currentPage;
 }
@@ -58,10 +59,12 @@
 @property (nonatomic, retain) IBOutlet UILabel *pageLabel;
 
 @property (nonatomic, assign) int currentPage;
+@property (nonatomic, assign) SEL pageEdited;
 @property (nonatomic, assign) id target;
 @property (nonatomic, assign) SEL prevPageAction;
 @property (nonatomic, assign) SEL nextPageAction;
 @property (retain, nonatomic) IBOutlet UISwitch *editModeSwitch;
+@property (retain, nonatomic) IBOutlet UILabel *notebookName;
 
 - (IBAction)editModeOnOffChanged:(id)sender;
 

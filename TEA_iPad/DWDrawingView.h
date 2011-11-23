@@ -18,6 +18,7 @@
 #import "DWEraser.h"
 #import "DWOval.h"
 
+@class DWDrawingViewController;
 @interface DWDrawingView : UIView 
 {
     DWTool *currentTool;
@@ -33,6 +34,7 @@
     DWOval *ovalTool;
     
     CGRect currentImageFrame;
+    DWDrawingViewController *drawingViewController;
 }
 
 // TOOLS
@@ -41,10 +43,10 @@
 @property (nonatomic, retain) DWLine *lineTool;
 @property (nonatomic, retain) DWEraser *eraserTool;
 @property (nonatomic, retain) DWOval *ovalTool;
-@property (nonatomic, assign) UIImage *contextImage;
+@property (nonatomic, retain) UIImage *contextImage;
 @property (retain) NSMutableArray *drawingItemList;
 @property (assign) DWTool *currentTool;
-
+@property (assign) DWDrawingViewController *drawingViewController;
 
 - (UIImage*) screenImage;
 

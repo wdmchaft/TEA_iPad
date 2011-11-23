@@ -35,33 +35,125 @@
         }
         
         UIImage *image = [UIImage imageWithContentsOfFile:previewPath];
+        
+        previewImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
+        [previewImage setImage:image];
+        [self addSubview:previewImage];
+        [previewImage.layer setCornerRadius:10];
+        [previewImage.layer setMasksToBounds:YES];
+        [previewImage release];
+        
         return  image;
     }
     else
     {
-        if(!previewWebView)
+        // Get file extension
+        NSArray *pathComponents = [path componentsSeparatedByString:@"."];
+        NSString *extension = [pathComponents lastObject];
+        
+        if([extension isEqualToString:@"pdf"] || [extension isEqualToString:@"PDF"])
         {
-            previewWebView = [[UIWebView alloc] initWithFrame:self.bounds];
-            [self addSubview:previewWebView];
+            [self savePreviewForPDFPage];
         }
-        [previewWebView setHidden:NO];
-        [previewWebView setDelegate:[self retain]];
-        
-        [previewWebView setScalesPageToFit:YES];
-        if([type isEqualToString:@"quiz"])
-            [previewWebView loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:quizImagePath]]];
         else
-            [previewWebView loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:path]]];
-        
-        
+        {
+            if(!previewWebView)
+            {
+                previewWebView = [[UIWebView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
+                [previewWebView.layer setCornerRadius:10];
+                [previewWebView.layer setMasksToBounds:YES];
+                [self addSubview:previewWebView];
+            }
+            [previewWebView setHidden:NO];
+            [previewWebView setDelegate:[self retain]];
+            
+            [previewWebView setScalesPageToFit:YES];
+            if([type isEqualToString:@"quiz"])
+                [previewWebView loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:quizImagePath]]];
+            else
+                [previewWebView loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:path]]];
+
+        }
     }
     
     return nil;
 }
 
+-(void) savePreviewForPDFPage
+{
+    CGFloat width = 60.0;
+    
+    // Get the page
+
+    CGPDFDocumentRef document = CGPDFDocumentCreateWithURL ((CFURLRef) [NSURL fileURLWithPath:[path retain]]);
+    CGPDFPageRef page = CGPDFDocumentGetPage (document, 1);
+    
+    CGRect pageRect = CGPDFPageGetBoxRect(page, kCGPDFMediaBox);
+    CGFloat pdfScale = width/pageRect.size.width;
+    pageRect.size = CGSizeMake(pageRect.size.width*pdfScale, pageRect.size.height*pdfScale);
+    pageRect.origin = CGPointZero;
+    
+    
+    UIGraphicsBeginImageContext(pageRect.size);
+    
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    // White BG
+    CGContextSetRGBFillColor(context, 1.0,1.0,1.0,1.0);
+    CGContextFillRect(context,pageRect);
+    
+    CGContextSaveGState(context);
+    
+    // ***********
+    // Next 3 lines makes the rotations so that the page look in the right direction
+    // ***********
+    CGContextTranslateCTM(context, 0.0, pageRect.size.height);
+    CGContextScaleCTM(context, 1.0, -1.0);
+    CGContextConcatCTM(context, CGPDFPageGetDrawingTransform(page, kCGPDFMediaBox, pageRect, 0, true));
+    
+    CGContextDrawPDFPage(context, page);
+    CGContextRestoreGState(context);
+    
+    UIImage *thm = UIGraphicsGetImageFromCurrentImageContext();
+    
+    UIGraphicsEndImageContext();
+    CGPDFDocumentRelease(document);
+    
+    NSData *imageData = UIImagePNGRepresentation(thm);
+    if(imageData != nil)
+    {
+        NSArray *paths =NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString *documentsPath = [paths objectAtIndex:0];
+        NSString *fileName = [[LocalDatabase stringWithUUID] stringByAppendingString:@".png"];
+        NSString *filePath = [documentsPath stringByAppendingPathComponent:fileName];
+        
+        [imageData writeToFile:filePath atomically:NO];
+        
+        LocalDatabase *db = [[LocalDatabase alloc] init];
+        [db openDatabase];
+        [db executeQuery:[NSString stringWithFormat:@"update library set previewPath='%@' where path='%@'", filePath, path]];
+        [db closeDatabase];
+        
+        self.previewPath = filePath;
+        [db release];
+        
+        
+        
+        previewImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
+        [previewImage setImage:thm];
+        [self addSubview:previewImage];
+        [previewImage.layer setCornerRadius:10];
+        [previewImage.layer setMasksToBounds:YES];
+        [previewImage release];
+        
+        [self bringSubviewToFront:borderImage];
+    }
+    
+}
 
 - (void) webViewDidFinishLoad:(UIWebView *)webView
 {
+ 
     UIGraphicsBeginImageContext(webView.frame.size);
     [webView.layer renderInContext:UIGraphicsGetCurrentContext()];
     UIImage *anImage = UIGraphicsGetImageFromCurrentImageContext();
@@ -85,12 +177,20 @@
         previewPath = filePath;
         [db release];
         
-        [previewImage setImage:[self getFilePreview]];
         
+       
+        previewImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
+        [previewImage setImage:anImage];
+        [self addSubview:previewImage];
+        [previewImage.layer setCornerRadius:10];
+        [previewImage.layer setMasksToBounds:YES];
+        [previewImage release];
+        
+        [self bringSubviewToFront:borderImage];
     }
     
-    [webView setDelegate:nil];
-    
+    [previewWebView setHidden:YES];
+    [previewWebView setDelegate:nil];
 }
 
 
@@ -112,6 +212,11 @@
         [itemName setEnabled:YES];
         [itemName becomeFirstResponder];
         [itemName selectAll:itemName];
+        
+        
+        int yValue = self.frame.origin.y + self.superview.frame.origin.y;
+        UIScrollView *scrollView = (UIScrollView*)sessionView.superview;
+        [scrollView setContentOffset:CGPointMake(0, yValue) animated:YES];
     }
     else
     {
@@ -137,46 +242,42 @@
     
     if (!([type isEqualToString:@"video"] || [type isEqualToString:@"audio"])) 
     {
-        previewImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
-        [previewImage setImage:[self getFilePreview]];
-        [self addSubview:previewImage];
-        [previewImage.layer setCornerRadius:10];
-        [previewImage.layer setMasksToBounds:YES];
-        [previewImage release];
+        [self getFilePreview];
+        
     }
     
-    UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
+    borderImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
     
     if(sessionView.libraryViewController.compactMode)
     {
-        [imageView setFrame:CGRectMake(0, 0, 41 , 45)];
+        [borderImage setFrame:CGRectMake(0, 0, 41 , 45)];
         [previewImage setFrame:CGRectMake(0, 0, 41, 45)];
         
     }
     
     if ([type isEqualToString:@"video"]) 
     {
-        [imageView setImage:[UIImage imageNamed:@"LibraryItemVideo.png"]];
+        [borderImage setImage:[UIImage imageNamed:@"LibraryItemVideo.png"]];
     }
     else if ([type isEqualToString:@"audio"]) 
     {
-        [imageView setImage:[UIImage imageNamed:@"LibraryItemAudio.png"]];
+        [borderImage setImage:[UIImage imageNamed:@"LibraryItemAudio.png"]];
     }
     else if ([type isEqualToString:@"quiz"]) 
     {
-        [imageView setImage:[UIImage imageNamed:@"LibraryItemQuestion.png"]];
+        [borderImage setImage:[UIImage imageNamed:@"LibraryItemQuestion.png"]];
     }
     else if ([type isEqualToString:@"image"]) 
     {
-        [imageView setImage:[UIImage imageNamed:@"LibraryItemImage.png"]];
+        [borderImage setImage:[UIImage imageNamed:@"LibraryItemImage.png"]];
     }
     else if ([type isEqualToString:@"document"]) 
     {
-        [imageView setImage:[UIImage imageNamed:@"LibraryItemDocument.png"]];
+        [borderImage setImage:[UIImage imageNamed:@"LibraryItemDocument.png"]];
     }
     
-    [self addSubview:imageView];
-    [imageView release];
+    [self addSubview:borderImage];
+    [borderImage release];
     
     
     if(sessionView.libraryViewController.compactMode)
@@ -193,6 +294,7 @@
     [itemName setBackgroundColor:[UIColor clearColor]];
     [itemName setTextColor:[UIColor whiteColor]];
     [itemName setText:name];
+
     [itemName setTextAlignment:UITextAlignmentCenter];
     
     [self changeState:kStateNormalMode];
@@ -225,8 +327,13 @@
         CGPoint location = [gestureRecognizer locationInView:[gestureRecognizer view]];
         UIMenuController *menuController = [UIMenuController sharedMenuController];
         
-        UIMenuItem *addToNotebookMenu = [[UIMenuItem alloc] initWithTitle:@"Deftere Ekle" action:@selector(menuAddToNotebookClicked:)];
-        UIMenuItem *changeNameMenu = [[UIMenuItem alloc] initWithTitle:@"İsmini Değiştir" action:@selector(menuChangeNameClicked:)];
+        
+        NSString *moveToNotebook = NSLocalizedString(@"Move To Notebook", NULL);
+        NSString *rename = NSLocalizedString(@"Rename", NULL);
+ 
+        
+        UIMenuItem *addToNotebookMenu = [[UIMenuItem alloc] initWithTitle:moveToNotebook action:@selector(menuAddToNotebookClicked:)];
+        UIMenuItem *changeNameMenu = [[UIMenuItem alloc] initWithTitle:rename action:@selector(menuChangeNameClicked:)];
         
         
         [[gestureRecognizer view] becomeFirstResponder];
@@ -253,12 +360,59 @@
     return YES;
 }
 
+
+- (BOOL)textFieldShouldReturn:(UITextField *)doneButtonPressed 
+{
+	[doneButtonPressed resignFirstResponder];
+	return YES;
+}
+
+
+-(void)textFieldDidBeginEditing:(UITextField *)textField 
+{
+	
+    CGRect rect = self.frame;
+    int diff = textField.frame.origin.y - 220;
+    
+    if(diff > 0)
+    {
+        [UIView beginAnimations:nil context:NULL];
+        [UIView setAnimationDuration:0.3];
+        
+        rect.origin.y -= diff; 
+        [self setFrame: rect];
+        [UIView commitAnimations];
+        
+        viewScrollSize = diff;
+    }
+    
+}
+
+
+
+-(void)textFieldDidEndEditing:(UITextField *)textField {
+	
+	if(viewScrollSize > 0)
+    {
+        CGRect rect = self.frame;
+        
+        [UIView beginAnimations:nil context:NULL];
+        [UIView setAnimationDuration:0.3];
+        
+        rect.origin.y += viewScrollSize; 
+        [self setFrame: rect];
+        [UIView commitAnimations];
+        
+        viewScrollSize = 0;
+    }
+    
+}
+
+
 -(void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     
-    
-    
-    
+ 
     if(state == kStateNormalMode)
     {
         if([type isEqualToString:@"video"])
@@ -283,27 +437,28 @@
             
             QuizViewer *quiz = [[QuizViewer alloc] initWithNibName:@"QuizViewer" bundle:nil];
             [appDelegate.viewController.view addSubview:quiz.view];
-            [quiz.quizImage setImage:[UIImage imageWithContentsOfFile:self.quizImagePath]];
+            //[quiz.quizImage setImage:[UIImage imageWithContentsOfFile:self.quizImagePath]];
+            [quiz.quizImage loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:self.quizImagePath]]];
             quiz.correctAnswer = self.correctAnswer;
             quiz.answer = self.answer;
             [quiz setupView];
-            
-            
-            
-            /*  QuizViewer *notebookAddView = [[QuizViewer alloc] initWithNibName:@"QuizViewer" bundle:nil];
-             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-             [notebookAddView.quizImage setImage:[UIImage imageWithContentsOfFile:self.quizImagePath]];
-             [appDelegate.viewController.view addSubview:notebookAddView.view];
-             */
+
             
         }
         else if( [type isEqualToString:@"image"])
         {
-            ImageViewer *viewer = [[ImageViewer alloc] initWithFrame:CGSizeMake(500, 500) andImagePath:self.path];
+            LibraryDocumentItem *libraryDocumentItem = [[LibraryDocumentItem alloc] init];
+            libraryDocumentItem.path = self.path;
+            libraryDocumentItem.name = self.name;
+            
+            DocumentViewer *documentViewer = [[DocumentViewer alloc] initWithLibraryItem:libraryDocumentItem];
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
             
-            [appDelegate.viewController.view addSubview:viewer];
-            [viewer release];
+            [appDelegate.viewController.view addSubview:documentViewer];
+            [libraryDocumentItem release];
+            [documentViewer release];
+            
+ 
         }
         else if([type isEqualToString:@"document"])
         {

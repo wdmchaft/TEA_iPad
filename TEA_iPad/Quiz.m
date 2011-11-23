@@ -28,6 +28,7 @@
 @synthesize guid;
 @synthesize correctAnswer;
 @synthesize image;
+@synthesize optionCount;
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
@@ -53,13 +54,40 @@
 - (void) sendSolution
 {
     
-    int asciiCode = 97;
-    NSString *alertString = [NSString stringWithFormat:@"Cevabınızı '%c' olarak seçtiniz. Devam etmek istiyor musunuz?", asciiCode + currentAnswer]; 
+    if(currentAnswer == -1) // empty answer
+    {
+        TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+        BonjourMessage *solutionMessage = [[[BonjourMessage alloc] init] autorelease];
+        solutionMessage.messageType = kMessageTypeQuizAnswer;
+        
+        int time = solveTime - timerControl.currentSecond;
+        
+        NSMutableDictionary *userData = [[[NSMutableDictionary alloc] init] autorelease];
+        [userData setValue:self.guid forKey:@"guid"];
+        [userData setValue:[NSNumber numberWithInt:currentAnswer] forKey:@"answer"];
+        [userData setValue:[NSNumber numberWithInt:time] forKey:@"solutionTime"];
+        solutionMessage.userData = userData;
+        [appDelegate.bonjourBrowser sendBonjourMessageToAllClients:solutionMessage];
+        
+        [appDelegate.viewController dismissModalViewControllerAnimated:YES];
+
+    }
+    else
+    {
+        int asciiCode = 97; // ascii code of a
+        NSString *alertString = [NSString stringWithFormat:NSLocalizedString(@"Answer Send Message", NULL), asciiCode + currentAnswer]; 
+        
+        NSString *cancel = NSLocalizedString(@"Cancel", NULL);
+        NSString *send = NSLocalizedString(@"Send", NULL);
+        NSString *caution = NSLocalizedString(@"Caution", NULL);
+        
+        
+        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:caution message:alertString delegate:self cancelButtonTitle:cancel otherButtonTitles: send, nil];
+        
+        [alertView show];
+    }
     
     
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Dikkat" message:alertString delegate:self cancelButtonTitle:@"Vazgeç" otherButtonTitles: @"Gönder", nil];
-    
-    [alertView show];
     
     
 }
@@ -133,7 +161,69 @@
     timerControl.selectorMethod = @selector(timeIsOver);
     [timerControl startTimer];
     
-    [quizImage setImage:image];
+   // [quizImage setImage:image];
+    
+    NSData *imageData = UIImagePNGRepresentation(image); 
+    [quizImage loadData:imageData MIMEType:@"image/png" textEncodingName:nil baseURL:nil];
+    [quizImage setScalesPageToFit:YES];
+}
+
+- (void) viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    
+    if(optionCount == 2)
+    {
+        [answerA setHidden:NO];
+        [answerB setHidden:NO];
+        [answerC setHidden:YES];
+        [answerD setHidden:YES];
+        [answerE setHidden:YES];
+  
+        [answerA setFrame:CGRectMake(202, 513, 56, 56)];
+        [answerB setFrame:CGRectMake(283, 513, 56, 56)];
+        
+    }
+    else if(optionCount == 3)
+    {
+        [answerA setHidden:NO];
+        [answerB setHidden:NO];
+        [answerC setHidden:NO];
+        [answerD setHidden:YES];
+        [answerE setHidden:YES];
+        
+        [answerA setFrame:CGRectMake(160, 513, 56, 56)];
+        [answerB setFrame:CGRectMake(243, 513, 56, 56)];
+        [answerC setFrame:CGRectMake(324, 513, 56, 56)];
+
+    }
+    else if(optionCount == 4)
+    {
+        [answerA setHidden:NO];
+        [answerB setHidden:NO];
+        [answerC setHidden:NO];
+        [answerD setHidden:NO];
+        [answerE setHidden:YES];
+        
+        [answerA setFrame:CGRectMake(119, 513, 56, 56)];
+        [answerB setFrame:CGRectMake(202, 513, 56, 56)];
+        [answerC setFrame:CGRectMake(285, 513, 56, 56)];
+        [answerD setFrame:CGRectMake(366, 513, 56, 56)];
+    }
+    else if(optionCount == 5)
+    {
+        [answerA setHidden:NO];
+        [answerB setHidden:NO];
+        [answerC setHidden:NO];
+        [answerD setHidden:NO];
+        [answerE setHidden:NO];
+        
+        [answerA setFrame:CGRectMake(77,  513, 56, 56)];
+        [answerB setFrame:CGRectMake(160, 513, 56, 56)];
+        [answerC setFrame:CGRectMake(243, 513, 56, 56)];
+        [answerD setFrame:CGRectMake(324, 513, 56, 56)];
+        [answerE setFrame:CGRectMake(405, 513, 56, 56)];
+    }
     
 }
 
@@ -177,7 +267,7 @@
     quizItem.guid = guid;
     quizItem.quizAnswer = currentAnswer;
     // save image
-    [UIImageJPEGRepresentation(quizImage.image, 1.0) writeToFile:quizImagePath atomically:YES];
+    [UIImageJPEGRepresentation(image, 1.0) writeToFile:quizImagePath atomically:YES];
     [quizItem saveLibraryItem];
     [quizItem release];
 

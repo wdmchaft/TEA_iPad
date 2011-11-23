@@ -30,6 +30,7 @@
     Quiz *quiz = [[Quiz alloc] initWithNibName:@"Quiz" bundle:nil];
     quiz.guid = [aMessage.userData valueForKey:@"guid"];
     quiz.solveTime = [[aMessage.userData valueForKey:@"solveTime"] intValue];
+    quiz.optionCount = [[aMessage.userData valueForKey:@"optionCount"] intValue];
     
    // NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
    // NSString *imageName = @"test.png"; 

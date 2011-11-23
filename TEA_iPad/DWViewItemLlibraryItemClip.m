@@ -56,13 +56,17 @@
             
             QuizViewer *quiz = [[QuizViewer alloc] initWithNibName:@"QuizViewerForScreenCapture" bundle:nil];
             //[appDelegate.viewController.view addSubview:quiz.view];
-            [quiz.quizImage setImage:[UIImage imageWithContentsOfFile:appDelegate.selectedItemView.quizImagePath]];
+            
+            NSData *imageData = UIImagePNGRepresentation([UIImage imageWithContentsOfFile:appDelegate.selectedItemView.quizImagePath]); 
+            [quiz.quizImage loadData:imageData MIMEType:@"image/png" textEncodingName:nil baseURL:nil];
+            
+
             quiz.correctAnswer = appDelegate.selectedItemView.correctAnswer;
             quiz.answer = appDelegate.selectedItemView.answer;
             [quiz setupView];
 
             /* Save quiz image */
-            NSData *data = UIImageJPEGRepresentation([quiz captureImage], 0.5);
+            NSData *data = UIImageJPEGRepresentation([quiz captureImage], 1.0);
             NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
             NSString *imageName = [[LocalDatabase stringWithUUID] stringByAppendingString:@".jpg"]; 
             NSString *imagePath = [NSString stringWithFormat:@"%@/%@",  [paths objectAtIndex:0], imageName];

@@ -35,11 +35,12 @@
         [bg release];
         
         webView = [[UIWebView alloc] initWithFrame:CGRectMake(75, 79, 880, 580)];
+
         
         [self addSubview: webView];
         
         [webView loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:libraryItem.path]]];
-        [webView scalesPageToFit];
+        [webView setScalesPageToFit:YES];
     }
     
     return self;

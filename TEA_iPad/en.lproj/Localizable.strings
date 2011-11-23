@@ -1,0 +1,19 @@
+/* 
+  Localizable.strings
+  TEA_iPad
+
+  Created by Oguz Demir on 14/11/2011.
+  Copyright (c) 2011 Dualware. All rights reserved.
+*/
+
+
+"Object Delete Message"="Are you sure you want to delete the object?";
+"Delete"="Delete";
+"Yes"="Yes";
+"No"="No";
+"Cancel"="Cancel";
+"Caution"="Caution";
+"Send"="Send";
+"Answer Send Message"="You choosed option '%c'. Are you sure to send this answer?";
+"Move To Notebook"="Move to notebook";
+"Rename"="Rename";

@@ -9,17 +9,22 @@
 #import <Foundation/Foundation.h>
 #import "DWDrawingViewController.h"
 
+@class Notebook;
 @interface NotebookPage : NSObject 
 {
+    Notebook *notebook;
     UIImage *image;
-    DWDrawingViewController *drawingViewController;
+    //DWDrawingViewController *drawingViewController;
+    NSMutableArray *pageObjects;
     
     BOOL edited;
 }
 
+@property (nonatomic, assign) Notebook *notebook;
 @property (nonatomic, assign) BOOL edited;
 @property (nonatomic, retain) UIImage *image;
-@property (nonatomic, retain) DWDrawingViewController *drawingViewController;
+@property (nonatomic, assign) NSMutableArray *pageObjects;
+//@property (nonatomic, retain) DWDrawingViewController *drawingViewController;
 
 - (NSString*) getXML;
 
