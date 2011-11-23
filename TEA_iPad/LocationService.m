@@ -38,6 +38,7 @@
 
 - (void) getAllowedLocation
 {
+    generatingRecord = YES;
     // Get user current location
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     NSString *deviceUDID = [appDelegate getDeviceUniqueIdentifier];
@@ -57,11 +58,12 @@
     {
         [locationServiceMessageView setMessage:@"Eşleştirme kaydı bulunamadı..."];
     }
-    
+    generatingRecord = NO;
 }
 
 - (void) generateAllowedConnectionRecord
 {
+    generatingRecord = YES;
     // Get user current location
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     [locationServiceMessageView setMessage:@"İlk kullanım için eşleştirme kaydı oluşturulyor..."];
@@ -72,6 +74,8 @@
     [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:sql];
     
     [self getAllowedLocation];
+    
+    generatingRecord = NO;
 }
 
 - (void) startService
@@ -124,29 +128,38 @@
     didUpdateToLocation:(CLLocation *)newLocation
            fromLocation:(CLLocation *)oldLocation
 {
+    
+    
     sumX += newLocation.coordinate.latitude;
     sumY += newLocation.coordinate.longitude;
     locationCount ++;
+    
+    if(generatingRecord)
+    {
+        return;
+    }
     
     currentLocation = [[[CLLocation alloc] initWithLatitude:sumX / (float) locationCount  longitude:sumY / (float) locationCount] autorelease];
     
     if([allowedBSSID isEqualToString:[self getBSSID]]) //BSSID same, gps locaiton check is not necessary
     {
         NSString *message = [NSString stringWithFormat: @"Uygulama kullanımda, ACP tanımlaması yapıldı\n"];
-        message = [message stringByAppendingFormat:@"current location:%f, %f\n", currentLocation.coordinate.latitude, currentLocation.coordinate.longitude];
-        message = [message stringByAppendingFormat:@"count %d\n", locationCount];
-        message = [message stringByAppendingFormat:@"vertical Accuracy %f\n", newLocation.verticalAccuracy];
-        message = [message stringByAppendingFormat:@"ho Accuracy %f", newLocation.horizontalAccuracy];
+        message = [message stringByAppendingFormat:@"Şu Anki Lokasyon :%f, %f\n", currentLocation.coordinate.latitude, currentLocation.coordinate.longitude];
+        message = [message stringByAppendingFormat:@"Alınan Sinyal Sayısı : %d\n", locationCount];
+        message = [message stringByAppendingFormat:@"Dikey Hassasiyet: %f\n", newLocation.verticalAccuracy];
+        message = [message stringByAppendingFormat:@"Yatay Hassasiyet: %f", newLocation.horizontalAccuracy];
+        
+        //NSLog(@"location info : %@", message);
         
         [locationServiceMessageView setMessage:message];
-        [locationServiceMessageView setAlpha:0.5];
+        [locationServiceMessageView setHidden:YES];
     }
     else
     {
         if(!allowedLocation)
         {
             [self generateAllowedConnectionRecord];
-            [self getAllowedLocation];
+         //   [self getAllowedLocation];
         }
         else
         {
@@ -155,25 +168,25 @@
             
             if ( distanceInMeters > allowedRange ) 
             {
-                NSString *message = [NSString stringWithFormat: @"ACP tanımlaması yapılamadı, Uygulama kullanımda... \n(Uzaklık:%f)\n", distanceInMeters];
-                message = [message stringByAppendingFormat:@"current location:%f, %f\n", currentLocation.coordinate.latitude, currentLocation.coordinate.longitude];
-                message = [message stringByAppendingFormat:@"count %d\n", locationCount];
-                message = [message stringByAppendingFormat:@"vertical Accuracy %f\n", newLocation.verticalAccuracy];
-                message = [message stringByAppendingFormat:@"ho Accuracy %f", newLocation.horizontalAccuracy];
+                NSString *message = [NSString stringWithFormat: @"ACP tanımlaması yapılamadı, Uygulama kullanıma kapatıldı... \n(Uzaklık:%f)\n", distanceInMeters];
+                message = [message stringByAppendingFormat:@"Şu Anki Lokasyon :%f, %f\n", currentLocation.coordinate.latitude, currentLocation.coordinate.longitude];
+                message = [message stringByAppendingFormat:@"Alınan Sinyal Sayısı : %d\n", locationCount];
+                message = [message stringByAppendingFormat:@"Dikey Hassasiyet: %f\n", newLocation.verticalAccuracy];
+                message = [message stringByAppendingFormat:@"Yatay Hassasiyet: %f", newLocation.horizontalAccuracy];
                 
                 [locationServiceMessageView setMessage:message];
-                [locationServiceMessageView setAlpha:0.5];
+                [locationServiceMessageView setHidden:NO];
             }
             else
             {
-                NSString *message = [NSString stringWithFormat: @"Uygulama kullanım dışı bırakıldı... \n(distance:%f)\n", distanceInMeters];
+                NSString *message = [NSString stringWithFormat: @"Uygulama kullanımda \n(distance:%f)\n", distanceInMeters];
                 message = [message stringByAppendingFormat:@"current location:%f, %f\n", currentLocation.coordinate.latitude, currentLocation.coordinate.longitude];
                 message = [message stringByAppendingFormat:@"count %d\n", locationCount];
-                message = [message stringByAppendingFormat:@"vertical Accuracy %f\n", newLocation.verticalAccuracy];
-                message = [message stringByAppendingFormat:@"ho Accuracy %f", newLocation.horizontalAccuracy];
+                message = [message stringByAppendingFormat:@"Dikey Hassasiyet %f\n", newLocation.verticalAccuracy];
+                message = [message stringByAppendingFormat:@"Yatay Hassasiyet %f", newLocation.horizontalAccuracy];
                 
                 [locationServiceMessageView setMessage:message];
-                [locationServiceMessageView setAlpha:1.0];
+                [locationServiceMessageView setHidden:YES];
             }
   
         }

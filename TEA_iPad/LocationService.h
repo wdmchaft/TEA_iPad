@@ -22,6 +22,9 @@
     CLLocation *allowedLocation;
     float sumX;
     float sumY;
+    
+    
+    BOOL generatingRecord;
 }
 
 - (void) startService;
