@@ -23,13 +23,9 @@
     CLLocation *allowedLocation;
     float sumX;
     float sumY;
-    
-<<<<<<< Updated upstream
-    
-    BOOL generatingRecord;
-=======
+
     BOOL runningOperation;
->>>>>>> Stashed changes
+
 }
 
 - (void) startService;
