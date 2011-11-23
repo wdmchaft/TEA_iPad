@@ -59,8 +59,10 @@
             
             NSData *imageData = UIImagePNGRepresentation([UIImage imageWithContentsOfFile:appDelegate.selectedItemView.quizImagePath]); 
             [quiz.quizImage loadData:imageData MIMEType:@"image/png" textEncodingName:nil baseURL:nil];
+            [quiz.quizImageView setImage:[UIImage imageWithContentsOfFile:appDelegate.selectedItemView.quizImagePath]];
+            [quiz.quizImage setHidden:YES];
+            [quiz.quizImageView setHidden:NO];
             
-
             quiz.correctAnswer = appDelegate.selectedItemView.correctAnswer;
             quiz.answer = appDelegate.selectedItemView.answer;
             [quiz setupView];

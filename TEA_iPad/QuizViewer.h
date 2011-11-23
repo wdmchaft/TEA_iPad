@@ -31,6 +31,7 @@
 @property (nonatomic, assign) int answer;
 @property (nonatomic, assign) int correctAnswer;
 @property (nonatomic, retain) IBOutlet UIWebView *quizImage;
+@property (retain, nonatomic) IBOutlet UIImageView *quizImageView;
 
 - (void) setupView;
 - (UIImage *) captureImage;

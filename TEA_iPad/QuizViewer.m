@@ -19,6 +19,7 @@
 @synthesize answer;
 @synthesize correctAnswer;
 @synthesize quizImage;
+@synthesize quizImageView;
 
 
 - (void) setupView
@@ -85,6 +86,7 @@
     [answerD release];
     [answerE release];
     [quizImage release];
+    [quizImageView release];
     [super dealloc];
 }
 
@@ -118,6 +120,7 @@
     [self setAnswerD:nil];
     [self setAnswerE:nil];
     [self setQuizImage:nil];
+    [self setQuizImageView:nil];
     [super viewDidUnload];
     // Release any retained subviews of the main view.
     // e.g. self.myOutlet = nil;
