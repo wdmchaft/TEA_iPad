@@ -27,6 +27,16 @@
     return self;
 }
 
+- (UIImage*) screenImage
+{
+    UIGraphicsBeginImageContext(self.bounds.size);
+    [self.layer renderInContext:UIGraphicsGetCurrentContext()];
+    UIImage *anImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext(); 
+    
+    return anImage;
+}
+
 - (id)initWithCoder:(NSCoder *)coder {
     self = [super initWithCoder:coder];
     if (self) {

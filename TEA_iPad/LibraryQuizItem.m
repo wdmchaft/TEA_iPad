@@ -33,8 +33,8 @@
     /* CREATE SESSION IF NOT EXISTS */
     NSString *session_guid = appDelegate.session.sessionGuid;
     
-    NSString *insertSQL = @"insert into library(guid, session_guid, name, path, type, quizImagePath, quizAnswer, quizCorrectAnswer) values ('%@', '%@', '%@', '%@', 'quiz', '%@', %d, -1)";
-    insertSQL = [NSString stringWithFormat:insertSQL, self.guid, session_guid, self.name, self.path, self.quizImagePath, self.quizAnswer];
+    NSString *insertSQL = @"insert into library(guid, session_guid, name, path, type, quizImagePath, quizAnswer, quizCorrectAnswer, quizExpType, quizOptCount) values ('%@', '%@', '%@', '%@', 'quiz', '%@', %d, -1, '%d', '%d')";
+    insertSQL = [NSString stringWithFormat:insertSQL, self.guid, session_guid, self.name, self.path, self.quizImagePath, self.quizAnswer, self.quizExpType, self.quizOptCount];
     
     [db executeQuery:insertSQL];
     

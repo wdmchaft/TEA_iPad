@@ -172,7 +172,24 @@
 }
 
 - (IBAction)sendToBlackBoardClicked:(id)sender {
-    UIImage *image = [drawingLayer screenImage];
+    UIImage *image1 = [drawingLayer screenImage];
+    UIImage *image2 = [objectLayer screenImage];
+    
+    
+    // merge two images into one image
+    // capture image context ref
+    UIGraphicsBeginImageContext(image2.size);
+    
+    //Draw images onto the context
+    [image2 drawInRect:CGRectMake(0, 0, image2.size.width, image2.size.height)];
+    [image1 drawInRect:CGRectMake(0, 0, image1.size.width, image1.size.height) blendMode:kCGBlendModeMultiply alpha:1.0]; 
+    
+    // assign context to new UIImage
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    
+    // end context
+    UIGraphicsEndImageContext();
+    
     
     NSData *imageData = UIImageJPEGRepresentation(image, 1.0);
     NSLog(@"length of jpg %d", [imageData length]);

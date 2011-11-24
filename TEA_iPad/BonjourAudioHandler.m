@@ -35,7 +35,7 @@
     NSString *audioPath = [NSString stringWithFormat:@"%@/%@",  [paths objectAtIndex:0], audioName];
     
     LibraryAudioItem *audioItem = [[LibraryAudioItem alloc] init];
-    audioItem.path = audioPath;
+    audioItem.path = audioName;
     audioItem.name = [aMessage.userData objectForKey:@"name"];
     [audioItem saveLibraryItem];
   

@@ -28,7 +28,7 @@
     LocalDatabase *db = [[LocalDatabase alloc] init];
     [db openDatabase];
     
-    NSArray *result = [db executeQuery: [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer from library where session_guid = '%@'", sessionGuid]];
+    NSArray *result = [db executeQuery: [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@'", sessionGuid]];
     
     int counter = 0;
     int x,y;
@@ -63,6 +63,7 @@
         sessionItemView.previewPath = [resultDict valueForKey:@"previewPath"];
         sessionItemView.correctAnswer = [[resultDict valueForKey:@"quizCorrectAnswer"] intValue];
         sessionItemView.answer = [[resultDict valueForKey:@"quizAnswer"] intValue];
+        sessionItemView.quizOptCount = [[resultDict valueForKey:@"quizOptCount"] intValue];
         
         [self addSubview:sessionItemView];
         [sessionItemView initLibraryItemView];

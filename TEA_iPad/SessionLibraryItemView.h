@@ -24,7 +24,7 @@ enum kState {
     NSString *guid;
     int correctAnswer;
     int answer;
-    
+    int quizOptCount;
     int state;
     
     UITextField *itemName ;
@@ -47,7 +47,9 @@ enum kState {
 @property (nonatomic, retain) NSString *guid;
 @property (nonatomic, assign) int correctAnswer;
 @property (nonatomic, assign) int answer;
+@property (nonatomic, assign) int quizOptCount;
 
+- (NSString *) getFullPathForFile:(NSString *) file;
 - (void) initLibraryItemView;
 - (void) savePreviewForPDFPage;
 @end

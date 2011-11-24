@@ -18,6 +18,7 @@
 - (void) addViewItem:(DWViewItem*) viewItem;
 - (void) setAllSelected:(BOOL) selected;
 - (void) removeViewItem:(DWViewItem *) aViewItem;
+- (UIImage*) screenImage;
 
 @property (nonatomic, assign) DWDrawingViewController *drawingViewController;
 

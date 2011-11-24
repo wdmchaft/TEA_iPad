@@ -20,6 +20,7 @@
     int answer;
     int correctAnswer;
     UIWebView *quizImage;
+    int optionCount;
     
 }
 @property (nonatomic, retain) IBOutlet UIButton *answerA;
@@ -29,6 +30,7 @@
 @property (nonatomic, retain) IBOutlet UIButton *answerE;
 
 @property (nonatomic, assign) int answer;
+@property (nonatomic, assign) int optionCount;
 @property (nonatomic, assign) int correctAnswer;
 @property (nonatomic, retain) IBOutlet UIWebView *quizImage;
 @property (retain, nonatomic) IBOutlet UIImageView *quizImageView;

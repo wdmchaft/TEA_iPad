@@ -229,27 +229,31 @@
 		}
 		case NSStreamEventHasBytesAvailable:
 		{
-            uint8_t buf[20000];
-            long len = 0;
-            len = [(NSInputStream *)stream read:buf maxLength:20000];
-            
-            if(len >=0) 
+            @try 
             {
-                @try 
+                uint8_t buf[20000];
+                long len = 0;
+                len = [(NSInputStream *)stream read:buf maxLength:20000];
+                
+                if(len >=0) 
                 {
+                    
                     [dataHandler._data appendBytes:(const void *)buf length:len];
                     [dataHandler handleData];
-                }
-                @catch (NSException *exception) 
-                {
-                    NSLog(@"*** !!! Has problem on reading data from stream %@", [(NSInputStream *)stream description]);
-                    NSLog(@"*** !!! Length is %d", len);
-                }
 
+                }
+                else
+                {
+                     NSLog(@"** !!! Has problem on reading data from stream %@", [(NSInputStream *)stream description]);
+                }
             }
-            else
+            @catch (NSException *exception) 
             {
-                 NSLog(@"** !!! Has problem on reading data from stream %@", [(NSInputStream *)stream description]);
+                NSLog(@"restart bonjour socket read error");
+                
+                TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate *) [[ UIApplication sharedApplication] delegate];
+                
+                [appDelegate restartBonjourBrowser];
             }
             break;
 		}

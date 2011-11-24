@@ -35,7 +35,7 @@
     NSString *videoPath = [NSString stringWithFormat:@"%@/%@",  [paths objectAtIndex:0], videoName];
     
     LibraryVideoItem *videoItem = [[LibraryVideoItem alloc] init];
-    videoItem.path = videoPath;
+    videoItem.path = videoName;
     videoItem.name = [aMessage.userData objectForKey:@"name"];
     [videoItem saveLibraryItem];
   
