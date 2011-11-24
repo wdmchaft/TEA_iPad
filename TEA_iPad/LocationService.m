@@ -150,7 +150,7 @@
     // Define distance
     if([allowedBSSID isEqualToString:[self getBSSID]]) //extend range, trust access point
     {
-        allowedRange = 100;
+        allowedRange = 200;
     }
     else
     {

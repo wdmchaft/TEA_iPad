@@ -35,7 +35,7 @@
     NSString *imagePath = [NSString stringWithFormat:@"%@/%@",  [paths objectAtIndex:0], imageName];
     
     LibraryImageItem *imageItem = [[LibraryImageItem alloc] init];
-    imageItem.path = imagePath;
+    imageItem.path = imageName;
     imageItem.name = [aMessage.userData objectForKey:@"name"];
     [imageItem saveLibraryItem];
   

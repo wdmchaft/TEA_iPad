@@ -39,7 +39,7 @@
     
     LibraryDocumentItem *documentItem = [[LibraryDocumentItem alloc] init];
     [documentItem setName:[aMessage.userData objectForKey:@"name"]];
-    [documentItem setPath:documentPath];
+    [documentItem setPath:documentName];
     
     [documentItem saveLibraryItem];
     

@@ -29,6 +29,7 @@
 @synthesize correctAnswer;
 @synthesize image;
 @synthesize optionCount;
+@synthesize quizExpType;
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
@@ -260,12 +261,14 @@
     LibraryQuizItem *quizItem = [[LibraryQuizItem alloc] init];
     quizItem.name = @"Alıştırma";
     quizItem.path = quizPath;
-    quizItem.quizType = 0;
     quizItem.quizReference = 113;
     quizItem.quizExpType =  1;
-    quizItem.quizImagePath = quizImagePath;
+    quizItem.quizImagePath = quizImageName;
     quizItem.guid = guid;
     quizItem.quizAnswer = currentAnswer;
+    quizItem.quizExpType = quizExpType;
+    quizItem.quizOptCount = optionCount;
+    
     // save image
     [UIImageJPEGRepresentation(image, 1.0) writeToFile:quizImagePath atomically:YES];
     [quizItem saveLibraryItem];

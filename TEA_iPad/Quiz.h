@@ -28,6 +28,7 @@
     int currentAnswer;
     int correctAnswer;
     int optionCount;
+    int quizExpType;
     
     UIImage *image;
 }
@@ -40,6 +41,7 @@
 @property (nonatomic, retain) IBOutlet UIButton *answerD;
 @property (nonatomic, retain) IBOutlet UIButton *answerE;
 @property (nonatomic, assign) int solveTime;
+@property (nonatomic, assign) int quizExpType;
 @property (nonatomic, assign) int optionCount;
 @property (nonatomic, retain) IBOutlet UIView *bgView;
 @property (nonatomic, retain) IBOutlet Timer *timerControl;
