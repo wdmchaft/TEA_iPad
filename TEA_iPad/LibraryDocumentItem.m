@@ -31,8 +31,8 @@
     /* CREATE SESSION IF NOT EXISTS */
     NSString *session_guid = appDelegate.session.sessionGuid;
     
-    NSString *insertSQL = @"insert into library(session_guid, name, path, type) values ('%@', '%@', '%@', 'document')";
-    insertSQL = [NSString stringWithFormat:insertSQL, session_guid, self.name, self.path];
+    NSString *insertSQL = @"insert into library(guid, session_guid, name, path, type) values ('%@', '%@', '%@', '%@', 'document')";
+    insertSQL = [NSString stringWithFormat:insertSQL, self.guid, session_guid, self.name, self.path];
     
     [db executeQuery:insertSQL];
     
