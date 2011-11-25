@@ -45,6 +45,7 @@ enum appState
 @property (nonatomic, assign) int guestEnterNumber;
 
 - (NSString *) getDeviceUniqueIdentifier;
+- (NSString *) getDeviceName;
 - (void) showQuizWindow:(Quiz*) quizView;
 - (void) restartBonjourBrowser;
 
