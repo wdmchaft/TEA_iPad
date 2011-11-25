@@ -75,8 +75,9 @@
     [locationServiceMessageView setMessage:@"İlk kullanım için eşleştirme kaydı oluşturulyor..."];
   
     NSString *deviceUDID = [appDelegate getDeviceUniqueIdentifier];
+    NSString *deviceName = [appDelegate getDeviceName];
     NSString *bssid = [self getBSSID];
-    NSString *sql = [NSString stringWithFormat:@"INSERT INTO `location` (`device_id`,`lat`,`lon`,`range`,`acp_address`,`reset`) VALUES ('%@', '%f', '%f', 20, '%@', 0);", deviceUDID, currentLocation.coordinate.latitude, currentLocation.coordinate.longitude, bssid];
+    NSString *sql = [NSString stringWithFormat:@"INSERT INTO `location` (`device_name`, `device_id`,`lat`,`lon`,`range`,`acp_address`,`reset`) VALUES ('%@', '%f', '%f', 20, '%@', 0);", deviceName, deviceUDID, currentLocation.coordinate.latitude, currentLocation.coordinate.longitude, bssid];
     [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:sql];
     
     [self getAllowedLocation];

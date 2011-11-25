@@ -328,6 +328,15 @@ void MyReachabilityCallback(
     #endif  
 }
 
+- (NSString *) getDeviceUniqueName
+{
+#if TARGET_IPHONE_SIMULATOR
+    return @"Device Simulator...";
+#else
+    return [[UIDevice currentDevice] name];
+#endif  
+}
+
 - (void) showQuizWindow:(Quiz*) quizView
 {
     
