@@ -40,7 +40,7 @@
     LibraryDocumentItem *documentItem = [[LibraryDocumentItem alloc] init];
     [documentItem setName:[aMessage.userData objectForKey:@"name"]];
     [documentItem setPath:documentName];
-    
+    documentItem.guid = [aMessage.userData objectForKey:@"guid"];
     [documentItem saveLibraryItem];
     
     

@@ -97,7 +97,7 @@
     
     // Get the page
 
-    CGPDFDocumentRef document = CGPDFDocumentCreateWithURL ((CFURLRef) [NSURL fileURLWithPath:[path retain]]);
+    CGPDFDocumentRef document = CGPDFDocumentCreateWithURL ((CFURLRef) [NSURL fileURLWithPath:[[self getFullPathForFile:path] retain]]);
     CGPDFPageRef page = CGPDFDocumentGetPage (document, 1);
     
     CGRect pageRect = CGPDFPageGetBoxRect(page, kCGPDFMediaBox);
@@ -476,7 +476,7 @@
         else if([type isEqualToString:@"document"])
         {
             LibraryDocumentItem *libraryDocumentItem = [[LibraryDocumentItem alloc] init];
-            libraryDocumentItem.path = path;
+            libraryDocumentItem.path = [self getFullPathForFile:self.path];
             libraryDocumentItem.name = name;
             
             DocumentViewer *documentViewer = [[DocumentViewer alloc] initWithLibraryItem:libraryDocumentItem];

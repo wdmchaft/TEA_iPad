@@ -37,8 +37,9 @@
     LibraryVideoItem *videoItem = [[LibraryVideoItem alloc] init];
     videoItem.path = videoName;
     videoItem.name = [aMessage.userData objectForKey:@"name"];
+    videoItem.guid = [aMessage.userData objectForKey:@"guid"];
     [videoItem saveLibraryItem];
-  
+    
     [videoData writeToFile:videoPath atomically:YES];
     [videoItem release];    
     

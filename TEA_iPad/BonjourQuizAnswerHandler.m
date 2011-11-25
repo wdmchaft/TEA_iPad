@@ -37,7 +37,7 @@
     LocalDatabase *db = [[LocalDatabase alloc] init];
     [db openDatabase];
     
-    NSString *sql = [NSString stringWithFormat:@"select * from library where guid = '%@'", answer, guid];
+    NSString *sql = [NSString stringWithFormat:@"select * from library where guid = '%@'", guid];
     
     NSArray *libraryRows = [db executeQuery:sql];
     if(libraryRows && [libraryRows count] > 0)
@@ -45,11 +45,11 @@
         NSDictionary *library = [libraryRows objectAtIndex:0];
         int quizType = [[library valueForKey:@"quizExpType"] intValue];
         
-        if(quizType == 0)  // Delete if true
+       /* if(quizType == 0)  // Delete if true
         {
             // get
         }
-        else
+        else*/
         {
             sql = [NSString stringWithFormat:@"update library set quizCorrectAnswer = '%d' where guid = '%@'", answer, guid];
             [db executeQuery:sql];
