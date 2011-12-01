@@ -17,7 +17,7 @@
     
     if(self)
     {
-        self.drawingItem = [[DWDrawingItemEraser alloc] init];
+        self.drawingItem = [[[DWDrawingItemEraser alloc] init] autorelease];
     }
     
     return self;

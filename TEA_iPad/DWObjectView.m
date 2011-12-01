@@ -8,6 +8,7 @@
 
 #import "DWObjectView.h"
 #import "DWDrawingViewController.h"
+#import <QuartzCore/QuartzCore.h>
 
 @implementation DWObjectView
 @synthesize drawingViewController;

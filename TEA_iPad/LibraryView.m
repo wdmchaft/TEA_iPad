@@ -33,6 +33,8 @@
 @synthesize selectedDate;
 @synthesize logonGlow;
 @synthesize guestEnterButton;
+@synthesize syncView;
+@synthesize numericPadPopover;
 
 - (void) refreshDate:(NSDate*)aDate
 {
@@ -159,7 +161,7 @@
 - (void) initSessionNames
 {
      
-    NSDateComponents *comps = [[NSDateComponents alloc] init];
+    NSDateComponents *comps = [[[NSDateComponents alloc] init] autorelease];
     [comps setDay:self.selectedDate];
     [comps setMonth:self.selectedMonth.month];
     [comps setYear:self.selectedMonth.year];
@@ -217,6 +219,7 @@
     }
     
     [db release];
+
     contentsScrollView.contentSize = CGSizeMake(contentsScrollView.frame.size.width, sessionViewRect.size.height + sessionViewRect.origin.y + 50);
 }
 
@@ -268,6 +271,8 @@
     if(notebookWorkspace)
         [notebookWorkspace release];
     
+    [numericPadPopover release];
+    [syncView release];
     [lectureViews release];
     [guestEnterButton release];
     [sessionNameScrollView release];
@@ -319,6 +324,13 @@
     blackScreen = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
     [blackScreen setBackgroundColor:[UIColor blackColor]];
     
+    syncView = [[Sync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
+    [syncView setHidden:YES];
+    [self.view addSubview:syncView];
+    [syncView requestForSync];
+    [syncView release];
+    
+    
     if(!compactMode)
     {
         lectureViews = [[NSMutableArray alloc] init];
@@ -348,9 +360,9 @@
         [notebookWorkspace setBackgroundColor:[UIColor clearColor]];
         
         self.notebook = [[Notebook alloc] initWithFrame:CGRectMake(195, 58, 789, 655)];
-        [notebook  setHidden:YES];
+        [self.notebook  setHidden:YES];
         [self.view addSubview:notebook ];
-        [notebook setBackgroundColor:[UIColor clearColor]];
+        [self.notebook setBackgroundColor:[UIColor clearColor]];
                 
         
         [sessionNameScrollView setHidden:NO];
@@ -432,11 +444,11 @@
 
 - (IBAction) guestStudentEnterClicked:(id) sender
 {
-    NumericPad *numericPad = [[NumericPad alloc] initWithNibName:@"NumericPad" bundle:nil];
-    UIPopoverController *popover = [[UIPopoverController alloc] initWithContentViewController:numericPad];
-    numericPad.popup = popover;
-    popover.popoverContentSize = numericPad.view.frame.size;
-    [popover presentPopoverFromRect:((UIButton*)sender).frame inView:self.view permittedArrowDirections:UIPopoverArrowDirectionDown animated:YES];
+    NumericPad *numericPad = [[[NumericPad alloc] initWithNibName:@"NumericPad" bundle:nil] autorelease];
+    self.numericPadPopover = [[[UIPopoverController alloc] initWithContentViewController:numericPad] autorelease];
+    numericPad.popup = self.numericPadPopover;
+    self.numericPadPopover.popoverContentSize = numericPad.view.frame.size;
+    [self.numericPadPopover presentPopoverFromRect:((UIButton*)sender).frame inView:self.view permittedArrowDirections:UIPopoverArrowDirectionDown animated:YES];
     
 }
 

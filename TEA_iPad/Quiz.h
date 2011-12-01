@@ -59,6 +59,6 @@
 
 - (void) timeIsOver;
 - (void) updateCorrectAnswer;
-
+- (void) saveQuizItem;
 
 @end

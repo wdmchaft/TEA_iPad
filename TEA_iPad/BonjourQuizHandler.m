@@ -27,7 +27,7 @@
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
-    Quiz *quiz = [[Quiz alloc] initWithNibName:@"Quiz" bundle:nil];
+    Quiz *quiz = [[[Quiz alloc] initWithNibName:@"Quiz" bundle:nil] autorelease];
     quiz.guid = [aMessage.userData valueForKey:@"guid"];
     quiz.solveTime = [[aMessage.userData valueForKey:@"solveTime"] intValue];
     quiz.optionCount = [[aMessage.userData valueForKey:@"optionCount"] intValue];
@@ -43,8 +43,14 @@
     UIImage *image = [UIImage imageWithData:[aMessage.userData objectForKey:@"image"]];
     quiz.image = image;
     
-    [appDelegate performSelectorOnMainThread:@selector(showQuizWindow:) withObject:quiz waitUntilDone:NO];
-    
+    if(appDelegate.state != kAppStateSyncing)
+    {
+        [appDelegate performSelectorOnMainThread:@selector(showQuizWindow:) withObject:quiz waitUntilDone:NO];
+    }
+    else
+    {
+        [quiz saveQuizItem];
+    }
     
     [pool release];
 }

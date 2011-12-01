@@ -83,7 +83,7 @@
         NSString *caution = NSLocalizedString(@"Caution", NULL);
         
         
-        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:caution message:alertString delegate:self cancelButtonTitle:cancel otherButtonTitles: send, nil];
+        UIAlertView *alertView = [[[UIAlertView alloc] initWithTitle:caution message:alertString delegate:self cancelButtonTitle:cancel otherButtonTitles: send, nil] autorelease];
         
         [alertView show];
     }
@@ -240,16 +240,8 @@
     [db release];
 }
 
-- (void) viewWillDisappear:(BOOL)animated
+- (void) saveQuizItem
 {
-    
-    if(timerControl)
-    {
-        [timerControl stopTimer];
-        [timerControl release];
-        timerControl = nil;
-    }
-    
     // Save quiz item 
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *quizName = [[LocalDatabase stringWithUUID] stringByAppendingString:@".qz"]; 
@@ -273,6 +265,19 @@
     [UIImageJPEGRepresentation(image, 1.0) writeToFile:quizImagePath atomically:YES];
     [quizItem saveLibraryItem];
     [quizItem release];
+}
+
+- (void) viewWillDisappear:(BOOL)animated
+{
+    
+    if(timerControl)
+    {
+        [timerControl stopTimer];
+        [timerControl release];
+        timerControl = nil;
+    }
+    
+    [self saveQuizItem];
 
 }
 

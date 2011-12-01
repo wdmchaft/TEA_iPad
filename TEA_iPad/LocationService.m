@@ -28,7 +28,7 @@
         if (info && [info count]) {
             break;
         }
-        [info release];
+       // [info release];
     }
     [info autorelease];
     [ifs release];
@@ -77,7 +77,7 @@
     NSString *deviceUDID = [appDelegate getDeviceUniqueIdentifier];
     NSString *deviceName = [appDelegate getDeviceName];
     NSString *bssid = [self getBSSID];
-    NSString *sql = [NSString stringWithFormat:@"INSERT INTO `location` (`device_name`, `device_id`,`lat`,`lon`,`range`,`acp_address`,`reset`) VALUES ('%@', '%f', '%f', 20, '%@', 0);", deviceName, deviceUDID, currentLocation.coordinate.latitude, currentLocation.coordinate.longitude, bssid];
+    NSString *sql = [NSString stringWithFormat:@"INSERT INTO `location` (`device_name`, `device_id`,`lat`,`lon`,`range`,`acp_address`,`reset`) VALUES ('%@', '%@', '%f', '%f', 20, '%@', 0);", deviceName, deviceUDID, currentLocation.coordinate.latitude, currentLocation.coordinate.longitude, bssid];
     [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:sql];
     
     [self getAllowedLocation];
@@ -151,7 +151,7 @@
     // Define distance
     if([allowedBSSID isEqualToString:[self getBSSID]]) //extend range, trust access point
     {
-        allowedRange = 200;
+        allowedRange = 500;
     }
     else
     {

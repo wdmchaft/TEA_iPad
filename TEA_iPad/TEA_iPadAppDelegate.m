@@ -20,7 +20,7 @@
 #import "BonjourAudioHandler.h"
 #import "Reachability.h"
 #import "BonjourStudentLockHandler.h"
-
+#import "LocationService.h"
 #include <SystemConfiguration/SystemConfiguration.h>
 
 @implementation TEA_iPadAppDelegate
@@ -141,29 +141,16 @@ void MyReachabilityCallback(
     self.state = kAppStateIdle;
     
     
-    
-    
-    //bonjourBrowserThread = [[NSThread alloc] initWithTarget:self selector:@selector(startBonjourBrowser) object:nil];
-    //[bonjourBrowserThread start];
-    
-    [self performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
-    
-   // bonjourBrowser = [[BonjourBrowser alloc] init];
-   // [bonjourBrowser startBrowse];
-    
-   // [NSThread detachNewThreadSelector:@selector(startBonjourBrowser) toTarget:self withObject:nil];
-    
-    
-    
-    
     Session *tSession = [[Session alloc] init];
     self.session = tSession;
     [tSession release];
-    
-    
-        
-    
+   
     self.window.rootViewController = self.viewController;
+    //LocationService *locationService = [[LocationService alloc] init];
+    //blackScreen = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
+    
+    
+   // [locationService startService];
     [self.window makeKeyAndVisible];
     
    return YES;
@@ -294,7 +281,7 @@ void MyReachabilityCallback(
     #endif  
 }
 
-- (NSString *) getDeviceUniqueName
+- (NSString *) getDeviceName
 {
 #if TARGET_IPHONE_SIMULATOR
     return @"Device Simulator...";

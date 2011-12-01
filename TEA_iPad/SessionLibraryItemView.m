@@ -97,6 +97,7 @@
     
     // Get the page
 
+    
     CGPDFDocumentRef document = CGPDFDocumentCreateWithURL ((CFURLRef) [NSURL fileURLWithPath:[[self getFullPathForFile:path] retain]]);
     CGPDFPageRef page = CGPDFDocumentGetPage (document, 1);
     

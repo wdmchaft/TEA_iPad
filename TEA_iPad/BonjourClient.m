@@ -277,7 +277,7 @@
             NSLog(@"[BONJOUR] connected host : %@", appDelegate.connectedHost);
             
             
-            if([appDelegate.connectedHost isEqualToString:self.hostName])
+            if([appDelegate.connectedHost isEqualToString:self.hostName] && appDelegate.state == kAppStateLogon)
             {
                 appDelegate.session.sessionGuid = nil;
                 appDelegate.session.sessionName = nil;

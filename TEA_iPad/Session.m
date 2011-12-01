@@ -18,13 +18,7 @@
     
     if(self)
     {
-        NSDate *today = [NSDate date];
-        NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-        [dateFormatter setDateFormat:@"dd.MM.yyyy"];
-        NSString *dateString = [dateFormatter stringFromDate:today];
-        
-        self.dateInfo = dateString;
-        [dateFormatter release];
+
     }
     
     return self;
