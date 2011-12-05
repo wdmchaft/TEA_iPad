@@ -21,35 +21,45 @@
 
 - (void) openDatabase
 {
-    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
     NSString *databaseName = @"library.sqlite";
 	NSArray  *documentPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-	NSString *documentsDir = [documentPaths objectAtIndex:0];
+	NSString *documentsDir = (NSString*) [documentPaths objectAtIndex:0];
+    
+ 
+    if(![fileManager fileExistsAtPath:documentsDir])
+    {
+        [fileManager createDirectoryAtPath:documentsDir withIntermediateDirectories:YES attributes:nil error:nil];
+    }
+    
 	NSString *databasePath = [documentsDir stringByAppendingPathComponent:databaseName];
     
-    NSFileManager *fileManager = [NSFileManager defaultManager];
+   
 	BOOL success = [fileManager fileExistsAtPath:databasePath];
 	
 	if(success)
     {
-        NSLog(@"DB FOUND");
+       // NSLog(@"DB FOUND");
     }
     else
     {
-        NSLog(@"DB NOT FOUND");
-        NSLog(@"Trying to copy resource db");
+    //    NSLog(@"DB NOT FOUND");
+    //    NSLog(@"Trying to copy resource db");
         
         NSString *databasePathFromApp = [[NSBundle mainBundle] pathForResource:@"library" ofType:@"sqlite"];
+        
+        
+        
         [fileManager copyItemAtPath:databasePathFromApp toPath:databasePath error:nil];
     }
     
 	if(sqlite3_open([databasePath UTF8String], &database) == SQLITE_OK) 
 	{
-        NSLog(@"DB OPENED");
+       // NSLog(@"DB OPENED");
 	}
     else
     {
-        NSLog(@"DB NOT OPENED");
+    //    NSLog(@"DB NOT OPENED");
     }
 }
 

@@ -13,6 +13,13 @@
 @synthesize currentMinute, currentSecond, target, selectorMethod;
 
 
+- (void) setCurrentSecond:(int)aCurrentSecond
+{
+    currentMinute = aCurrentSecond / 60;
+    currentSecond = aCurrentSecond % 60;
+}
+
+
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];

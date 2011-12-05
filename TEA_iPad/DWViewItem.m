@@ -42,7 +42,7 @@
     NSString *delete = NSLocalizedString(@"Delete", NULL);
     NSString *caution = NSLocalizedString(@"Caution", NULL);
     
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:caution message:alertString delegate:self cancelButtonTitle:cancel otherButtonTitles: delete, nil];
+    UIAlertView *alertView = [[[UIAlertView alloc] initWithTitle:caution message:alertString delegate:self cancelButtonTitle:cancel otherButtonTitles: delete, nil] autorelease];
     
     [alertView show];
     

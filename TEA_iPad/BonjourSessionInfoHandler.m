@@ -9,6 +9,7 @@
 #import "BonjourSessionInfoHandler.h"
 #import "BonjourService.h"
 #import "TEA_iPadAppDelegate.h"
+#import "ConfigurationManager.h"
 
 @implementation BonjourSessionInfoHandler
 
@@ -27,14 +28,24 @@
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-    appDelegate.connectedHost = aMessage.client.hostName;
+    if(aMessage.client)
+        appDelegate.connectedHost = aMessage.client.hostName;
     appDelegate.session.sessionGuid = [aMessage.userData valueForKey:@"guid"];
     appDelegate.session.sessionName = [aMessage.userData valueForKey:@"name"];
     appDelegate.session.sessionLectureName = [aMessage.userData valueForKey:@"courseName"];
     appDelegate.session.sessionLectureGuid  = [aMessage.userData valueForKey:@"courseGuid"];
     appDelegate.session.sessionTeacherName = [aMessage.userData valueForKey:@"teacherName"];
-   
-    appDelegate.state = kAppStateLogon;
+    appDelegate.session.dateInfo = [aMessage.userData valueForKey:@"dateinfo"];
+    
+    // Get configuration values from server.
+    NSDictionary *iPadConfigDictionary = [aMessage.userData objectForKey:@"iPadConfig"];
+    [ConfigurationManager setConfigurationValue:iPadConfigDictionary forKey:@"iPadConfig"];
+    
+    if(appDelegate.state != kAppStateSyncing)
+    {
+        appDelegate.state = kAppStateLogon;
+    }
+    
     [pool release];
 }
 

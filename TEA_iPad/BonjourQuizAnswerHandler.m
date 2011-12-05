@@ -42,8 +42,8 @@
     NSArray *libraryRows = [db executeQuery:sql];
     if(libraryRows && [libraryRows count] > 0)
     {
-        NSDictionary *library = [libraryRows objectAtIndex:0];
-        int quizType = [[library valueForKey:@"quizExpType"] intValue];
+       // NSDictionary *library = [libraryRows objectAtIndex:0];
+        //int quizType = [[library valueForKey:@"quizExpType"] intValue];
         
        /* if(quizType == 0)  // Delete if true
         {

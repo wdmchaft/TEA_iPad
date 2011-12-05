@@ -21,6 +21,7 @@
 @implementation DWDrawingViewController
 @synthesize drawingLayer;
 @synthesize objectLayer;
+@synthesize colorPopover, lineWidthPopover;
 
 @synthesize toolPen, currentPage, pageEdited;
 @synthesize toolSelect;
@@ -99,6 +100,9 @@
 }
 
 - (void)dealloc {
+    [colorPopover release];
+    [lineWidthPopover release];
+    
     [audioFileName release];
     [toolRect release];
     [toolSelect release];
@@ -150,13 +154,13 @@
 {
     
      
-    DWLineWidthPalette *lineWidthPalette = [[DWLineWidthPalette alloc] initWithNibName:@"DWLineWidthPalette" bundle:nil];
+    DWLineWidthPalette *lineWidthPalette = [[[DWLineWidthPalette alloc] initWithNibName:@"DWLineWidthPalette" bundle:nil] autorelease];
     lineWidthPalette.drawingViewController = self;
   
-    UIPopoverController *popover = [[UIPopoverController alloc] initWithContentViewController:lineWidthPalette];
-    lineWidthPalette.popover = popover;
-    popover.popoverContentSize = lineWidthPalette.view.frame.size;
-    [popover presentPopoverFromRect:LineWidthSelectorButton.frame inView:self.view permittedArrowDirections:UIPopoverArrowDirectionDown animated:YES];
+    self.lineWidthPopover = [[[UIPopoverController alloc] initWithContentViewController:lineWidthPalette] autorelease];
+    lineWidthPalette.popover = self.lineWidthPopover;
+    self.lineWidthPopover.popoverContentSize = lineWidthPalette.view.frame.size;
+    [self.lineWidthPopover presentPopoverFromRect:LineWidthSelectorButton.frame inView:self.view permittedArrowDirections:UIPopoverArrowDirectionDown animated:YES];
     
 }
 
@@ -273,12 +277,12 @@
 - (IBAction)colorButtonClicked:(id)sender 
 {
     
-    DWColorPalette *colorPalette = [[DWColorPalette alloc] initWithNibName:@"DWColorPalette" bundle:nil];
+    DWColorPalette *colorPalette = [[[DWColorPalette alloc] initWithNibName:@"DWColorPalette" bundle:nil] autorelease];
     colorPalette.drawingViewController = self;
-    UIPopoverController *popover = [[UIPopoverController alloc] initWithContentViewController:colorPalette];
-    colorPalette.popover = popover;
-    popover.popoverContentSize = colorPalette.view.frame.size;
-    [popover presentPopoverFromRect:colorButton.frame inView:self.view permittedArrowDirections:UIPopoverArrowDirectionDown animated:YES];
+    self.colorPopover = [[[UIPopoverController alloc] initWithContentViewController:colorPalette] autorelease];
+    colorPalette.popover = self.colorPopover;
+    self.colorPopover.popoverContentSize = colorPalette.view.frame.size;
+    [self.colorPopover presentPopoverFromRect:colorButton.frame inView:self.view permittedArrowDirections:UIPopoverArrowDirectionDown animated:YES];
     
 }
 

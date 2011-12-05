@@ -15,9 +15,9 @@
 
 - (id)init
 {
-    self.points = [[NSMutableArray alloc]init];
-    self.lineColor = [[DWColor alloc] init];
-    self.lineWidth = [[DWLineWidth alloc] init];
+    self.points = [[[NSMutableArray alloc]init] autorelease];
+    self.lineColor = [[[DWColor alloc] init] autorelease];
+    self.lineWidth = [[[DWLineWidth alloc] init] autorelease];
  
     return self;
 }

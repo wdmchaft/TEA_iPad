@@ -25,21 +25,28 @@
 {
     [super saveLibraryItem];
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-    LocalDatabase *db = [[LocalDatabase alloc] init];
+    LocalDatabase *db = [[[LocalDatabase alloc] init] autorelease];
     [db openDatabase];
     
     /* CREATE SESSION IF NOT EXISTS */
     NSString *session_guid = appDelegate.session.sessionGuid;
     
-    NSString *insertSQL = @"insert into library(guid, session_guid, name, path, type) values ('%@', '%@', '%@', '%@', 'document')";
-    insertSQL = [NSString stringWithFormat:insertSQL, self.guid, session_guid, self.name, self.path];
+    NSString *selectSql = [NSString stringWithFormat:@"select guid from library where guid = '%@'", self.guid];
+    NSArray *result = [db executeQuery:selectSql];
     
-    [db executeQuery:insertSQL];
+    if(!(result && [result count] > 0))
+    {
+        NSString *insertSQL = @"insert into library(guid, session_guid, name, path, type) values ('%@', '%@', '%@', '%@', 'document')";
+        insertSQL = [NSString stringWithFormat:insertSQL, self.guid, session_guid, self.name, self.path];
+        
+        [db executeQuery:insertSQL];
+        
+        [db closeDatabase];
+        
+        [((LibraryView*) appDelegate.viewController) performSelectorOnMainThread:@selector(refreshDate:) withObject:[NSDate date] waitUntilDone:YES];
+    }
     
-    [db closeDatabase];
-    [db release];
     
-    [((LibraryView*) appDelegate.viewController) performSelectorOnMainThread:@selector(refreshDate:) withObject:[NSDate date] waitUntilDone:YES];
 }
 
 - (void)dealloc

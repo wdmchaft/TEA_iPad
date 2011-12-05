@@ -78,10 +78,10 @@
 						<string key="NSFrame">{{311, 184}, {688, 544}}</string>
 						<reference key="NSSuperview" ref="766721923"/>
 						<reference key="NSWindow"/>
-						<reference key="NSNextKeyView"/>
 						<bool key="IBUIClipsSubviews">YES</bool>
 						<bool key="IBUIMultipleTouchEnabled">YES</bool>
 						<string key="targetRuntimeIdentifier">IBIPadFramework</string>
+						<int key="IBUIIndicatorStyle">2</int>
 					</object>
 					<object class="IBUIScrollView" id="626296127">
 						<reference key="NSNextResponder" ref="766721923"/>

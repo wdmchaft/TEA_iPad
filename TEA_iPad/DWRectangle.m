@@ -18,7 +18,7 @@
     
     if(self)
     {
-        self.drawingItem = [[DWDrawingItemRectangle alloc] init];
+        self.drawingItem = [[[DWDrawingItemRectangle alloc] init] autorelease];
     }
     
     return self;

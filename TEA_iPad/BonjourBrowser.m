@@ -89,7 +89,7 @@
 - (void) startBrowse
 {
 
-    self.netServiceBrowser = [[NSNetServiceBrowser alloc] init];
+    self.netServiceBrowser = [[[NSNetServiceBrowser alloc] init] autorelease];
 
     NSString *serviceName = [NSString stringWithFormat:@"_%@._tcp.", [ConfigurationManager getConfigurationValueForKey:@"BonjourServiceName"]];
     
