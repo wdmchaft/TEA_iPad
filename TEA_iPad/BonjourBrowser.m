@@ -10,6 +10,7 @@
 #import "TEA_iPadAppDelegate.h"
 #import "BonjourService.h"
 #import "ConfigurationManager.h"
+#import "Quiz.h"
 
 @implementation BonjourBrowser
 
@@ -244,6 +245,8 @@
         appDelegate.session.sessionTeacherName = nil;
         
         appDelegate.state = kAppStateIdle;
+        
+        [appDelegate.currentQuizWindow finishQuiz];
     }
 
     

@@ -18,6 +18,10 @@
 #import "BonjourVideoHandler.h"
 #import "BonjourDocumentHandler.h"
 #import "BonjourAudioHandler.h"
+#import "BonjourQuizPauseHandler.h"
+#import "BonjourQuizContinueHandler.h"
+#import "BonjourQuizExtraTimeHandler.h"
+#import "BonjourQuizFinishHandler.h"
 #import "Reachability.h"
 #import "BonjourStudentLockHandler.h"
 #import "LocationService.h"
@@ -29,7 +33,7 @@
 
 
 @synthesize window=_window, bonjourBrowser, session, state, connectedHost, guestEnterNumber;
-
+@synthesize currentQuizWindow;
 @synthesize viewController=_viewController, bonjourBrowserThread, selectedItemView;
 
 void PrintReachabilityFlags(
@@ -167,6 +171,11 @@ void MyReachabilityCallback(
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourDocumentHandler alloc] init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourAudioHandler alloc] init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourStudentLockHandler alloc] init] autorelease]];
+    [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizPauseHandler alloc] init] autorelease]];
+    [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizContinueHandler alloc] init] autorelease]];
+    [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizExtraTimeHandler alloc] init] autorelease]];
+    [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizFinishHandler alloc] init] autorelease]];
+    
     self.state = kAppStateIdle;
     
     
@@ -329,7 +338,7 @@ void MyReachabilityCallback(
 
 - (void) showQuizWindow:(Quiz*) quizView
 {
-    
+    self.currentQuizWindow = quizView;
     quizView.modalPresentationStyle = UIModalPresentationFormSheet;
     [self.viewController presentModalViewController:quizView animated:YES];
     

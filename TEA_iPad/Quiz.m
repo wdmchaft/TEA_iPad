@@ -28,6 +28,7 @@
 @synthesize guid;
 @synthesize correctAnswer;
 @synthesize image;
+@synthesize lockImage;
 @synthesize optionCount;
 @synthesize quizExpType;
 
@@ -88,14 +89,29 @@
         [alertView show];
     }
     
-    
-    
-    
 }
 
-- (void) timeIsOver
+
+- (void) lockQuizOptions:(BOOL) locked
 {
-    
+    [lockImage setHidden:!locked];
+}
+
+
+
+- (void) pauseTimer
+{
+    timerControl.paused = YES;
+}
+
+- (void) continueTimer
+{
+    timerControl.paused = NO;
+    [self lockQuizOptions:NO];
+}
+
+- (void) finishQuiz
+{
     if(!displayMode)
     {
         currentAnswer = -1;
@@ -108,6 +124,26 @@
     [timerControl stopTimer];
     [timerControl release];
     timerControl = nil;
+}
+
+- (void) timeIsOver
+{
+    
+    [self lockQuizOptions:YES];
+    
+    /*
+    if(!displayMode)
+    {
+        currentAnswer = -1;
+        [self sendSolution];
+    }
+    
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    [appDelegate.viewController dismissModalViewControllerAnimated:YES];
+    
+    [timerControl stopTimer];
+    [timerControl release];
+    timerControl = nil;*/
 }
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -136,6 +172,7 @@
     [timerView release];
     [bgView release];
     [timerControl release];
+    [lockImage release];
     [super dealloc];
 }
 
@@ -295,6 +332,7 @@
     [self setTimerView:nil];
     [self setBgView:nil];
     [self setTimerControl:nil];
+    [self setLockImage:nil];
     [super viewDidUnload];
     // Release any retained subviews of the main view.
     // e.g. self.myOutlet = nil;

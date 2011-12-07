@@ -17,11 +17,14 @@
     
     id target;
     SEL selectorMethod;
+    BOOL paused;
 }
 
-@property (assign) int currentMinute;
-@property (assign) int currentSecond;
+@property (nonatomic, assign) int currentMinute;
+@property (nonatomic, assign) int currentSecond;
+@property (nonatomic, retain) NSTimer *timer;
 @property (assign) id target;
+@property (assign) BOOL paused;
 @property (assign) SEL selectorMethod;
 
 - (void) startTimer;

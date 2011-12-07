@@ -50,6 +50,7 @@
 @property (nonatomic, assign) int correctAnswer;
 @property (nonatomic, retain) IBOutlet UIView *timerView;
 @property (nonatomic, retain) UIImage *image;
+@property (retain, nonatomic) IBOutlet UIImageView *lockImage;
 
 - (IBAction)answerAClicked:(id)sender;
 - (IBAction)answerBClicked:(id)sender;
@@ -57,8 +58,13 @@
 - (IBAction)answerDClicked:(id)sender;
 - (IBAction)answerEClicked:(id)sender;
 
+- (void) lockQuizOptions:(BOOL) locked;
 - (void) timeIsOver;
 - (void) updateCorrectAnswer;
 - (void) saveQuizItem;
+- (void) pauseTimer;
+- (void) continueTimer;
+- (void) finishQuiz;
+
 
 @end
