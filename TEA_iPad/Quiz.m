@@ -120,7 +120,7 @@
     
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     [appDelegate.viewController dismissModalViewControllerAnimated:YES];
-    
+    appDelegate.currentQuizWindow = nil;
     [timerControl stopTimer];
     [timerControl release];
     timerControl = nil;
@@ -315,6 +315,9 @@
     }
     
     [self saveQuizItem];
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
+    appDelegate.currentQuizWindow = nil;
 
 }
 
