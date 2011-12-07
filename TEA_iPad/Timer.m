@@ -10,7 +10,7 @@
 
 
 @implementation Timer
-@synthesize currentMinute, currentSecond, target, selectorMethod;
+@synthesize currentMinute, currentSecond, target, selectorMethod, timer, paused;
 
 
 - (void) setCurrentSecond:(int)aCurrentSecond
@@ -25,17 +25,20 @@
     self = [super initWithFrame:frame];
     if (self) {
         // Initialization code
+        paused = NO;
     }
     return self;
 }
 
-- (void) thick
+- (void)thick:(NSTimer*)theTimer
 {
+    if(paused)
+        return;
+    
     if(currentSecond == 0)
     {
         if (currentMinute == 0)
         {
-            [self stopTimer];
             if(target && selectorMethod)
             {
                 [target performSelector:selectorMethod];
@@ -115,13 +118,16 @@
 
 - (void) startTimer
 {
-    timer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(thick) userInfo:nil repeats:YES];
+    self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(thick:) userInfo:nil repeats:YES];
     [timer fire];
 }
+
+
 
 - (void) stopTimer
 {
     [timer invalidate];
+    [timer release];
     timer = nil;
 }
 

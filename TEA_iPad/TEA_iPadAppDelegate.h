@@ -30,7 +30,7 @@ enum appState
     BOOL exitingApp;
     NSThread *bonjourBrowserThread;
     
-    
+    Quiz *currentQuizWindow;
     SessionLibraryItemView *selectedItemView;
 }
 
@@ -40,6 +40,7 @@ enum appState
 @property (nonatomic, retain) Session *session;
 @property (nonatomic, retain) NSString *connectedHost;
 @property (nonatomic, assign) int state;
+@property (nonatomic, assign) Quiz *currentQuizWindow;
 @property (nonatomic, assign) NSThread *bonjourBrowserThread;
 @property (nonatomic, retain) SessionLibraryItemView *selectedItemView;
 

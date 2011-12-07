@@ -18,7 +18,11 @@ enum MessageTypes
     kMessageTypeDocument                = 6,
     kMessageTypeNotificaiton            = 7,
     kMessageTypeAudio                   = 8,
-    kMessageTypeLockStudent             = 9
+    kMessageTypeLockStudent             = 9,
+    kMessageTypePauseQuiz               = 10,
+    kMessageTypeContinueQuiz            = 11,
+    kMessageTypeExtraTimeForQuiz        = 12,
+    kMessageTypeFinishQuiz              = 13
 };
 
 typedef enum MessageTypes MessageTypes;

@@ -9,6 +9,7 @@
 #import "BonjourService.h"
 #import "BonjourBrowser.h"
 #import "TEA_iPadAppDelegate.h"
+#import "Quiz.h"
 
 @implementation BonjourClient
 
@@ -263,7 +264,7 @@
             NSLog(@"[BONJOUR] event error %d", (int) eventCode);
 			
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate * )[[UIApplication sharedApplication] delegate];
-            
+            [appDelegate.currentQuizWindow finishQuiz];
             [appDelegate restartBonjourBrowser];
             
             break;
@@ -286,7 +287,7 @@
                 appDelegate.session.sessionTeacherName = nil;
                 
                 appDelegate.state = kAppStateIdle;
-                
+                [appDelegate.currentQuizWindow finishQuiz];
                 [appDelegate restartBonjourBrowser] ;
             }
             else
