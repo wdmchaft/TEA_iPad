@@ -264,7 +264,17 @@
             NSLog(@"[BONJOUR] event error %d", (int) eventCode);
 			
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate * )[[UIApplication sharedApplication] delegate];
-            [appDelegate.currentQuizWindow finishQuiz];
+            
+            @try {
+                [appDelegate.currentQuizWindow finishQuiz];
+            }
+            @catch (NSException *exception) {
+                
+            }
+            @finally {
+                
+            }
+            
             [appDelegate restartBonjourBrowser];
             
             break;
@@ -287,7 +297,16 @@
                 appDelegate.session.sessionTeacherName = nil;
                 
                 appDelegate.state = kAppStateIdle;
-                [appDelegate.currentQuizWindow finishQuiz];
+                @try {
+                    [appDelegate.currentQuizWindow finishQuiz];
+                }
+                @catch (NSException *exception) {
+                    
+                }
+                @finally {
+                    
+                }
+                
                 [appDelegate restartBonjourBrowser] ;
             }
             else
