@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface Sync : UIView
+@interface Sync : UIView 
 {
     UIProgressView *progressView;
     UILabel *progressLabel;

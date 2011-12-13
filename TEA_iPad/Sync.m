@@ -14,6 +14,17 @@
 #import "ZipReadStream.h"
 #import "FileInZipInfo.h"
 #import "BonjourService.h"
+#import "ConfigurationManager.h"
+#import "Reachability.h"
+
+#import <ifaddrs.h>
+#import <sys/socket.h>
+#import <netinet/in.h>
+#import <netinet6/in6.h>
+#import <arpa/inet.h>
+#import <ifaddrs.h>
+#import <netdb.h>
+
 
 @implementation Sync
 
@@ -26,63 +37,107 @@
     appDelegate.state = kAppStateSyncing;
     [self setHidden:NO];
     
-    @try {
-        fileSize = 0;
-        
-        
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        NSString *lastSyncTime = [defaults objectForKey:@"lastSyncTime"];
-        
-        if(!lastSyncTime)
-        {
-            lastSyncTime = @"1900-01-01";
-        }
+   // NSDictionary *iPadConfigDictionary = [ConfigurationManager getConfigurationValueForKey:@"iPadConfig"];
+    BOOL syncEnabled = [[ConfigurationManager getConfigurationValueForKey:@"SYNC_ENABLED"] boolValue];// [[iPadConfigDictionary valueForKey:@"iPadSyncEnabled"] boolValue];
+    
+    NSString *syncURL = [NSString stringWithFormat: @"%@/sync.jsp", [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]]; //[iPadConfigDictionary valueForKey:@"syncURL"];
+    
+    NSURLResponse *response = nil;
+    NSError **error=nil; 
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:[ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    
+    [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
+    
 
-        /*
-        NSString *downloadURL = [NSString stringWithFormat: @"http://172.16.46.100/sync.php?device_id=%@&start_date_time=%@", [appDelegate getDeviceUniqueIdentifier], lastSyncTime];
-        
-        downloadURL = [downloadURL stringByAddingPercentEscapesUsingEncoding: NSASCIIStringEncoding];
-        NSData *syncFileData = [NSData dataWithContentsOfURL:[NSURL URLWithString:downloadURL]];
-        
-        NSDictionary *dictionary = [[CJSONDeserializer deserializer] deserializeAsDictionary:syncFileData error:nil];
-        
-        if(dictionary)
+    if(syncEnabled && response)
+    {
+        @try 
         {
-            if([[dictionary valueForKey:@"name"] length] > 0)
-            {
-                fileName = [[dictionary valueForKey:@"name"] retain];
-                fileSize = [[dictionary valueForKey:@"size"] intValue];
-                fileList = [[dictionary objectForKey:@"files"] retain];
-                [defaults setObject:[dictionary objectForKey:@"syncTime"] forKey:@"lastSyncTime"];
-                [defaults synchronize];
-            } 
+            fileSize = 0;
             
-            [self downloadSyncFile];
+            
+            
+           
+                        
+            
+            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+            NSString *lastSyncTime = [defaults objectForKey:@"lastSyncTime"];
+            
+            if(!lastSyncTime)
+            {
+                lastSyncTime = @"1900-01-01";
+            }
+            
+            
+             NSString *downloadURL = [NSString stringWithFormat: @"%@?device_id=%@&start_date_time=%@", syncURL, [appDelegate getDeviceUniqueIdentifier], lastSyncTime];
+             
+            NSLog(@"[SYNC] %@", downloadURL);
+            
+             downloadURL = [downloadURL stringByAddingPercentEscapesUsingEncoding: NSASCIIStringEncoding];
+             NSData *syncFileData = [NSData dataWithContentsOfURL:[NSURL URLWithString:downloadURL]];
+             
+             NSDictionary *dictionary = [[CJSONDeserializer deserializer] deserializeAsDictionary:syncFileData error:nil];
+             
+             if(dictionary)
+             {
+             if([[dictionary valueForKey:@"name"] length] > 0)
+             {
+             fileName = [[dictionary valueForKey:@"name"] retain];
+             fileSize = [[dictionary valueForKey:@"size"] intValue];
+             fileList = [[dictionary objectForKey:@"files"] retain];
+             [defaults setObject:[dictionary objectForKey:@"syncTime"] forKey:@"lastSyncTime"];
+             [defaults synchronize];
+             } 
+             
+             [self downloadSyncFile];
+             }
+             else
+             {
+             [self setHidden:YES];
+             appDelegate.state = previousState;
+             [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
+             }
+            
+            
         }
-        else
+        @catch (NSException *exception) 
         {
+            NSLog(@"Exception :: %@",  [exception description]);
             [self setHidden:YES];
             appDelegate.state = previousState;
-            [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
         }
-        */
-        
+    }
+    else
+    {
         [self setHidden:YES];
         appDelegate.state = previousState;
         [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
+
     }
-    @catch (NSException *exception) 
-    {
-        NSLog(@"Exception :: %@",  [exception description]);
-        [self setHidden:YES];
-        appDelegate.state = previousState;
-    }
+    
+}
+
+- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
+{
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+
+    NSLog(@"timout");
+    [self setHidden:YES];
+    appDelegate.state = previousState;
+    [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
 }
 
 - (void) downloadSyncFile
 {
-    NSString *downloadURL = [NSString stringWithFormat: @"http://172.16.46.100/%@", fileName];
-	NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
+//    NSDictionary *iPadConfigDictionary = [ConfigurationManager getConfigurationValueForKey:@"iPadConfig"];
+    
+    NSString *syncFileBaseURL = [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]; //[iPadConfigDictionary valueForKey:@"syncFileDownloadURL"];
+    NSString *downloadURL = [NSString stringWithFormat: @"%@/%@", syncFileBaseURL, fileName];
+	
+    NSLog(@"[SYNC] downloadingFile : %@", downloadURL);
+    
+    NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
 	[request setURL:  [NSURL URLWithString:downloadURL]];
 	[request setHTTPMethod:@"GET"];
     
@@ -149,23 +204,30 @@
     // process every message
     for(int i=0; i < [fileList count]; i++)
     {
+        
         NSString *localFileName = [[fileList objectAtIndex:i] valueForKey:@"name"];
+        
         NSString *filePath = [NSString stringWithFormat:@"%@/%@", directoryPath, [[localFileName componentsSeparatedByString:@"/"] lastObject]];
         
         NSData *bonjourMessageData = [NSData dataWithContentsOfFile:filePath];
-        NSDictionary *bonjourMessageDict = [NSPropertyListSerialization propertyListWithData:bonjourMessageData options:NSPropertyListImmutable format:nil error:nil];
-        
-        
-        BonjourMessage *aMessage = [[[BonjourMessage alloc] init] autorelease];
-        aMessage.guid = [bonjourMessageDict valueForKey:@"guid"];
-        aMessage.messageType = [[bonjourMessageDict valueForKey:@"messageType"] intValue];
-        aMessage.userData = [bonjourMessageDict valueForKey:@"userData"];
-        
-        BonjouClientDataHandler *dataHandler = [[[BonjouClientDataHandler alloc] init] autorelease];
-        BonjourMessageHandler *handler = [dataHandler findMessageHandlerForMessage:aMessage];
-        
-        [handler handleMessage:aMessage];
-       
+        if(bonjourMessageData)
+        {
+            NSDictionary *bonjourMessageDict = [NSPropertyListSerialization propertyListWithData:bonjourMessageData options:NSPropertyListImmutable format:nil error:nil];
+            
+            
+            BonjourMessage *aMessage = [[[BonjourMessage alloc] init] autorelease];
+            aMessage.guid = [bonjourMessageDict valueForKey:@"guid"];
+            aMessage.messageType = [[bonjourMessageDict valueForKey:@"messageType"] intValue];
+            aMessage.userData = [bonjourMessageDict valueForKey:@"userData"];
+            
+            BonjouClientDataHandler *dataHandler = [[[BonjouClientDataHandler alloc] init] autorelease];
+            BonjourMessageHandler *handler = [dataHandler findMessageHandlerForMessage:aMessage];
+            
+            NSLog(@"Processing file[%d] %@ with handler %@", i, localFileName, NSStringFromClass([handler class]) );
+            [handler handleMessage:aMessage];
+
+        }
+               
     }
     
     
@@ -189,9 +251,11 @@
     self = [super initWithFrame:frame];
     if (self) {
         
-        UIImageView *imageView = [[[UIImageView alloc] initWithFrame:CGRectMake(0 , 0, 1024, 768)] autorelease];
+        UIImageView *imageView = [[[UIImageView alloc] initWithFrame:self.bounds] autorelease];
         [imageView setImage:[UIImage imageNamed:@"SyncBG.jpg"]];
         [self addSubview:imageView];
+        
+        
         
         progressView = [[[UIProgressView alloc] initWithFrame:CGRectMake(100, 480, 824, 25)] autorelease];
         [self addSubview:progressView];
