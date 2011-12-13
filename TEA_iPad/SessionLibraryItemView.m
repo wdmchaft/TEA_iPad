@@ -21,7 +21,19 @@
 #import "NotebookAddView.h"
 
 @implementation SessionLibraryItemView
-@synthesize name, path, type, sessionView, quizImagePath, previewPath, correctAnswer, answer, guid;
+@synthesize name, path, type, sessionView, quizImagePath, previewPath, correctAnswer, answer, guid, quizOptCount;
+
+- (NSString *) getFullPathForFile:(NSString *) file
+{
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    
+    NSString *documentsPath = [paths objectAtIndex:0];
+    
+    NSString *fullPath = [NSString stringWithFormat:@"%@/%@", documentsPath, file];
+    
+    return fullPath;
+    
+}
 
 
 - (UIImage *) getFilePreview;
@@ -34,7 +46,7 @@
             [previewWebView setDelegate:nil];
         }
         
-        UIImage *image = [UIImage imageWithContentsOfFile:previewPath];
+        UIImage *image = [UIImage imageWithContentsOfFile:[self getFullPathForFile:previewPath]];
         
         previewImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
         [previewImage setImage:image];
@@ -69,9 +81,9 @@
             
             [previewWebView setScalesPageToFit:YES];
             if([type isEqualToString:@"quiz"])
-                [previewWebView loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:quizImagePath]]];
+                [previewWebView loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:[self getFullPathForFile:quizImagePath]]]];
             else
-                [previewWebView loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:path]]];
+                [previewWebView loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:[self getFullPathForFile:path]]]];
 
         }
     }
@@ -85,7 +97,8 @@
     
     // Get the page
 
-    CGPDFDocumentRef document = CGPDFDocumentCreateWithURL ((CFURLRef) [NSURL fileURLWithPath:[path retain]]);
+    
+    CGPDFDocumentRef document = CGPDFDocumentCreateWithURL ((CFURLRef) [NSURL fileURLWithPath:[[self getFullPathForFile:path] retain]]);
     CGPDFPageRef page = CGPDFDocumentGetPage (document, 1);
     
     CGRect pageRect = CGPDFPageGetBoxRect(page, kCGPDFMediaBox);
@@ -131,10 +144,10 @@
         
         LocalDatabase *db = [[LocalDatabase alloc] init];
         [db openDatabase];
-        [db executeQuery:[NSString stringWithFormat:@"update library set previewPath='%@' where path='%@'", filePath, path]];
+        [db executeQuery:[NSString stringWithFormat:@"update library set previewPath='%@' where path='%@'", fileName, path]];
         [db closeDatabase];
         
-        self.previewPath = filePath;
+        self.previewPath = fileName;
         [db release];
         
         
@@ -171,10 +184,10 @@
         
         LocalDatabase *db = [[LocalDatabase alloc] init];
         [db openDatabase];
-        [db executeQuery:[NSString stringWithFormat:@"update library set previewPath='%@' where path='%@'", filePath, path]];
+        [db executeQuery:[NSString stringWithFormat:@"update library set previewPath='%@' where path='%@'", fileName, path]];
         [db closeDatabase];
         
-        previewPath = filePath;
+        previewPath = fileName;
         [db release];
         
         
@@ -417,7 +430,7 @@
     {
         if([type isEqualToString:@"video"])
         {
-            MediaPlayer *player = [[MediaPlayer alloc] initWithFrame:CGSizeMake(500, 500) andVideoPath:self.path];
+            MediaPlayer *player = [[MediaPlayer alloc] initWithFrame:CGSizeMake(500, 500) andVideoPath:[self getFullPathForFile:self.path]];
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
             
             [appDelegate.viewController.view addSubview:player];
@@ -425,7 +438,7 @@
         }
         else if([type isEqualToString:@"audio"])
         {
-            MediaPlayer *player = [[MediaPlayer alloc] initWithFrame:CGSizeMake(500, 500) andVideoPath:self.path];
+            MediaPlayer *player = [[MediaPlayer alloc] initWithFrame:CGSizeMake(500, 500) andVideoPath:[self getFullPathForFile:self.path]];
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
             
             [appDelegate.viewController.view addSubview:player];
@@ -438,8 +451,9 @@
             QuizViewer *quiz = [[QuizViewer alloc] initWithNibName:@"QuizViewer" bundle:nil];
             [appDelegate.viewController.view addSubview:quiz.view];
             //[quiz.quizImage setImage:[UIImage imageWithContentsOfFile:self.quizImagePath]];
-            [quiz.quizImage loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:self.quizImagePath]]];
+            [quiz.quizImage loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:[self getFullPathForFile:self.quizImagePath]]]];
             quiz.correctAnswer = self.correctAnswer;
+            quiz.optionCount = self.quizOptCount;
             quiz.answer = self.answer;
             [quiz setupView];
 
@@ -448,7 +462,7 @@
         else if( [type isEqualToString:@"image"])
         {
             LibraryDocumentItem *libraryDocumentItem = [[LibraryDocumentItem alloc] init];
-            libraryDocumentItem.path = self.path;
+            libraryDocumentItem.path = [self getFullPathForFile:self.path];
             libraryDocumentItem.name = self.name;
             
             DocumentViewer *documentViewer = [[DocumentViewer alloc] initWithLibraryItem:libraryDocumentItem];
@@ -463,7 +477,7 @@
         else if([type isEqualToString:@"document"])
         {
             LibraryDocumentItem *libraryDocumentItem = [[LibraryDocumentItem alloc] init];
-            libraryDocumentItem.path = path;
+            libraryDocumentItem.path = [self getFullPathForFile:self.path];
             libraryDocumentItem.name = name;
             
             DocumentViewer *documentViewer = [[DocumentViewer alloc] initWithLibraryItem:libraryDocumentItem];

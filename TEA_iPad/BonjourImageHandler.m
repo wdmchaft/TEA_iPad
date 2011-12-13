@@ -34,11 +34,12 @@
     NSString *imageName = [[LocalDatabase stringWithUUID] stringByAppendingString:@".png"]; 
     NSString *imagePath = [NSString stringWithFormat:@"%@/%@",  [paths objectAtIndex:0], imageName];
     
-    LibraryImageItem *imageItem = [[LibraryImageItem alloc] init];
-    imageItem.path = imagePath;
+    LibraryImageItem *imageItem = [[[LibraryImageItem alloc] init] autorelease];
+    imageItem.path = imageName;
     imageItem.name = [aMessage.userData objectForKey:@"name"];
+    imageItem.guid = [aMessage.userData objectForKey:@"guid"];
     [imageItem saveLibraryItem];
-  
+    
     [imageData writeToFile:imagePath atomically:YES];
         
     

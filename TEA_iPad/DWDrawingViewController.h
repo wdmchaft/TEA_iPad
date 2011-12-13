@@ -27,6 +27,8 @@
     UILabel *pageLabel;
     UIButton *toolSelect;
 
+    UIPopoverController *colorPopover;
+    UIPopoverController *lineWidthPopover;
     
     Boolean ibSelectMode;
     UISwitch *toolSelectionChanger;
@@ -44,7 +46,8 @@
     int currentPage;
 }
 
-
+@property (nonatomic, retain) UIPopoverController *colorPopover;
+@property (nonatomic, retain) UIPopoverController *lineWidthPopover;
 @property (nonatomic, retain) IBOutlet DWDrawingView *drawingLayer;
 @property (nonatomic, retain) IBOutlet DWObjectView *objectLayer;
 @property (nonatomic, retain) IBOutlet UIButton *toolPen;

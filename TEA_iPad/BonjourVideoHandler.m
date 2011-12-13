@@ -35,10 +35,11 @@
     NSString *videoPath = [NSString stringWithFormat:@"%@/%@",  [paths objectAtIndex:0], videoName];
     
     LibraryVideoItem *videoItem = [[LibraryVideoItem alloc] init];
-    videoItem.path = videoPath;
+    videoItem.path = videoName;
     videoItem.name = [aMessage.userData objectForKey:@"name"];
+    videoItem.guid = [aMessage.userData objectForKey:@"guid"];
     [videoItem saveLibraryItem];
-  
+    
     [videoData writeToFile:videoPath atomically:YES];
     [videoItem release];    
     

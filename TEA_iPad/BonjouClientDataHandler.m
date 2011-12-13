@@ -44,7 +44,7 @@
  
     while ([_data length] > 44) // There is enough data
     {
-        NSString *messageGuid = [[NSString alloc] initWithData:[_data subdataWithRange:NSMakeRange(0, 36 )] encoding:NSASCIIStringEncoding ];
+        NSString *messageGuid = [[[NSString alloc] initWithData:[_data subdataWithRange:NSMakeRange(0, 36 )] encoding:NSASCIIStringEncoding ] autorelease];
         int typeBits = 0; [_data getBytes:&typeBits range:NSMakeRange(36, 4)];
         int lengthBits = 0; [_data getBytes:&lengthBits range:NSMakeRange(40, 4)];
         
@@ -74,7 +74,6 @@
         message.userData = dict;
         message.client = client;
         
-        [messageGuid release];
         
         BonjourMessageHandler *handler = [self findMessageHandlerForMessage:message];
         if(handler)

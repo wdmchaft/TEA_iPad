@@ -15,7 +15,7 @@
 
 - (NSString *) monthString
 {
-    NSDateFormatter *df = [[NSDateFormatter alloc] init];
+    NSDateFormatter *df = [[[NSDateFormatter alloc] init] autorelease];
     NSString *monthName = [[df monthSymbols] objectAtIndex:month - 1];
     
     

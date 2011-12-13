@@ -27,7 +27,7 @@
 - (void) initDrawingView
 {
     contextImage = [[UIImage alloc] init];
-    self.drawingItemList = [[NSMutableArray alloc] initWithCapacity:3]; 
+    self.drawingItemList = [[[NSMutableArray alloc] initWithCapacity:3] autorelease]; 
     
     // init tools
     penTool = [[DWPen alloc] init];

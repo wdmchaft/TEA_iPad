@@ -32,19 +32,19 @@
         {
             NSString *htmlPath = [[NSBundle mainBundle] pathForResource:@"video" ofType:@"htm"];
 
-            NSString *tmpHTMLString = [NSString stringWithFormat:[NSString stringWithContentsOfFile:htmlPath encoding:NSUTF8StringEncoding error:nil], appDelegate.selectedItemView.path];
+            NSString *libraryItemPath = [appDelegate.selectedItemView getFullPathForFile:appDelegate.selectedItemView.path];
+            NSString *tmpHTMLString = [NSString stringWithFormat:[NSString stringWithContentsOfFile:htmlPath encoding:NSUTF8StringEncoding error:nil], libraryItemPath];
 
             self.htmlString = [tmpHTMLString retain] ;
-       
-           /* NSData *data = [tmpHTMLString dataUsingEncoding:NSUTF8StringEncoding];
-            [webField loadData:data MIMEType:@"text/html" textEncodingName:@"utf-8" baseURL:nil];*/
+
             [webField loadHTMLString:tmpHTMLString baseURL:nil];
         }
         else if([appDelegate.selectedItemView.type isEqualToString:@"image"])
         {
             NSString *htmlPath = [[NSBundle mainBundle] pathForResource:@"image" ofType:@"htm"];
             NSString *tmpHTMLString = [NSString stringWithContentsOfFile:htmlPath encoding:NSUTF8StringEncoding error:nil];
-            tmpHTMLString = [NSString stringWithFormat:tmpHTMLString, appDelegate.selectedItemView.path];
+            NSString *libraryItemPath = [appDelegate.selectedItemView getFullPathForFile:appDelegate.selectedItemView.path];
+            tmpHTMLString = [NSString stringWithFormat:tmpHTMLString, libraryItemPath];
             
             self.htmlString = [tmpHTMLString retain];
             
@@ -55,12 +55,14 @@
         {
             
             QuizViewer *quiz = [[QuizViewer alloc] initWithNibName:@"QuizViewerForScreenCapture" bundle:nil];
-            //[appDelegate.viewController.view addSubview:quiz.view];
+            NSString *libraryItemPath = [appDelegate.selectedItemView getFullPathForFile:appDelegate.selectedItemView.quizImagePath];
             
-            NSData *imageData = UIImagePNGRepresentation([UIImage imageWithContentsOfFile:appDelegate.selectedItemView.quizImagePath]); 
+            NSData *imageData = UIImagePNGRepresentation([UIImage imageWithContentsOfFile:libraryItemPath]); 
             [quiz.quizImage loadData:imageData MIMEType:@"image/png" textEncodingName:nil baseURL:nil];
+            [quiz.quizImageView setImage:[UIImage imageWithContentsOfFile:libraryItemPath]];
+            [quiz.quizImage setHidden:YES];
+            [quiz.quizImageView setHidden:NO];
             
-
             quiz.correctAnswer = appDelegate.selectedItemView.correctAnswer;
             quiz.answer = appDelegate.selectedItemView.answer;
             [quiz setupView];

@@ -28,6 +28,7 @@
     int currentAnswer;
     int correctAnswer;
     int optionCount;
+    int quizExpType;
     
     UIImage *image;
 }
@@ -40,6 +41,7 @@
 @property (nonatomic, retain) IBOutlet UIButton *answerD;
 @property (nonatomic, retain) IBOutlet UIButton *answerE;
 @property (nonatomic, assign) int solveTime;
+@property (nonatomic, assign) int quizExpType;
 @property (nonatomic, assign) int optionCount;
 @property (nonatomic, retain) IBOutlet UIView *bgView;
 @property (nonatomic, retain) IBOutlet Timer *timerControl;
@@ -48,6 +50,7 @@
 @property (nonatomic, assign) int correctAnswer;
 @property (nonatomic, retain) IBOutlet UIView *timerView;
 @property (nonatomic, retain) UIImage *image;
+@property (retain, nonatomic) IBOutlet UIImageView *lockImage;
 
 - (IBAction)answerAClicked:(id)sender;
 - (IBAction)answerBClicked:(id)sender;
@@ -55,8 +58,13 @@
 - (IBAction)answerDClicked:(id)sender;
 - (IBAction)answerEClicked:(id)sender;
 
+- (void) lockQuizOptions:(BOOL) locked;
 - (void) timeIsOver;
 - (void) updateCorrectAnswer;
+- (void) saveQuizItem;
+- (void) pauseTimer;
+- (void) continueTimer;
+- (void) finishQuiz;
 
 
 @end

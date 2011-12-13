@@ -60,7 +60,7 @@
     [super initViewItem];
     
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    self.audioFilePath = [[NSString stringWithFormat:@"%@/%@.caf",  [paths objectAtIndex:0], guid] retain];
+    self.audioFilePath = [NSString stringWithFormat:@"%@/%@.caf",  [paths objectAtIndex:0], guid];
     
     UIView *view = [[UIView alloc] initWithFrame:CGRectNull];
     [self addSubview:view];

@@ -11,9 +11,12 @@
 #import "NotebookWorkspace.h"
 #import "Notebook.h"
 #import "NumericPad.h"
+#import "Sync.h"
 
 @class DWDrawingViewController, LectureView, MonthView;
 @interface LibraryView : UIViewController <UIAccelerometerDelegate> {
+    
+    UIPopoverController *numericPadPopover;
     
     UIButton *libraryButton;
     UIButton *notebookButton;
@@ -41,16 +44,20 @@
     UIImageView *logonGlow;
     
     UIView *blackScreen;
+    Sync *syncView;
+    
     BOOL screenClosed;
 }
+@property (nonatomic, retain) UIButton *guestEnterButton;
 @property (nonatomic, retain) IBOutlet UIProgressView *contentProgress;
-@property (nonatomic, assign) UIButton *guestEnterButton;
+@property (nonatomic, retain) UIPopoverController *numericPadPopover;
 @property (nonatomic, retain) IBOutlet UIScrollView *sessionNameScrollView;
 @property (nonatomic, retain) IBOutlet UIScrollView *monthsScrollView;
 @property (nonatomic, retain) IBOutlet UIScrollView *lectureNamesScrollView;
 @property (nonatomic, retain) IBOutlet UIScrollView *contentsScrollView;
 @property (nonatomic, retain) IBOutlet DateView *dateView;
 @property (nonatomic, assign) BOOL compactMode;
+@property (nonatomic, assign) Sync *syncView;
 @property (nonatomic, assign) Notebook *notebook;
 @property (nonatomic, assign) NSMutableArray *lectureViews;
 

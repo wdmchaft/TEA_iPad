@@ -19,7 +19,8 @@
 @synthesize answer;
 @synthesize correctAnswer;
 @synthesize quizImage;
-
+@synthesize quizImageView;
+@synthesize optionCount;
 
 - (void) setupView
 {
@@ -47,6 +48,60 @@
         case 3: [answerD setImage:[UIImage imageNamed:@"option_d_correct.png"] forState:UIControlStateNormal]; break;
         case 4: [answerE setImage:[UIImage imageNamed:@"option_e_correct.png"] forState:UIControlStateNormal]; break;
     }
+    
+    if(optionCount == 2)
+    {
+        [answerA setHidden:NO];
+        [answerB setHidden:NO];
+        [answerC setHidden:YES];
+        [answerD setHidden:YES];
+        [answerE setHidden:YES];
+        
+        [answerA setFrame:CGRectMake(202, 513, 56, 56)];
+        [answerB setFrame:CGRectMake(283, 513, 56, 56)];
+        
+    }
+    else if(optionCount == 3)
+    {
+        [answerA setHidden:NO];
+        [answerB setHidden:NO];
+        [answerC setHidden:NO];
+        [answerD setHidden:YES];
+        [answerE setHidden:YES];
+        
+        [answerA setFrame:CGRectMake(160, 513, 56, 56)];
+        [answerB setFrame:CGRectMake(243, 513, 56, 56)];
+        [answerC setFrame:CGRectMake(324, 513, 56, 56)];
+        
+    }
+    else if(optionCount == 4)
+    {
+        [answerA setHidden:NO];
+        [answerB setHidden:NO];
+        [answerC setHidden:NO];
+        [answerD setHidden:NO];
+        [answerE setHidden:YES];
+        
+        [answerA setFrame:CGRectMake(119, 513, 56, 56)];
+        [answerB setFrame:CGRectMake(202, 513, 56, 56)];
+        [answerC setFrame:CGRectMake(285, 513, 56, 56)];
+        [answerD setFrame:CGRectMake(366, 513, 56, 56)];
+    }
+    else if(optionCount == 5)
+    {
+        [answerA setHidden:NO];
+        [answerB setHidden:NO];
+        [answerC setHidden:NO];
+        [answerD setHidden:NO];
+        [answerE setHidden:NO];
+        
+        [answerA setFrame:CGRectMake(77,  513, 56, 56)];
+        [answerB setFrame:CGRectMake(160, 513, 56, 56)];
+        [answerC setFrame:CGRectMake(243, 513, 56, 56)];
+        [answerD setFrame:CGRectMake(324, 513, 56, 56)];
+        [answerE setFrame:CGRectMake(405, 513, 56, 56)];
+    }
+
 }
 
 - (UIImage *) captureImage
@@ -85,6 +140,7 @@
     [answerD release];
     [answerE release];
     [quizImage release];
+    [quizImageView release];
     [super dealloc];
 }
 
@@ -92,6 +148,8 @@
 {
     [self.view removeFromSuperview];
 }
+
+
 
 - (void)didReceiveMemoryWarning
 {
@@ -118,6 +176,7 @@
     [self setAnswerD:nil];
     [self setAnswerE:nil];
     [self setQuizImage:nil];
+    [self setQuizImageView:nil];
     [super viewDidUnload];
     // Release any retained subviews of the main view.
     // e.g. self.myOutlet = nil;

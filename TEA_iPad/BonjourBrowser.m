@@ -10,6 +10,7 @@
 #import "TEA_iPadAppDelegate.h"
 #import "BonjourService.h"
 #import "ConfigurationManager.h"
+#import "Quiz.h"
 
 @implementation BonjourBrowser
 
@@ -89,7 +90,7 @@
 - (void) startBrowse
 {
 
-    self.netServiceBrowser = [[NSNetServiceBrowser alloc] init];
+    self.netServiceBrowser = [[[NSNetServiceBrowser alloc] init] autorelease];
 
     NSString *serviceName = [NSString stringWithFormat:@"_%@._tcp.", [ConfigurationManager getConfigurationValueForKey:@"BonjourServiceName"]];
     
@@ -244,6 +245,8 @@
         appDelegate.session.sessionTeacherName = nil;
         
         appDelegate.state = kAppStateIdle;
+        
+        [appDelegate.currentQuizWindow finishQuiz];
     }
 
     

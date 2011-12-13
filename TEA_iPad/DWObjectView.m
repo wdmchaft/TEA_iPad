@@ -8,6 +8,7 @@
 
 #import "DWObjectView.h"
 #import "DWDrawingViewController.h"
+#import <QuartzCore/QuartzCore.h>
 
 @implementation DWObjectView
 @synthesize drawingViewController;
@@ -25,6 +26,16 @@
         [self initObjectView];
     }
     return self;
+}
+
+- (UIImage*) screenImage
+{
+    UIGraphicsBeginImageContext(self.bounds.size);
+    [self.layer renderInContext:UIGraphicsGetCurrentContext()];
+    UIImage *anImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext(); 
+    
+    return anImage;
 }
 
 - (id)initWithCoder:(NSCoder *)coder {

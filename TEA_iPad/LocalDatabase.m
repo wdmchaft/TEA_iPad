@@ -21,13 +21,20 @@
 
 - (void) openDatabase
 {
-    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
     NSString *databaseName = @"library.sqlite";
 	NSArray  *documentPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-	NSString *documentsDir = [documentPaths objectAtIndex:0];
+	NSString *documentsDir = (NSString*) [documentPaths objectAtIndex:0];
+    
+ 
+    if(![fileManager fileExistsAtPath:documentsDir])
+    {
+        [fileManager createDirectoryAtPath:documentsDir withIntermediateDirectories:YES attributes:nil error:nil];
+    }
+    
 	NSString *databasePath = [documentsDir stringByAppendingPathComponent:databaseName];
     
-    NSFileManager *fileManager = [NSFileManager defaultManager];
+   
 	BOOL success = [fileManager fileExistsAtPath:databasePath];
 	
 	if(success)
@@ -40,6 +47,9 @@
         NSLog(@"Trying to copy resource db");
         
         NSString *databasePathFromApp = [[NSBundle mainBundle] pathForResource:@"library" ofType:@"sqlite"];
+        
+        
+        
         [fileManager copyItemAtPath:databasePathFromApp toPath:databasePath error:nil];
     }
     

@@ -17,7 +17,7 @@
     
     if(self)
     {
-        self.drawingItem = [[DWDrawingItemPen alloc] init];
+        self.drawingItem = [[[DWDrawingItemPen alloc] init] autorelease];
     }
     
     return self;

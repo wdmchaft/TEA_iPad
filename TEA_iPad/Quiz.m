@@ -28,7 +28,9 @@
 @synthesize guid;
 @synthesize correctAnswer;
 @synthesize image;
+@synthesize lockImage;
 @synthesize optionCount;
+@synthesize quizExpType;
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
@@ -82,19 +84,54 @@
         NSString *caution = NSLocalizedString(@"Caution", NULL);
         
         
-        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:caution message:alertString delegate:self cancelButtonTitle:cancel otherButtonTitles: send, nil];
+        UIAlertView *alertView = [[[UIAlertView alloc] initWithTitle:caution message:alertString delegate:self cancelButtonTitle:cancel otherButtonTitles: send, nil] autorelease];
         
         [alertView show];
     }
     
+}
+
+
+- (void) lockQuizOptions:(BOOL) locked
+{
+    [lockImage setHidden:!locked];
+}
+
+
+
+- (void) pauseTimer
+{
+    timerControl.paused = YES;
+}
+
+- (void) continueTimer
+{
+    timerControl.paused = NO;
+    [self lockQuizOptions:NO];
+}
+
+- (void) finishQuiz
+{
+    if(!displayMode)
+    {
+        currentAnswer = -1;
+        [self sendSolution];
+    }
     
-    
-    
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    [appDelegate.viewController dismissModalViewControllerAnimated:YES];
+    appDelegate.currentQuizWindow = nil;
+    [timerControl stopTimer];
+    [timerControl release];
+    timerControl = nil;
 }
 
 - (void) timeIsOver
 {
     
+    [self lockQuizOptions:YES];
+    
+    /*
     if(!displayMode)
     {
         currentAnswer = -1;
@@ -106,7 +143,7 @@
     
     [timerControl stopTimer];
     [timerControl release];
-    timerControl = nil;
+    timerControl = nil;*/
 }
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -135,6 +172,7 @@
     [timerView release];
     [bgView release];
     [timerControl release];
+    [lockImage release];
     [super dealloc];
 }
 
@@ -239,16 +277,8 @@
     [db release];
 }
 
-- (void) viewWillDisappear:(BOOL)animated
+- (void) saveQuizItem
 {
-    
-    if(timerControl)
-    {
-        [timerControl stopTimer];
-        [timerControl release];
-        timerControl = nil;
-    }
-    
     // Save quiz item 
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *quizName = [[LocalDatabase stringWithUUID] stringByAppendingString:@".qz"]; 
@@ -260,16 +290,34 @@
     LibraryQuizItem *quizItem = [[LibraryQuizItem alloc] init];
     quizItem.name = @"Alıştırma";
     quizItem.path = quizPath;
-    quizItem.quizType = 0;
     quizItem.quizReference = 113;
     quizItem.quizExpType =  1;
-    quizItem.quizImagePath = quizImagePath;
+    quizItem.quizImagePath = quizImageName;
     quizItem.guid = guid;
     quizItem.quizAnswer = currentAnswer;
+    quizItem.quizExpType = quizExpType;
+    quizItem.quizOptCount = optionCount;
+    
     // save image
     [UIImageJPEGRepresentation(image, 1.0) writeToFile:quizImagePath atomically:YES];
     [quizItem saveLibraryItem];
     [quizItem release];
+}
+
+- (void) viewWillDisappear:(BOOL)animated
+{
+    
+    if(timerControl)
+    {
+        [timerControl stopTimer];
+        [timerControl release];
+        timerControl = nil;
+    }
+    
+    [self saveQuizItem];
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
+    appDelegate.currentQuizWindow = nil;
 
 }
 
@@ -287,6 +335,7 @@
     [self setTimerView:nil];
     [self setBgView:nil];
     [self setTimerControl:nil];
+    [self setLockImage:nil];
     [super viewDidUnload];
     // Release any retained subviews of the main view.
     // e.g. self.myOutlet = nil;

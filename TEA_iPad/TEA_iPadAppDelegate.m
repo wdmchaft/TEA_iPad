@@ -18,9 +18,13 @@
 #import "BonjourVideoHandler.h"
 #import "BonjourDocumentHandler.h"
 #import "BonjourAudioHandler.h"
+#import "BonjourQuizPauseHandler.h"
+#import "BonjourQuizContinueHandler.h"
+#import "BonjourQuizExtraTimeHandler.h"
+#import "BonjourQuizFinishHandler.h"
 #import "Reachability.h"
 #import "BonjourStudentLockHandler.h"
-
+#import "LocationService.h"
 #include <SystemConfiguration/SystemConfiguration.h>
 
 @implementation TEA_iPadAppDelegate
@@ -29,7 +33,7 @@
 
 
 @synthesize window=_window, bonjourBrowser, session, state, connectedHost, guestEnterNumber;
-
+@synthesize currentQuizWindow;
 @synthesize viewController=_viewController, bonjourBrowserThread, selectedItemView;
 
 void PrintReachabilityFlags(
@@ -138,32 +142,24 @@ void MyReachabilityCallback(
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourDocumentHandler alloc] init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourAudioHandler alloc] init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourStudentLockHandler alloc] init] autorelease]];
+    [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizPauseHandler alloc] init] autorelease]];
+    [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizContinueHandler alloc] init] autorelease]];
+    [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizExtraTimeHandler alloc] init] autorelease]];
+    [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizFinishHandler alloc] init] autorelease]];
+    
     self.state = kAppStateIdle;
-    
-    
-    
-    
-    //bonjourBrowserThread = [[NSThread alloc] initWithTarget:self selector:@selector(startBonjourBrowser) object:nil];
-    //[bonjourBrowserThread start];
-    
-    [self performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
-    
-   // bonjourBrowser = [[BonjourBrowser alloc] init];
-   // [bonjourBrowser startBrowse];
-    
-   // [NSThread detachNewThreadSelector:@selector(startBonjourBrowser) toTarget:self withObject:nil];
-    
-    
     
     
     Session *tSession = [[Session alloc] init];
     self.session = tSession;
     [tSession release];
-    
-    
-        
-    
+   
     self.window.rootViewController = self.viewController;
+    //LocationService *locationService = [[LocationService alloc] init];
+    //blackScreen = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
+    
+    
+   // [locationService startService];
     [self.window makeKeyAndVisible];
     
    return YES;
@@ -294,9 +290,18 @@ void MyReachabilityCallback(
     #endif  
 }
 
+- (NSString *) getDeviceName
+{
+#if TARGET_IPHONE_SIMULATOR
+    return @"Device Simulator...";
+#else
+    return [[UIDevice currentDevice] name];
+#endif  
+}
+
 - (void) showQuizWindow:(Quiz*) quizView
 {
-    
+    self.currentQuizWindow = quizView;
     quizView.modalPresentationStyle = UIModalPresentationFormSheet;
     [self.viewController presentModalViewController:quizView animated:YES];
     
