@@ -129,9 +129,7 @@
 - (void) timeIsOver
 {
     
-    [self lockQuizOptions:YES];
     
-    /*
     if(!displayMode)
     {
         currentAnswer = -1;
@@ -143,7 +141,7 @@
     
     [timerControl stopTimer];
     [timerControl release];
-    timerControl = nil;*/
+    timerControl = nil;
 }
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
