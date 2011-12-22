@@ -15,10 +15,11 @@
     CLLocationManager *locationManager;
     LocationServiceMessageView *locationServiceMessageView;
     
-    NSString *allowedBSSID;
+    NSMutableArray *allowedBSSIDs;
     int locationCount;
+    int allowedACPRange;
+    int allowed3GRange;
     int allowedRange;
-    int originalRange;
     CLLocation *currentLocation;
     CLLocation *allowedLocation;
     float sumX;

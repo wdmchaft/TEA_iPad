@@ -186,18 +186,11 @@ void MyReachabilityCallback(
     self.window.rootViewController = self.viewController;
     [self.window makeKeyAndVisible];
 
-    //LocationService *locationService = [[LocationService alloc] init];
-    //blackScreen = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-    
+    LocationService *locationService = [[LocationService alloc] init];
+    blackScreen = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
+    [locationService startService];
         
-    
-
-   // LocationService *locationService = [[LocationService alloc] init];
-   // blackScreen = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-    
-    
-    //[locationService startService];
-
+ 
     
    return YES;
 }
