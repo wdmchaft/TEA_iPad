@@ -193,6 +193,10 @@
     
 - (void) didDrawFrom:(CGPoint) pFromPoint To:(CGPoint) pToPoint 
 {
+    [currentTool.drawingItem addPoint:pToPoint];
+    [self setNeedsDisplay];
+
+    
     if(currentTool == penTool || 
        currentTool == rectangleTool ||
        currentTool == lineTool ||
@@ -206,8 +210,6 @@
     
     [currentTool resetTool];
     
-    [self setNeedsDisplay];
-
 }
 
 - (void) longPressGestureCaptured:(UILongPressGestureRecognizer*) sender
