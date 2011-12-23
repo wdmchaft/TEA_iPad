@@ -44,11 +44,6 @@
                                           initWithTarget:self action:@selector(handlePanGesture:)];
    // [self addGestureRecognizer:panGesture];
     [panGesture release];
-    
-    UIPinchGestureRecognizer *pinchGesture = [[UIPinchGestureRecognizer alloc]
-                                              initWithTarget:self action:@selector(handlePinchGesture:)];
-    //[self addGestureRecognizer:pinchGesture];
-    [pinchGesture release];
 }
 
 
@@ -196,17 +191,8 @@
     
 }
     
-- (IBAction)handlePinchGesture:(UIGestureRecognizer *)sender {
-    CGFloat factor = [(UIPinchGestureRecognizer *)sender scale];
-    self.transform = CGAffineTransformMakeScale(factor, factor);
-}
-
-
 - (void) didDrawFrom:(CGPoint) pFromPoint To:(CGPoint) pToPoint 
 {
-    [currentTool.drawingItem addPoint:pToPoint];
-    [self setNeedsDisplay];
-    
     if(currentTool == penTool || 
        currentTool == rectangleTool ||
        currentTool == lineTool ||
@@ -220,7 +206,7 @@
     
     [currentTool resetTool];
     
-    
+    [self setNeedsDisplay];
 
 }
 
