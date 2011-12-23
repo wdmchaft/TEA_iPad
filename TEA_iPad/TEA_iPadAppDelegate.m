@@ -22,6 +22,7 @@
 #import "BonjourQuizContinueHandler.h"
 #import "BonjourQuizExtraTimeHandler.h"
 #import "BonjourQuizFinishHandler.h"
+#import "BonjourParametersHandler.h"
 #import "Reachability.h"
 #import "BonjourStudentLockHandler.h"
 #import "LocationService.h"
@@ -84,17 +85,23 @@ void MyReachabilityCallback(
 - (void) restartBonjourBrowser
 {
      
-    [bonjourBrowser.clients removeAllObjects];
-    [bonjourBrowser.netServiceBrowser stop];
-    [bonjourBrowser.services removeAllObjects];
-    
-    self.state = kAppStateIdle;
+    [self stopBonjourBrowser];
     
     [bonjourBrowser startBrowse];
 
     NSLog(@"Bonjour service restarted...");
 }
 
+- (void) stopBonjourBrowser
+{
+    [bonjourBrowser.clients removeAllObjects];
+    [bonjourBrowser.netServiceBrowser stop];
+    [bonjourBrowser.services removeAllObjects];
+    
+    self.state = kAppStateIdle;
+    
+    NSLog(@"Bonjur service stoped...");
+}
 
 
 - (void) startBonjourBrowser
@@ -175,6 +182,7 @@ void MyReachabilityCallback(
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizContinueHandler alloc] init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizExtraTimeHandler alloc] init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizFinishHandler alloc] init] autorelease]];
+    [handlerManager.bonjourMessageHandlers addObject:[[[BonjourParametersHandler alloc]init] autorelease]];
     
     self.state = kAppStateIdle;
     

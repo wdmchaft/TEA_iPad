@@ -22,7 +22,9 @@ enum MessageTypes
     kMessageTypePauseQuiz               = 10,
     kMessageTypeContinueQuiz            = 11,
     kMessageTypeExtraTimeForQuiz        = 12,
-    kMessageTypeFinishQuiz              = 13
+    kMessageTypeFinishQuiz              = 13,
+    kMessageTypeGetParameters           = 14,
+    kMessageTypeSendParameters          = 15
 };
 
 typedef enum MessageTypes MessageTypes;

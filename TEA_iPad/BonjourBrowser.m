@@ -128,28 +128,21 @@
     client.netService = pService;
     [client openStreams];
 
-    /* Send device id */
-    NSString *deviceIdentifier = [appDelegate getDeviceUniqueIdentifier];
-
     
-    BonjourMessage *message = [[BonjourMessage alloc] init];
-    message.messageType = kMessageTypeDeviceInfo;
-
-    NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-    [dict setValue:deviceIdentifier forKey:@"device_id"];
+    //**********************************************************************    
+    /* Check the version */
+    BonjourMessage *parameterMessage = [[BonjourMessage alloc] init];
+    parameterMessage.messageType = kMessageTypeGetParameters;
+    parameterMessage.userData = [[[NSMutableDictionary alloc] init] autorelease];
     
-    if(appDelegate.guestEnterNumber > 0)
-    {
-        [dict setValue:[NSNumber numberWithInt:appDelegate.guestEnterNumber] forKey:@"guest_number"];
-        appDelegate.guestEnterNumber = 0;
-    }
+    [client sendBonjourMessage:parameterMessage];
     
-    [client sendDictionary:dict];
-    message.userData = dict;
-    [dict release];
+    NSLog(@"Configuration checking....");
+    [parameterMessage release];
     
-    [client sendBonjourMessage:message];
-    [message release];
+    //**********************************************************************    
+    
+   
 }
 
 
