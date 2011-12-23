@@ -119,6 +119,7 @@
 - (void) startTimer
 {
     self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(thick:) userInfo:nil repeats:YES];
+    [[NSRunLoop mainRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];
     [timer fire];
 }
 

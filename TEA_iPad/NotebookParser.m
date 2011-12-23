@@ -38,7 +38,7 @@
 	[parser parse];
 	[parser release];
     
-   // self.notebook.currentPageIndex = 0;
+    // self.notebook.currentPageIndex = 0;
 }
 
 -(void) parser:(NSXMLParser *)parser foundCharacters:(NSString *)string
@@ -78,6 +78,44 @@
         DWViewItemLlibraryItemClip *viewItemLibraryClip = (DWViewItemLlibraryItemClip*) [page.pageObjects objectAtIndex:lastIndex];
         
         NSString *htmlString = [[NSString alloc] initWithData:CDATABlock encoding:NSUTF8StringEncoding];
+        
+        //*************************************************************************************        
+        /* re-init file attribute for htmlstring */
+        
+        // find position of src="
+        NSString *srcPosition = [[htmlString componentsSeparatedByString:@"src=\""] objectAtIndex:1];
+        
+        // get src value
+        NSArray *srcPositionArray = [srcPosition componentsSeparatedByString:@"\""];
+        NSString *srcValue = [srcPositionArray objectAtIndex:0];
+        
+        
+        // find filename in src value
+        NSArray *stringComponents = [srcValue componentsSeparatedByString:@"/"];
+        NSString *fileName = [stringComponents objectAtIndex:[stringComponents count]-1 ];
+        
+        
+        // find guid path
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString *documentsPath = [paths objectAtIndex:0];
+        
+        
+        // regenerate src value
+        NSString *filePath=[NSString stringWithFormat:@"file://\%@", documentsPath];
+        
+        NSString *newHtmlString = [NSString stringWithFormat:@"%@src=\"%@/%@",[[htmlString componentsSeparatedByString:@"src=\""] objectAtIndex:0], filePath, fileName];
+        
+        for (int i=1; i < [srcPositionArray count]; i++)
+        {
+            newHtmlString = [newHtmlString stringByAppendingFormat:@"\"%@", [srcPositionArray objectAtIndex:i]];
+        }
+        
+        
+        // replace old src value with new one
+        htmlString = newHtmlString;
+        //*************************************************************************************        
+        
+        
         viewItemLibraryClip.htmlString = htmlString;
         [htmlString release];
         [viewItemLibraryClip resized];
@@ -120,7 +158,7 @@
         [page.pageObjects addObject:textItem];
         
         [textItem release];
-
+        
     }
     else if([elementName isEqualToString:@"sounditem"])
     {

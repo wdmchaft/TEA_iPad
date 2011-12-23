@@ -16,6 +16,17 @@
 #import "BonjourService.h"
 #import "ConfigurationManager.h"
 
+#import "Reachability.h"
+
+#import <ifaddrs.h>
+#import <sys/socket.h>
+#import <netinet/in.h>
+#import <netinet6/in6.h>
+#import <arpa/inet.h>
+#import <ifaddrs.h>
+#import <netdb.h>
+
+
 @implementation Sync
 
 - (void) requestForSync
@@ -30,13 +41,22 @@
    // NSDictionary *iPadConfigDictionary = [ConfigurationManager getConfigurationValueForKey:@"iPadConfig"];
     BOOL syncEnabled = [[ConfigurationManager getConfigurationValueForKey:@"SYNC_ENABLED"] boolValue];// [[iPadConfigDictionary valueForKey:@"iPadSyncEnabled"] boolValue];
     
-    if(syncEnabled)
+    NSString *syncURL = [NSString stringWithFormat: @"%@/sync.jsp", [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]]; //[iPadConfigDictionary valueForKey:@"syncURL"];
+    
+    NSURLResponse *response = nil;
+    NSError **error=nil; 
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:[ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    
+    [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
+    
+
+    if(syncEnabled && response)
     {
         @try 
         {
             fileSize = 0;
-            NSString *syncURL = [NSString stringWithFormat: @"%@/sync.jsp", [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]]; //[iPadConfigDictionary valueForKey:@"syncURL"];
-            
+   
             NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
             NSString *lastSyncTime = [defaults objectForKey:@"lastSyncTime"];
             
