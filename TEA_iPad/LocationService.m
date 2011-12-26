@@ -103,15 +103,15 @@
 
 - (void) startService
 {
-   
+   /*
     
     // Set known access points
     allowedBSSIDs = [[NSMutableArray alloc] initWithCapacity:10];
 
     [allowedBSSIDs addObject:@"24:B6:57:43:35:90"];
     [allowedBSSIDs addObject:@"6C:9C:ED:EB:81:B0"];
-    [allowedBSSIDs addObject:@"24:B6:57:8C:02:40"];
-    [allowedBSSIDs addObject:@"68:BC:0C:CA:BE:00"];
+    [allowedBSSIDs addObject:@"24:B6:57:8C:2:40"];
+    [allowedBSSIDs addObject:@"68:BC:C:CA:BE:0"];
     [allowedBSSIDs addObject:@"24:B6:57:43:35:B0"];
     [allowedBSSIDs addObject:@"c0:c1:c0:58:e5:2d"];
     
@@ -150,7 +150,7 @@
         [locationServiceMessageView setHidden:YES];
     }
     
-        
+       */ 
 
 }
 
