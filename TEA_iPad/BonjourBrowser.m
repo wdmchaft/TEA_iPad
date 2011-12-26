@@ -131,18 +131,47 @@
     
     //**********************************************************************    
     /* Check the version */
-    BonjourMessage *parameterMessage = [[BonjourMessage alloc] init];
+    /*BonjourMessage *parameterMessage = [[BonjourMessage alloc] init];
     parameterMessage.messageType = kMessageTypeGetParameters;
     parameterMessage.userData = [[[NSMutableDictionary alloc] init] autorelease];
     
     [client sendBonjourMessage:parameterMessage];
     
     NSLog(@"Configuration checking....");
-    [parameterMessage release];
+    [parameterMessage release];*/
     
     //**********************************************************************    
     
-   
+ 
+    
+    /* Send device id */
+    NSString *deviceIdentifier = [appDelegate getDeviceUniqueIdentifier];
+    
+    
+    BonjourMessage *message = [[BonjourMessage alloc] init];
+    message.messageType = kMessageTypeDeviceInfo;
+    
+    NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
+    [dict setValue:deviceIdentifier forKey:@"device_id"];
+    
+    if(appDelegate.guestEnterNumber > 0)
+    {
+        [dict setValue:[NSNumber numberWithInt:appDelegate.guestEnterNumber] forKey:@"guest_number"];
+        //    appDelegate.guestEnterNumber = 0;
+        
+        NSLog(@"Sending guest number %d", appDelegate.guestEnterNumber);
+    }
+    else
+    {
+        NSLog(@"Not Sending guest number");
+    }
+    
+    [client sendDictionary:dict];
+    message.userData = dict;
+    [dict release];
+    
+    [client  sendBonjourMessage:message];
+    [message release];
 }
 
 
