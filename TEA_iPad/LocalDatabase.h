@@ -12,7 +12,7 @@
 enum kLocalDbState {
     kLocalDbStateIdle = 0,
     kLocalDbStateRunning = 1
-    };
+};
 
 @interface LocalDatabase : NSObject {
 @private
@@ -21,6 +21,7 @@ enum kLocalDbState {
 
 - (void) openDatabase;
 - (NSMutableArray*) executeQuery:(NSString*)pQuery;
+- (NSMutableArray*) executeQuery:(NSString*)pQuery returnSimpleArray:(BOOL) returnSimpleArray;
 - (void) closeDatabase;
 + (NSString*) stringWithUUID;
 

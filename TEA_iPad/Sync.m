@@ -8,6 +8,8 @@
 
 #import "Sync.h"
 #import "CJSONDeserializer.h"
+#import "CJSONSerializer.h"
+
 #import "LocalDatabase.h"
 #import "TEA_iPadAppDelegate.h"
 #import "ZipFile.h"
@@ -28,6 +30,24 @@
 
 @implementation Sync
 
+
+- (NSString*) getSystemMessages
+{
+    LocalDatabase *db = [[LocalDatabase alloc] init];
+    [db openDatabase];
+    
+    NSString *sql = @"select guid from system_messages where type <> 1";
+    
+    NSArray *result = [db executeQuery:sql returnSimpleArray:YES] ;
+    
+    NSString *returnValue = [[CJSONSerializer serializer] serializeArray:result];
+    
+    [db closeDatabase];
+    [db release];
+    
+    return [NSString stringWithFormat:@"{'system_messages': %@ }", returnValue];
+}
+
 - (void) requestForSync
 {
     
@@ -40,7 +60,7 @@
    // NSDictionary *iPadConfigDictionary = [ConfigurationManager getConfigurationValueForKey:@"iPadConfig"];
     BOOL syncEnabled = [[ConfigurationManager getConfigurationValueForKey:@"SYNC_ENABLED"] boolValue];// [[iPadConfigDictionary valueForKey:@"iPadSyncEnabled"] boolValue];
     
-    NSString *syncURL = [NSString stringWithFormat: @"%@/sync.jsp", [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]]; //[iPadConfigDictionary valueForKey:@"syncURL"];
+    NSString *syncURL = [NSString stringWithFormat: @"%@/syncV2.jsp", [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]]; //[iPadConfigDictionary valueForKey:@"syncURL"];
     
     NSURLResponse *response = nil;
     NSError **error=nil; 
@@ -69,8 +89,9 @@
                 lastSyncTime = @"1900-01-01";
             }
             
+            NSString *systemMessges = [self getSystemMessages];
             
-             NSString *downloadURL = [NSString stringWithFormat: @"%@?device_id=%@&start_date_time=%@", syncURL, [appDelegate getDeviceUniqueIdentifier], lastSyncTime];
+            NSString *downloadURL = [NSString stringWithFormat: @"%@?system_messages=%@&device_id=%@&start_date_time=%@", syncURL, systemMessges, [appDelegate getDeviceUniqueIdentifier], lastSyncTime];
              
             NSLog(@"[SYNC] %@", downloadURL);
             
@@ -160,10 +181,15 @@
 {
     NSString *filePath = [NSString stringWithFormat:@"%@/%@", directoryPath, fileName];
  
+    [progressView setProgress: 0];
+    
     ZipFile *zippedFile = [[[ZipFile alloc] initWithFileName:filePath mode:ZipFileModeUnzip] autorelease];
+    float numberOfZippedFile = (float) [zippedFile numFilesInZip];
+    
     [zippedFile goToFirstFileInZip];
     
     BOOL continueReading = YES;
+    int counter=0;
     while (continueReading) {
         
         // Get file info
@@ -188,8 +214,12 @@
         
         // Check if we should continue reading
         continueReading = [zippedFile goToNextFileInZip];
+        
+        counter ++;
+        
+        [progressView setProgress: 100.0 / numberOfZippedFile * (float) counter];
     }
-    
+    [progressView setProgress: 100.0];
     [zippedFile close];
 }
 
@@ -224,8 +254,24 @@
             BonjourMessageHandler *handler = [dataHandler findMessageHandlerForMessage:aMessage];
             
             NSLog(@"Processing file[%d] %@ with handler %@", i, localFileName, NSStringFromClass([handler class]) );
-            [handler handleMessage:aMessage];
-
+            
+            if(aMessage.messageType != kMessageTypePauseQuiz)
+            {
+                [handler handleMessage:aMessage];
+            }
+            
+            // save system messages
+            
+            NSString *messageInsert = [NSString stringWithFormat:@"insert into system_messages select '%@', '%@', '%d'", aMessage.guid, @"", aMessage.messageType];
+            
+            LocalDatabase *db = [[LocalDatabase alloc] init];
+            [db openDatabase];
+            
+            [db executeQuery:messageInsert];
+            
+            [db closeDatabase];
+            [db release];
+            
         }
                
     }

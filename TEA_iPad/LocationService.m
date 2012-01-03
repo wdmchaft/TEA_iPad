@@ -28,7 +28,7 @@
         if (info && [info count]) {
             break;
         }
-       // [info release];
+        // [info release];
     }
     [info autorelease];
     [ifs release];
@@ -39,7 +39,8 @@
 
 - (BOOL) getAllowedLocation
 {
-
+    BOOL returnValue;
+    runningOperation = YES;
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     NSString *deviceUDID = [appDelegate getDeviceUniqueIdentifier];
     NSString *sql = [NSString stringWithFormat:@"select * from location where device_id='%@'", deviceUDID];
@@ -51,45 +52,61 @@
         float lat = [[[rows objectAtIndex:0] valueForKey:@"lat"] floatValue];
         float lon = [[[rows objectAtIndex:0] valueForKey:@"lon"] floatValue];
         allowedLocation = [[CLLocation alloc] initWithLatitude:lat longitude:lon];
-        allowedRange = [[[rows objectAtIndex:0] valueForKey:@"range"] intValue];
-        originalRange = allowedRange;
-        allowedBSSID = [[[rows objectAtIndex:0] valueForKey:@"acp_address"] retain];
-        return YES;
+        allowedACPRange = [[[rows objectAtIndex:0] valueForKey:@"acp_range"] intValue];
+        allowed3GRange = [[[rows objectAtIndex:0] valueForKey:@"3g_range"] intValue];
+        //    originalRange = allowedRange;
+        NSString *userBSSID = [[[rows objectAtIndex:0] valueForKey:@"acp_address"] retain];
+        [allowedBSSIDs addObject:userBSSID];
+        returnValue = YES;
     }
     else
     {
         [locationServiceMessageView setMessage:@"Eşleştirme kaydı bulunamadı..."];
-        return NO;
+        returnValue = NO;
     }
-
+    
+    runningOperation = NO;
+    return returnValue;
 }
 
-- (BOOL) generateAllowedConnectionRecord
+- (void) generateAllowedConnectionRecord
 {
-
+    
+    runningOperation = YES;
+    
     // Get user current location
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     [locationServiceMessageView setMessage:@"İlk kullanım için eşleştirme kaydı oluşturulyor..."];
-  
+    
     NSString *deviceUDID = [appDelegate getDeviceUniqueIdentifier];
     NSString *deviceName = [appDelegate getDeviceName];
     NSString *bssid = [self getBSSID];
-
     NSString *sql = [NSString stringWithFormat:@"INSERT INTO `location` (`device_name`, `device_id`,`lat`,`lon`,`acp_range`,`3g_range`,`acp_address`,`reset`) VALUES ('%@', '%@', '%f', '%f', 160, 80, '%@', 0);", deviceName, deviceUDID, currentLocation.coordinate.latitude, currentLocation.coordinate.longitude, bssid];
-
     [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:sql];
     
-    return [self getAllowedLocation];
+    [self getAllowedLocation];
     
+    runningOperation = NO;
+}
+
+
+- (void) startLocationTracking
+{
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
+    locationServiceMessageView = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
+    [appDelegate.viewController.view addSubview:locationServiceMessageView];
+    
+    [locationManager startUpdatingLocation];
 }
 
 - (void) startService
 {
-   
+    
     noInternet = NO;
     startupBSSID = [[self getBSSID] retain];
     // Set known access points
+    allowedBSSIDs = [[NSMutableArray alloc] initWithCapacity:10];
     staticBSSIDs  = [[NSMutableArray alloc] initWithCapacity:10];
     
     [staticBSSIDs addObject:@"24:B6:57:43:35:90"];
@@ -99,12 +116,12 @@
     [staticBSSIDs addObject:@"24:B6:57:43:35:B0"];
     [staticBSSIDs addObject:@"c0:c1:c0:58:e5:2e"];
     
-
     
     locationManager = [[CLLocationManager alloc] init];
     locationManager.delegate = self;
     // Set a movement threshold for new events.
     locationManager.distanceFilter = kCLDistanceFilterNone;
+    
     locationManager.desiredAccuracy = kCLLocationAccuracyBest;
     currentLocation = locationManager.location;
     
@@ -133,24 +150,18 @@
                 noInternet = YES;
             }
         }
-
     }
- 
-
     
-    // If current location not exists create current location
-
+    
     [self startLocationTracking];
-
+    
 }
 
 
 - (void)dealloc {
-
     [startupBSSID release];
     [staticBSSIDs release];
-    [allowedBSSID release];
-
+    [allowedBSSIDs release];
     [super dealloc];
 }
 
@@ -168,7 +179,7 @@
     {
         return;
     }
-
+    
     currentLocation = [[[CLLocation alloc] initWithLatitude:sumX / (float) locationCount  longitude:sumY / (float) locationCount] autorelease];
     
     if([staticBSSIDs containsObject:[self getBSSID]]) //extend range, trust access point
@@ -178,7 +189,7 @@
     }
     else
     {
-       
+        
         if([self getBSSID] && ![startupBSSID isEqualToString:[self getBSSID]])
         {
             NSString *message = @"Uygulama kullanım dışı bırakıldı. Bağlı bulunduğunuz ağı değiştirdiniz.\nUygulamanızı yeniden başlatın.";
@@ -187,27 +198,27 @@
             [locationServiceMessageView setHidden:NO];
             return;
         }
- 
+        
     }
-
+    
     
     // Define distance
-    if([allowedBSSID isEqualToString:[self getBSSID]]) //extend range, trust access point
+    if([allowedBSSIDs containsObject:[self getBSSID]]) //extend range, trust access point
     {
-        allowedRange = 500;
+        allowedRange = allowedACPRange;
     }
     else
     {
-        allowedRange = originalRange;
+        allowedRange = allowed3GRange;
     }
     
-
+    
     CLLocationDistance distanceInMeters = [currentLocation distanceFromLocation:allowedLocation];
-        
-        
+    
+    
     if ( !allowedLocation || distanceInMeters > allowedRange ) 
     {
-           
+        
         NSString *message = @"";
         
         if(noInternet)
@@ -226,30 +237,12 @@
         
         [locationServiceMessageView setMessage:message];
         [locationServiceMessageView setHidden:NO];
-
     }
     else
     {
-        CLLocationDistance distanceInMeters = [currentLocation distanceFromLocation:allowedLocation];
-            
-            
-        if ( distanceInMeters > allowedRange ) 
-        {
-               
-            NSString *message = [NSString stringWithFormat: @"Uygulama kullanım dışı bırakıldı. \n(Uzaklık:%f)\n", distanceInMeters];
-            message = [message stringByAppendingFormat:@"Geçerli bölge : %f, %f\n", currentLocation.coordinate.latitude, currentLocation.coordinate.longitude];
-            message = [message stringByAppendingFormat:@"Lokasyon Güncelleme Sayısı : %d\n", locationCount];
-            message = [message stringByAppendingFormat:@"Yatay Hassasiyet : %f\n", newLocation.verticalAccuracy];
-            message = [message stringByAppendingFormat:@"Dikey Hassasiyet :  %f", newLocation.horizontalAccuracy];
-            
-            [locationServiceMessageView setMessage:message];
-            [locationServiceMessageView setHidden:NO];
-        }
-        else
-        {
-            [locationServiceMessageView setHidden:YES];
-        }  
-    }     
+        [locationServiceMessageView setHidden:YES];
+    }  
+    
 }
 
 

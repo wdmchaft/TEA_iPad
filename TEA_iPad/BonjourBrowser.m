@@ -65,7 +65,7 @@
 - (void)dealloc
 {
     
- //   [service release];
+    //   [service release];
     [netServiceBrowser stop];
     [netServiceBrowser release];
     [clients release];
@@ -89,17 +89,17 @@
 
 - (void) startBrowse
 {
-
+    
     self.netServiceBrowser = [[[NSNetServiceBrowser alloc] init] autorelease];
-
+    
     NSString *serviceName = [NSString stringWithFormat:@"_%@._tcp.", [ConfigurationManager getConfigurationValueForKey:@"BonjourServiceName"]];
     
     //serviceName = @"_teaservice._tcp.";
 	netServiceBrowser.delegate = self;
     
-
+    
 	[netServiceBrowser searchForServicesOfType:serviceName inDomain:@""];
-   
+    
 }
 
 
@@ -118,7 +118,7 @@
     [clients addObject:client];
     [client release];
     [pService getInputStream:&input outputStream:&output];
-
+    
     NSArray *components = [[pService description] componentsSeparatedByString:@" "];
     NSString *hostName = [components objectAtIndex:[components count] - 1];
     
@@ -127,23 +127,23 @@
     client.outputStream = output;
     client.netService = pService;
     [client openStreams];
-
+    
     
     //**********************************************************************    
     /* Check the version */
-    /*BonjourMessage *parameterMessage = [[BonjourMessage alloc] init];
+    BonjourMessage *parameterMessage = [[BonjourMessage alloc] init];
     parameterMessage.messageType = kMessageTypeGetParameters;
     parameterMessage.userData = [[[NSMutableDictionary alloc] init] autorelease];
     
     [client sendBonjourMessage:parameterMessage];
     
     NSLog(@"Configuration checking....");
-    [parameterMessage release];*/
+    [parameterMessage release];
     
     //**********************************************************************    
     
-
-    /* Send device id */
+    
+    // Send device id
     NSString *deviceIdentifier = [appDelegate getDeviceUniqueIdentifier];
     
     
@@ -157,7 +157,6 @@
     {
         [dict setValue:[NSNumber numberWithInt:appDelegate.guestEnterNumber] forKey:@"guest_number"];
     }
-
     
     [client sendDictionary:dict];
     message.userData = dict;
@@ -217,7 +216,7 @@
     else
     {
         NSLog(@"[BONJOUR] tea service resolved on %@", hostName);
-
+        
         
         // Remove clients already connected...
         NSMutableArray *clientsToRemove = [[NSMutableArray alloc] init];
@@ -263,7 +262,7 @@
         
         [appDelegate.currentQuizWindow finishQuiz];
     }
-
+    
     
     NSMutableArray *clientsToRemove = [[NSMutableArray alloc] init];
     for(BonjourClient *tClient in clients)
@@ -281,14 +280,14 @@
     }
     
     [clientsToRemove release];
-   }
+}
 
 
 
 - (void)netServiceBrowser:(NSNetServiceBrowser *)netServiceBrowser didFindService:(NSNetService *)netService moreComing:(BOOL)moreServicesComing 
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-
+    
     NSArray *components = [[netService description] componentsSeparatedByString:@" "];
     NSString *hostName = [components objectAtIndex:[components count] - 1];
     
@@ -338,12 +337,12 @@
 		}
 		case NSStreamEventHasBytesAvailable:
 		{
-
+            
             [NSThread detachNewThreadSelector:@selector(handleTest:) toTarget:self withObject:stream];
             /*uint8_t buf[1024];
-            long len = 0;
-            //len = [(NSInputStream *)stream read:buf maxLength:1024];
-            */
+             long len = 0;
+             //len = [(NSInputStream *)stream read:buf maxLength:1024];
+             */
             
             break;
 		}
@@ -354,7 +353,7 @@
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate * )[[UIApplication sharedApplication] delegate];
             
             [appDelegate restartBonjourBrowser];
-
+            
             break;
 		}
 			
