@@ -14,8 +14,11 @@
 {
     CLLocationManager *locationManager;
     LocationServiceMessageView *locationServiceMessageView;
-    
+
     NSString *allowedBSSID;
+    NSMutableArray *staticBSSIDs;
+    NSString *startupBSSID;
+
     int locationCount;
     int allowedRange;
     int originalRange;
@@ -25,7 +28,8 @@
     float sumY;
 
     BOOL runningOperation;
-
+    BOOL runningInStaticACPRegion;
+    BOOL noInternet;
 }
 
 - (void) startService;

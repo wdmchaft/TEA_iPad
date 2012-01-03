@@ -142,8 +142,7 @@
     
     //**********************************************************************    
     
- 
-    
+
     /* Send device id */
     NSString *deviceIdentifier = [appDelegate getDeviceUniqueIdentifier];
     
@@ -157,14 +156,8 @@
     if(appDelegate.guestEnterNumber > 0)
     {
         [dict setValue:[NSNumber numberWithInt:appDelegate.guestEnterNumber] forKey:@"guest_number"];
-        //    appDelegate.guestEnterNumber = 0;
-        
-        NSLog(@"Sending guest number %d", appDelegate.guestEnterNumber);
     }
-    else
-    {
-        NSLog(@"Not Sending guest number");
-    }
+
     
     [client sendDictionary:dict];
     message.userData = dict;
