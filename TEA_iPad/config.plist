@@ -37,6 +37,8 @@
 	<key>SYNC_URL</key>
 	<string>http://172.16.46.100:8080</string>
 	<key>SYNC_ENABLED</key>
-	<false/>
+	<true/>
+	<key>uploadURL</key>
+	<string>http:172.16.46.100:8080</string>
 </dict>
 </plist>

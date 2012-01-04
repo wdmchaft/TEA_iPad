@@ -17,6 +17,7 @@
 #import "FileInZipInfo.h"
 #import "BonjourService.h"
 #import "ConfigurationManager.h"
+
 #import "Reachability.h"
 
 #import <ifaddrs.h>
@@ -26,7 +27,7 @@
 #import <arpa/inet.h>
 #import <ifaddrs.h>
 #import <netdb.h>
-
+#import "ZipWriteStream.h"
 
 @implementation Sync
 
@@ -57,7 +58,7 @@
     appDelegate.state = kAppStateSyncing;
     [self setHidden:NO];
     
-   // NSDictionary *iPadConfigDictionary = [ConfigurationManager getConfigurationValueForKey:@"iPadConfig"];
+    // NSDictionary *iPadConfigDictionary = [ConfigurationManager getConfigurationValueForKey:@"iPadConfig"];
     BOOL syncEnabled = [[ConfigurationManager getConfigurationValueForKey:@"SYNC_ENABLED"] boolValue];// [[iPadConfigDictionary valueForKey:@"iPadSyncEnabled"] boolValue];
     
     NSString *syncURL = [NSString stringWithFormat: @"%@/syncV2.jsp", [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]]; //[iPadConfigDictionary valueForKey:@"syncURL"];
@@ -65,21 +66,16 @@
     NSURLResponse *response = nil;
     NSError **error=nil; 
     
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:[ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:syncURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
     
     [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
     
-
+    
     if(syncEnabled && response)
     {
         @try 
         {
             fileSize = 0;
-            
-            
-            
-           
-                        
             
             NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
             NSString *lastSyncTime = [defaults objectForKey:@"lastSyncTime"];
@@ -92,33 +88,33 @@
             NSString *systemMessges = [self getSystemMessages];
             
             NSString *downloadURL = [NSString stringWithFormat: @"%@?system_messages=%@&device_id=%@&start_date_time=%@", syncURL, systemMessges, [appDelegate getDeviceUniqueIdentifier], lastSyncTime];
-             
+            
             NSLog(@"[SYNC] %@", downloadURL);
             
-             downloadURL = [downloadURL stringByAddingPercentEscapesUsingEncoding: NSASCIIStringEncoding];
-             NSData *syncFileData = [NSData dataWithContentsOfURL:[NSURL URLWithString:downloadURL]];
-             
-             NSDictionary *dictionary = [[CJSONDeserializer deserializer] deserializeAsDictionary:syncFileData error:nil];
-             
-             if(dictionary)
-             {
-             if([[dictionary valueForKey:@"name"] length] > 0)
-             {
-             fileName = [[dictionary valueForKey:@"name"] retain];
-             fileSize = [[dictionary valueForKey:@"size"] intValue];
-             fileList = [[dictionary objectForKey:@"files"] retain];
-             [defaults setObject:[dictionary objectForKey:@"syncTime"] forKey:@"lastSyncTime"];
-             [defaults synchronize];
-             } 
-             
-             [self downloadSyncFile];
-             }
-             else
-             {
-             [self setHidden:YES];
-             appDelegate.state = previousState;
-             [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
-             }
+            downloadURL = [downloadURL stringByAddingPercentEscapesUsingEncoding: NSASCIIStringEncoding];
+            NSData *syncFileData = [NSData dataWithContentsOfURL:[NSURL URLWithString:downloadURL]];
+            
+            NSDictionary *dictionary = [[CJSONDeserializer deserializer] deserializeAsDictionary:syncFileData error:nil];
+            
+            if(dictionary)
+            {
+                if([[dictionary valueForKey:@"name"] length] > 0)
+                {
+                    fileName = [[dictionary valueForKey:@"name"] retain];
+                    fileSize = [[dictionary valueForKey:@"size"] intValue];
+                    fileList = [[dictionary objectForKey:@"files"] retain];
+                    [defaults setObject:[dictionary objectForKey:@"syncTime"] forKey:@"lastSyncTime"];
+                    [defaults synchronize];
+                } 
+                
+                [self downloadSyncFile];
+            }
+            else
+            {
+                [self setHidden:YES];
+                appDelegate.state = previousState;
+                [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
+            }
             
             
         }
@@ -134,7 +130,7 @@
         [self setHidden:YES];
         appDelegate.state = previousState;
         [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
-
+        
     }
     
 }
@@ -142,7 +138,7 @@
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-
+    
     NSLog(@"timout");
     [self setHidden:YES];
     appDelegate.state = previousState;
@@ -151,7 +147,7 @@
 
 - (void) downloadSyncFile
 {
-//    NSDictionary *iPadConfigDictionary = [ConfigurationManager getConfigurationValueForKey:@"iPadConfig"];
+    //    NSDictionary *iPadConfigDictionary = [ConfigurationManager getConfigurationValueForKey:@"iPadConfig"];
     
     NSString *syncFileBaseURL = [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]; //[iPadConfigDictionary valueForKey:@"syncFileDownloadURL"];
     NSString *downloadURL = [NSString stringWithFormat: @"%@/%@", syncFileBaseURL, fileName];
@@ -180,7 +176,7 @@
 - (void) extractZipFile
 {
     NSString *filePath = [NSString stringWithFormat:@"%@/%@", directoryPath, fileName];
- 
+    
     [progressView setProgress: 0];
     
     ZipFile *zippedFile = [[[ZipFile alloc] initWithFileName:filePath mode:ZipFileModeUnzip] autorelease];
@@ -221,13 +217,118 @@
     }
     [progressView setProgress: 100.0];
     [zippedFile close];
+    
+    
+}
+
+
++ (NSData *)generatePostDataForData:(NSData *)uploadData
+{
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+
+    NSString *fileName = [NSString stringWithFormat:@"%@_documents.zip", [appDelegate getDeviceUniqueIdentifier]];
+    
+    // Generate the post header:
+    NSString *post = [NSString stringWithCString:
+                      "--AaB03x\r\nContent-Disposition: form-data; name=\"filename\"; filename=\"%@\"\r\nContent-Type: application/zip\r\nContent-Transfer-Encoding: binary\r\n\r\n"
+                                        encoding:NSASCIIStringEncoding];
+    post = [NSString stringWithFormat:post, fileName];
+    
+    NSLog(@"Post Data........ %@", post);
+    // Get the post header int ASCII format:
+    NSData *postHeaderData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+    
+    // Generate the mutable data variable:
+    NSMutableData *postData = [[NSMutableData alloc] initWithLength:[postHeaderData length] ];
+    [postData setData:postHeaderData];
+    
+    // Add the image:
+    [postData appendData: uploadData];
+    
+    // Add the closing boundry:
+    [postData appendData: [@"\r\n--AaB03x--" dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES]];
+    
+    // Return the post data:
+    return postData;
+}
+
+
++ (void)uploadFile :(NSData*) yourData
+{
+    
+    NSLog(@"NSData----yourData---------%@", yourData);
+    // Generate the postdata:
+    NSData *postData = [Sync generatePostDataForData: yourData];
+    
+    NSLog(@"NSData----postData---------%@", postData);
+    
+    NSString *postLength = [NSString stringWithFormat:@"%d", [postData length]];
+    
+    
+    NSString *uploadURL = [ConfigurationManager getConfigurationValueForKey:@"uploadURL"];
+    
+    // Setup the request:
+    NSMutableURLRequest *uploadRequest = [[[NSMutableURLRequest alloc]
+                                           initWithURL:[NSURL URLWithString:uploadURL]
+                                           cachePolicy: NSURLRequestReloadIgnoringLocalCacheData timeoutInterval: 30 ] autorelease];
+    [uploadRequest setHTTPMethod:@"POST"];
+    [uploadRequest setValue:postLength forHTTPHeaderField:@"Content-Length"];
+    [uploadRequest setValue:@"multipart/form-data; boundary=AaB03x" forHTTPHeaderField:@"Content-Type"];
+    [uploadRequest setHTTPBody:postData];
+    
+    // Execute the reqest:
+    NSURLConnection *conn=[[NSURLConnection alloc] initWithRequest:uploadRequest delegate:self];
+    if (conn)
+    {
+        // Connection succeeded (even if a 404 or other non-200 range was returned).
+        
+    }
+    else
+    {
+        // Connection failed (cannot reach server).
+    }
+    
+}
+
+
++ (void) compressDocuments
+{
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDir = [paths objectAtIndex:0];
+    NSString *fileName = [NSString stringWithFormat:@"%@_documents.zip", [appDelegate getDeviceUniqueIdentifier]];
+    NSString *filePath = [NSString stringWithFormat:@"%@/%@", documentsDir, fileName];
+    
+    ZipFile *zippedFile = [[[ZipFile alloc] initWithFileName:filePath mode:ZipFileModeCreate] autorelease];
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    
+    NSArray *files = [fileManager contentsOfDirectoryAtPath:documentsDir error:nil];
+    
+    for(NSString *directoryItemPath in files)
+    {
+        if([directoryItemPath isEqualToString:@"documents.zip"])
+        {
+            continue;
+        }
+        
+        ZipWriteStream *stream = [zippedFile writeFileInZipWithName:directoryItemPath compressionLevel:ZipCompressionLevelBest];
+        NSData *data = [NSData dataWithContentsOfFile:[NSString stringWithFormat:@"%@/%@", documentsDir, directoryItemPath]];
+        [stream writeData:data];
+        [stream finishedWriting];
+    }
+    
+    [zippedFile close];
+    
+    [Sync uploadFile:[NSData dataWithContentsOfFile:filePath]];
 }
 
 
 - (void) applySyncing
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-
+    
     // extract zip file.
     [self extractZipFile];
     
@@ -273,7 +374,7 @@
             [db release];
             
         }
-               
+        
     }
     
     
@@ -309,7 +410,7 @@
         progressLabel = [[[UILabel alloc] initWithFrame:CGRectMake(0, 480, 1024, 25)] autorelease];
         [progressLabel setTextColor:[UIColor whiteColor]];
         [progressLabel setTextAlignment:UITextAlignmentCenter];
-      //  [self addSubview:progressLabel]; 
+        //  [self addSubview:progressLabel]; 
         
         
     }
@@ -318,16 +419,16 @@
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
 {
-
+    
     [downloadData setLength:0];
 }
-     
+
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
     [downloadData appendData:data];
     [progressView setProgress: (float) downloadData.length / (float) fileSize];
 }
-     
+
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
