@@ -113,10 +113,17 @@
 
 - (void) sendBonjourMessageToAllClients:(BonjourMessage*) aMessage 
 {
-    for(BonjourClient *client in clients)
-    {
-        [self sendBonjourMessage:aMessage toClient:client];
+    @try {
+        for(BonjourClient *client in clients)
+        {
+            [self sendBonjourMessage:aMessage toClient:client];
+        }
     }
+    @catch (NSException *exception) {
+        NSLog(@"catch all client exception");
+    }
+
+    
 }
 
 

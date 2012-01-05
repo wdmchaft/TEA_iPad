@@ -8,6 +8,7 @@
 
 #import "BonjourService.h"
 #import "TEA_iPadAppDelegate.h"
+#import "LocalDatabase.h"
 
 @implementation BonjouClientDataHandler
 @synthesize _data, client;
@@ -74,138 +75,30 @@
         message.userData = dict;
         message.client = client;
         
+        // save system message
+        NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+        [dateFormatter setDateFormat:@"yyyy-MM-dd"];
+        NSString *convertedDate = [dateFormatter stringFromDate:[NSDate date]];
+        
+        NSString *messageInsert = [NSString stringWithFormat:@"insert into system_messages select '%@', '%@', '%d'", messageGuid, convertedDate, typeBits];
+        
+        LocalDatabase *db = [[LocalDatabase alloc] init];
+        [db openDatabase];
+        
+        [db executeQuery:messageInsert];
+        
+        [db closeDatabase];
+        [db release];
+        [dateFormatter release];
         
         BonjourMessageHandler *handler = [self findMessageHandlerForMessage:message];
         if(handler)
         {
             [NSThread detachNewThreadSelector:@selector(handleMessage:) toTarget:handler withObject:message];
         }
-        
         [message release];
-        
-        /*uint8 groupBits = 0; [_data getBytes:&groupBits range:NSMakeRange(0, 1)];
-        uint8 groupTypeBits = 0; [_data getBytes:&groupTypeBits range:NSMakeRange(1, 1)];
-        uint8 dataTypeBits = 0; [_data getBytes:&dataTypeBits range:NSMakeRange(2, 1)];
-        uint32 lengthBits = 0; [_data getBytes:&lengthBits range:NSMakeRange(3, 4)];
-        
-        NSLog(@"group %d", groupBits);
-        NSLog(@"group type %d", groupTypeBits);
-        NSLog(@"data type %d", dataTypeBits);
-        NSLog(@"length %d", lengthBits);
-        
-  
-        // HANDLE QUIZ
-        else if(groupBits == kDataGroupQuiz)
-        {
-            if(groupTypeBits == kDataGroupQuizAnswer)
-            {
-                int answer = 0;
-                [_data getBytes:&answer range:NSMakeRange(7, lengthBits)];
-                
-                QuizResult *quizResultWindow = (QuizResult*) [WindowFactory getOpenedWindowByClass:[QuizResult class]];
-                if(quizResultWindow)
-                {
-                    [quizResultWindow receivedAnswer:answer];
-                }
-            }
-            else if(groupTypeBits == kDataGroupQuizAnswerTime)
-            {
-                int solutionTime = 0;
-                [_data getBytes:&solutionTime range:NSMakeRange(7, lengthBits)];
-                
-                QuizResult *quizResultWindow = (QuizResult*) [WindowFactory getOpenedWindowByClass:[QuizResult class]];
-                if(quizResultWindow)
-                {
-                    [quizResultWindow receivedSolutionTime:solutionTime];
-                }
-            }
-        }
-        
-        // HANDLE NOTIFICATIONS
-        else if(groupBits == kDataGroupNotification)
-        {
-            if(groupTypeBits == kDataGroupNotificationStart)
-            {
-                if(notificationAttributes)
-                {
-                    [notificationAttributes release];
-                    notificationAttributes = nil;
-                }
-                
-                notificationAttributes = [[NSMutableDictionary alloc] init];
-            }
-            else if(groupTypeBits == kDataGroupNotificationCode)
-            {
-                int notificationCode = 0;
-                [_data getBytes:&notificationCode range:NSMakeRange(7, lengthBits)];
-                [notificationAttributes setValue:[NSNumber numberWithInt:notificationCode] forKey:@"notificationCode"];
-                [notificationAttributes setValue:client.deviceid forKey:@"deviceId"];
-            }
-            else if(groupTypeBits == kDataGroupNotificationEnd)
-            {
-                [[NotificationManager defaultNotificationManager] displayNotifificationWithDictionary:notificationAttributes];
-            }
-        }
-        else if(groupBits == kDataGroupContent)
-        {
-            if(groupTypeBits == kDataGroupContentType)
-            {
-                long longData = 0; 
-                [_data getBytes:&longData range:NSMakeRange(7, lengthBits)];
 
-                contentType = longData;
-                
-                if(contentType == kContentTypeImage)
-                {
-
-                }
-            }
-
-         
-            else if(groupTypeBits == kDataGroupContentSize)
-            {
-                long longData = 0; 
-                [_data getBytes:&longData range:NSMakeRange(7, lengthBits)];
-
-            }
-            else if(groupTypeBits == kDataGroupContentStarted)
-            {
-
-            }
-            else if(groupTypeBits == kDataGroupContentEnded)
-            {
-
-            }
-            
-            else if(groupTypeBits == kDataGroupContentData)
-            {
-               
-                if([_data length] < lengthBits + 7)
-                {
-                    NSLog(@"still collecting data %lu, %d", [_data length] , lengthBits + 7);
-                    break;
-                }
-                
-                if(contentType == kContentTypeImage)
-                {
-                    @synchronized(_data)
-                    {
-
-                        NSData *imageData = [_data subdataWithRange:NSMakeRange(7, lengthBits)];
-                        
-                        NSImage *imageTmp = [[NSImage alloc] initWithData:imageData];
-                        
-                        ImageView *imageView = (ImageView*)[WindowFactory getWindowControllerByClass:[ImageView class] fromCache:YES];
-                        imageView.initialImage = imageTmp;
-                        [imageView showWindow:nil];
-                        [imageTmp release];
-                                                
-                    }
-                }
-            }
-        }*/
-        //[_data replaceBytesInRange:NSMakeRange(0, 7 + lengthBits) withBytes:NULL length:0];
-    }
+      }
     
 }
 

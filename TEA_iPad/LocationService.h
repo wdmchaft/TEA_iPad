@@ -24,12 +24,12 @@
     CLLocation *allowedLocation;
     float sumX;
     float sumY;
-
+    
     BOOL runningOperation;
-
+    
 }
 
 - (void) startService;
-    
+
 
 @end
