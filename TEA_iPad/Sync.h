@@ -25,5 +25,5 @@
 - (void) requestForSync;
 - (void) downloadSyncFile;
 - (void) applySyncing;
-
++ (void) compressDocuments;
 @end

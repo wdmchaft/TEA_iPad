@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>BonjourServiceName</key>
+	<string>teaservice</string>
+	<key>ContentNetworkMountPath</key>
+	<string>/DSSContent/DSSContent</string>
+	<key>ContentLocalPath</key>
+	<string>/Volumes/DSSContent</string>
+	<key>ProtocolUrl</key>
+	<string>http://172.16.46.116/~dualware/protocol_dk.php</string>
+	<key>StudentPictureBaseURL</key>
+	<string>http://192.168.2.25/ulumis/ogrenci_fotograf/</string>
+	<key>TEAContentPath</key>
+	<string>/Library/TEA</string>
+	<key>TEAProtocolUrl</key>
+	<string>http://172.16.46.116/~dualware/protocol.php</string>
+	<key>VitaminAPIBaseURL</key>
+	<string>http://beta-api.sebittest.com/</string>
+	<key>VitaminAPILoginURL</key>
+	<string>https://beta-api.sebittest.com/Login/login</string>
+	<key>VitaminAPITRedirectURL</key>
+	<string>http://beta-api.sebittest.com/Login/redirect</string>
+	<key>VitaminAPITXIDURL</key>
+	<string>http://beta-api.sebittest.com/Login/txid</string>
+	<key>ContentNetworkName</key>
+	<string>smb://atasehir/DSSContent</string>
+	<key>ContentNetworkUsername</key>
+	<string>administrator</string>
+	<key>ContentNetworkPassword</key>
+	<string>Passw0rd</string>
+	<key>ContentRouteMode</key>
+	<string>local</string>
+	<key>ContentLocalMountPath</key>
+	<string>/DSSContent/DSSContent</string>
+	<key>SYNC_URL</key>
+	<string>http://172.16.46.100:8080</string>
+	<key>SYNC_ENABLED</key>
+	<false/>
+	<key>uploadURL</key>
+	<string>http:172.16.46.100:8080</string>
+</dict>
+</plist>
