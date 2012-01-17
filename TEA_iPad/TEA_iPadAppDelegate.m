@@ -82,16 +82,6 @@ void MyReachabilityCallback(
     PrintReachabilityFlags( (const char *) info, flags, NULL, info );
 }
 
-- (void) restartBonjourBrowser
-{
-     
-    [self stopBonjourBrowser];
-    
-    [bonjourBrowser startBrowse];
-
-    NSLog(@"Bonjour service restarted...");
-}
-
 - (void) stopBonjourBrowser
 {
     [bonjourBrowser.clients removeAllObjects];
@@ -102,6 +92,17 @@ void MyReachabilityCallback(
     
     NSLog(@"Bonjur service stoped...");
 }
+
+- (void) restartBonjourBrowser
+{
+     
+    [self stopBonjourBrowser];
+    
+    [self performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
+
+    NSLog(@"Bonjour service restarted...");
+}
+
 
 
 - (void) startBonjourBrowser
@@ -119,7 +120,7 @@ void MyReachabilityCallback(
     [[NSRunLoop currentRunLoop] run];
     [pool release];
     
-    
+    NSLog(@"Bonjur service started...");
 }
 
 - (void) reachabilityChanged: (NSNotification* )note

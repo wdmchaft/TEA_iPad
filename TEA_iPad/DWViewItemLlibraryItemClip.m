@@ -111,7 +111,7 @@
         return [NSString stringWithFormat:@"<libraryitem position=\"%@\"><![CDATA[%@]]></libraryitem>", [self getPosition], htmlString];
     }
     
-    return nil;
+    return @"";
 
 }
 

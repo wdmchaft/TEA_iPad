@@ -10,7 +10,7 @@
 
 
 @implementation Timer
-@synthesize currentMinute, currentSecond, target, selectorMethod, timer, paused;
+@synthesize currentMinute, currentSecond, target, selectorMethod, timer, paused, runForward;
 
 
 - (void) setCurrentSecond:(int)aCurrentSecond
@@ -35,25 +35,44 @@
     if(paused)
         return;
     
-    if(currentSecond == 0)
+    if(runForward)
     {
-        if (currentMinute == 0)
+        if(currentSecond == 59)
         {
-            if(target && selectorMethod)
-            {
-                [target performSelector:selectorMethod];
-            }
+            currentMinute = currentMinute + 1;
+            currentSecond = 0;
+
         }
         else
         {
-            currentMinute = currentMinute - 1;
-            currentSecond = 59;
+            currentSecond = currentSecond + 1;
         }
     }
     else
     {
-        currentSecond = currentSecond - 1;
+        if(currentSecond == 0)
+        {
+            if (currentMinute == 0)
+            {
+                if(target && selectorMethod)
+                {
+                    [target performSelector:selectorMethod];
+                }
+            }
+            else
+            {
+                currentMinute = currentMinute - 1;
+                currentSecond = 59;
+            }
+        }
+        else
+        {
+            currentSecond = currentSecond -1;
+        }
+
     }
+    
+    
     
     [self setNeedsDisplay];
 }

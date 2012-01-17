@@ -73,6 +73,26 @@
             [self executeQuery:systemMessagesCreate];
         }
         
+        
+        NSString *homeworkTableCheck = @"SELECT name FROM sqlite_master WHERE name='homework'";
+        NSArray *homeworkTableResult = [self executeQuery:homeworkTableCheck];
+        if(!homeworkTableResult || [homeworkTableResult count] <= 0)
+        {
+            NSString *homeworkTableCreate = @"CREATE TABLE homework (guid TEXT, lecture_id TEXT, name TEXT, type TEXT, date TEXT, file TEXT, delivered TEXT, total_time TEXT);";
+            [self executeQuery:homeworkTableCreate];
+        }
+        
+
+        NSString *homeworkAnswersCheck = @"SELECT name FROM sqlite_master WHERE name='homework_answer'";
+        NSArray *homeworkAnswerTableResult = [self executeQuery:homeworkAnswersCheck];
+        if(!homeworkAnswerTableResult || [homeworkAnswerTableResult count] <= 0)
+        {
+            NSString *homeworkAnswerTableCreate = @"CREATE TABLE homework_answer (homework TEXT, question TEXT, answer TEXT, correct_answer TEXT, time TEXT);";
+            [self executeQuery:homeworkAnswerTableCreate];
+        }
+
+        
+        
         // NSLog(@"DB OPENED");
 	}
     else

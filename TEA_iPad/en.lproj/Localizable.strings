@@ -17,3 +17,6 @@
 "Answer Send Message"="You choosed option '%c'. Are you sure to send this answer?";
 "Move To Notebook"="Move to notebook";
 "Rename"="Rename";
+"Close"="Close";
+"Finish"="Finish";
+"FinishHomeworkWarning" = "When homework is 'Finished', it can not be edited anymore. Are you sure to 'finish' homework?";

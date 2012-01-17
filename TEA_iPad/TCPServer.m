@@ -179,7 +179,7 @@ static void TCPServerAcceptCallBack(CFSocketRef socket, CFSocketCallBackType typ
     int yes = 1;
     setsockopt(CFSocketGetNative(witap_socket), SOL_SOCKET, SO_REUSEADDR, (void *)&yes, sizeof(yes));
 	
-    int timoutValue = 1;
+    int timoutValue = 2;
     setsockopt(CFSocketGetNative(witap_socket), SOL_SOCKET, SO_KEEPALIVE, (void *)&timoutValue, sizeof(timoutValue));
     
 	// set up the IP endpoint; use port 0, so the kernel will choose an arbitrary port for us, which will be advertised using Bonjour

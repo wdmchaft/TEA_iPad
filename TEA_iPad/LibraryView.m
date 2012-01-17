@@ -34,6 +34,7 @@
 @synthesize logonGlow;
 @synthesize guestEnterButton;
 @synthesize syncView;
+@synthesize homeworkService;
 @synthesize numericPadPopover;
 
 - (void) refreshDate:(NSDate*)aDate
@@ -273,6 +274,7 @@
     
     [numericPadPopover release];
     [syncView release];
+    [homeworkService release];
     [lectureViews release];
     [guestEnterButton release];
     [sessionNameScrollView release];
@@ -377,6 +379,23 @@
     dateView.controller = self;
     [self initMonthView];
     [self initLectureNames];
+    
+    blackScreen = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
+    [blackScreen setBackgroundColor:[UIColor blackColor]];
+    
+    self.syncView = [[Sync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
+    [syncView setHidden:YES];
+    [self.view addSubview:syncView];
+    [syncView requestForSync];
+    [syncView release];
+    
+    
+    self.homeworkService = [[Homework alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
+    [homeworkService setHidden:YES];
+    [self.view addSubview:homeworkService];
+    [homeworkService requestForHomework];
+    [homeworkService release];
+
 }
 
 - (void) selectLecture:(LectureView *) lecture

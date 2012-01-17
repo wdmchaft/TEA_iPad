@@ -17,3 +17,6 @@
 "Answer Send Message"="Cevabınızı '%c' olarak seçtiniz. Göndermek istiyor musunuz?";
 "Move To Notebook"="Deftere taşı";
 "Rename"="İsmini Değiştir";
+"Close"="Kapat";
+"Finish"="Sonlandır";
+"FinishHomeworkWarning" = "Ödev sonlandırıldığında üzerinde bir daha değişiklik yapılamaz. Sonlandırmak istediğinize emin miniz?";

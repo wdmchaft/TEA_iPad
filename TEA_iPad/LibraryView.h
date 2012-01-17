@@ -12,6 +12,7 @@
 #import "Notebook.h"
 #import "NumericPad.h"
 #import "Sync.h"
+#import "Homework.h"
 
 @class DWDrawingViewController, LectureView, MonthView;
 @interface LibraryView : UIViewController <UIAccelerometerDelegate> {
@@ -45,6 +46,7 @@
     
     UIView *blackScreen;
     Sync *syncView;
+    Homework *homeworkService;
     
     BOOL screenClosed;
 }
@@ -57,7 +59,8 @@
 @property (nonatomic, retain) IBOutlet UIScrollView *contentsScrollView;
 @property (nonatomic, retain) IBOutlet DateView *dateView;
 @property (nonatomic, assign) BOOL compactMode;
-@property (nonatomic, assign) Sync *syncView;
+@property (nonatomic, retain) Sync *syncView;
+@property (nonatomic, retain) Homework *homeworkService;
 @property (nonatomic, assign) Notebook *notebook;
 @property (nonatomic, assign) NSMutableArray *lectureViews;
 

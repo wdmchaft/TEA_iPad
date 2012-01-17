@@ -17,19 +17,15 @@
     
     NSMutableArray *allowedBSSIDs;
     NSMutableArray *staticBSSIDs;
-    NSString *startupBSSID;
+    
     int locationCount;
     int allowedACPRange;
     int allowed3GRange;
     int allowedRange;
-    CLLocation *currentLocation;
     CLLocation *allowedLocation;
-    float sumX;
-    float sumY;
     
     BOOL runningOperation;
-    BOOL runningInStaticACPRegion;
-    BOOL noInternet;
+    BOOL usingLocation;
 }
 
 - (void) startService;
