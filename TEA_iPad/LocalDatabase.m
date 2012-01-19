@@ -10,14 +10,24 @@
 
 
 @implementation LocalDatabase
+@synthesize busy;
+
+static NSMutableArray *sharedInstances;
 
 + (NSString*) stringWithUUID {
-    CFUUIDRef	uuidObj = CFUUIDCreate(nil);//create a new UUID
+    CFUUIDRef	uuidObj = CFUUIDCreate(NULL);//create a new UUID
     //get the string representation of the UUID
-    NSString	*uuidString = (NSString*)CFUUIDCreateString(nil, uuidObj);
+    
+    CFStringRef uuidRef = CFUUIDCreateString(NULL, uuidObj);
+    
+      
+    NSString *uuidString = (NSString*)  CFStringCreateCopy(NULL, uuidRef);
+    CFRelease(uuidRef);
     CFRelease(uuidObj);
-    return [uuidString autorelease];
+    
+    return [uuidString autorelease] ;
 }
+
 
 - (void) openDatabase
 {
@@ -82,7 +92,7 @@
             [self executeQuery:homeworkTableCreate];
         }
         
-
+        
         NSString *homeworkAnswersCheck = @"SELECT name FROM sqlite_master WHERE name='homework_answer'";
         NSArray *homeworkAnswerTableResult = [self executeQuery:homeworkAnswersCheck];
         if(!homeworkAnswerTableResult || [homeworkAnswerTableResult count] <= 0)
@@ -90,7 +100,7 @@
             NSString *homeworkAnswerTableCreate = @"CREATE TABLE homework_answer (homework TEXT, question TEXT, answer TEXT, correct_answer TEXT, time TEXT);";
             [self executeQuery:homeworkAnswerTableCreate];
         }
-
+        
         
         
         // NSLog(@"DB OPENED");
@@ -100,6 +110,40 @@
         //    NSLog(@"DB NOT OPENED");
     }
 }
+
++ (LocalDatabase*) sharedInstance
+{
+    if(!sharedInstances)
+    {
+        sharedInstances = [[NSMutableArray alloc] initWithCapacity:10];
+        
+        for (int i=0; i < 10; i++) 
+        {
+            LocalDatabase *db = [[LocalDatabase alloc] init];
+            [db openDatabase];
+            [sharedInstances addObject:db];
+            [db release];
+        }
+    }
+    
+    int counter = 0;
+    for(LocalDatabase *ldb in sharedInstances)
+    {
+        if(!ldb.busy)
+        {
+          //  NSLog(@"Returning LocalDB instance at index %d", counter);
+            return ldb;
+        }
+        counter++;
+    }
+
+    NSLog(@"******  ERRRROR : Local db instance couldn't be found....!!!!! ");
+    
+    return nil;
+}
+
+
+
 
 - (id)init
 {
@@ -133,18 +177,22 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
 
 - (NSMutableArray*) executeQuery:(NSString*)pQuery
 {
+    
+    busy = YES;
+    
     if(!database)
     {
         [self openDatabase];
     }
     
-    const char *sqlStatement = [pQuery UTF8String];
+  //  const char *sqlStatement = [pQuery UTF8String];
     sqlite3_stmt *compiledStatement;
     
-    if(sqlite3_prepare_v2(database, sqlStatement, -1, &compiledStatement, NULL) == SQLITE_OK) 
+    if(sqlite3_prepare_v2(database, [pQuery UTF8String], -1, &compiledStatement, NULL) == SQLITE_OK) 
     {
         NSMutableArray *returnArray = [[NSMutableArray alloc] init];
         
+      //  NSLog(@"running sql = %@", pQuery);
         
         while(sqlite3_step(compiledStatement) == SQLITE_ROW) 
         {
@@ -168,18 +216,21 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
         }
         
         sqlite3_finalize(compiledStatement);
+        busy = NO;
         return [returnArray autorelease];
     }
     else 
     {
         NSLog(@"query not performed");
     }
-    
+    busy = NO;
     return nil;
 }
 
+
 - (NSMutableArray*) executeQuery:(NSString*)pQuery returnSimpleArray:(BOOL) returnSimpleArray
 {
+    busy = YES;
     if(!database)
     {
         [self openDatabase];
@@ -215,13 +266,14 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
         }
         
         sqlite3_finalize(compiledStatement);
+        busy = NO;
         return [returnArray autorelease];
     }
     else 
     {
         NSLog(@"query not performed");
     }
-    
+    busy = NO;
     return nil;
 }
 

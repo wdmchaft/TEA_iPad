@@ -25,8 +25,8 @@ enum kHomeworkDelivered {
     UIView *hwView;
     
     UILabel *titleOfHomework;
-    UIWebView *questionView;
-    
+    //UIWebView *questionView;
+    UIImageView *questionView;
     UIButton *prevQuestion;
     UIButton *nextQuestion;
     

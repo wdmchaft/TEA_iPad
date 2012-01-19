@@ -32,19 +32,17 @@
         
         
         // Get answer for the question
-        LocalDatabase *db = [[[LocalDatabase alloc] init] autorelease];
-        [db openDatabase];
+
         
         NSString *sql = [NSString stringWithFormat:@"select answer from homework_answer where homework = '%@' and question = '%@'", currentHomework, [dataDictionary objectForKey:@"number"]];
         
-        NSArray *resultArray = [db executeQuery:sql];
+        NSArray *resultArray = [[LocalDatabase sharedInstance] executeQuery:sql];
         NSString *givenAnswer = nil;
         if (resultArray && [resultArray count] > 0) {
             givenAnswer = [[resultArray objectAtIndex:0] valueForKey:@"answer"];
         }
         
-        [db closeDatabase];
-        
+          
         buttonArray = [[NSMutableArray alloc] init];
         for (int i=0; i<5; i++) {
             UIButton *button = [[UIButton alloc] initWithFrame:CGRectMake((i+1)*44, 6, 40, 40)];
@@ -130,8 +128,7 @@
 - (IBAction)answerButtonClicked:(id)sender
 {
     
-    
-    
+
     for (int i=0; i<[buttonArray count]; i++) {
         if ([[buttonArray objectAtIndex:i] tag] != [sender tag]) 
         {
@@ -140,10 +137,7 @@
         else
         {
             [[buttonArray objectAtIndex:i] setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionSelectedBG.png"] forState:UIControlStateNormal];
-            
-            LocalDatabase *db = [[[LocalDatabase alloc] init] autorelease];
-            [db openDatabase];
-            
+  
             
             NSString *homeworkName = [[currentHomework componentsSeparatedByString:@"."] objectAtIndex:0];
             
@@ -151,12 +145,12 @@
             NSString *selectSql = [NSString stringWithFormat:@"select * from homework_answer where question = '%@' and homework = '%@'", [dataDictionary valueForKey:@"number"], homeworkName];
             
             
-            NSArray *selectResult = [db executeQuery:selectSql];
+            NSArray *selectResult = [[LocalDatabase sharedInstance] executeQuery:selectSql];
             
             NSString *insertSql;
             if ([selectResult count]>0) {
                 insertSql = [NSString stringWithFormat:@"delete from homework_answer where question = '%@' and homework = '%@'", [dataDictionary valueForKey:@"number"], homeworkName];
-                [db executeQuery:insertSql];
+                [[LocalDatabase sharedInstance] executeQuery:insertSql];
                 
             }
             
@@ -164,9 +158,8 @@
             insertSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, answer, correct_answer) values ('%@', '%@', '%@', '%@')", homeworkName, [dataDictionary valueForKey:@"number"], [buttonText uppercaseString], [dataDictionary valueForKey:@"correctAnswer"]];
             
            
-            [db executeQuery:insertSql];
+            [[LocalDatabase sharedInstance] executeQuery:insertSql];
 
-            [db closeDatabase];
             
         }
     }

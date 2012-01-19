@@ -30,9 +30,8 @@
     questionImageURL = [[[parser.quiz objectForKey:@"questions"] objectAtIndex:questionIndex - 1] objectForKey:@"imageURL"];
     
     NSData *imageData = [NSData dataWithContentsOfFile:[NSString stringWithFormat:@"%@/%@", documentsPath, questionImageURL]];
-    [questionView loadData:imageData MIMEType:@"image/png" textEncodingName:nil baseURL:nil];
-    [questionView setScalesPageToFit:YES];
-    
+    //[questionView loadData:imageData MIMEType:@"image/png" textEncodingName:nil baseURL:nil];
+    [questionView setImage:[UIImage imageWithData:imageData]];
     [answerSheetView selectQuestion:questionIndex];
     currentQuestion = questionIndex;
 }
@@ -67,14 +66,12 @@
         [parser parseXml:parsableFile];
                 
         // Set delivered state
-        LocalDatabase *db = [[LocalDatabase alloc] init];
-        [db openDatabase];
+
         
         NSString *sql = [NSString stringWithFormat:@"select delivered from homework where guid='%@'", homeworkGuid];
-        delivered = [[[[db executeQuery:sql] objectAtIndex:0] valueForKey:@"delivered"] intValue];
+        delivered = [[[[[LocalDatabase sharedInstance] executeQuery:sql] objectAtIndex:0] valueForKey:@"delivered"] intValue];
         
-        [db closeDatabase];
-        [db release];
+
         [self removeFromSuperview];
         
         
@@ -100,10 +97,15 @@
         [hwView addSubview:questionContainerView];
         [questionContainerView release];
         
-        questionView = [[UIWebView alloc] initWithFrame:CGRectMake(50, 50, 652 - 100, 478 - 100)];
+        /*questionView = [[UIWebView alloc] initWithFrame:CGRectMake(50, 50, 652 - 100, 478 - 100)];
         [questionView setBackgroundColor:[UIColor whiteColor]];
+        [questionView setScalesPageToFit:NO];
         [questionView becomeFirstResponder];
+        */
         
+        questionView = [[UIImageView alloc] initWithFrame:CGRectMake(50, 25, 652 - 100, 478 - 50)];
+        [questionView setBackgroundColor:[UIColor whiteColor]];
+        [questionView setContentMode:UIViewContentModeScaleAspectFit];
         [questionContainerView addSubview:questionView];
         
         prevQuestion = [[UIButton alloc] initWithFrame:CGRectMake(0, 65, 652, 72)];
@@ -204,14 +206,11 @@
     {
         if(delivered == kHomeworkDeliveredNormal)
         {
-            LocalDatabase *db = [[LocalDatabase alloc] init];
-            [db openDatabase];
+
             
             NSString *sql = [NSString stringWithFormat:@"update homework set delivered = '-1' where guid='%@'", homeworkGuid];
-            [db executeQuery:sql];
-            
-            [db closeDatabase];
-            [db release];
+            [[LocalDatabase sharedInstance] executeQuery:sql];
+
         }
         
         [self removeFromSuperview];

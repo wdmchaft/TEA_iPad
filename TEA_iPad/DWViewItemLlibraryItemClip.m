@@ -75,10 +75,10 @@
             [data writeToFile:imagePath atomically:YES];
 
             NSString *htmlPath = [[NSBundle mainBundle] pathForResource:@"image" ofType:@"htm"];
-            NSString *tmpHTMLString = [NSString stringWithContentsOfFile:htmlPath encoding:NSUTF8StringEncoding error:nil];
-            tmpHTMLString = [NSString stringWithFormat:tmpHTMLString, imagePath];
+            NSString *fileString = [NSString stringWithContentsOfFile:htmlPath encoding:NSUTF8StringEncoding error:nil];
+            NSString *tmpHTMLString = [NSString stringWithFormat:fileString, imagePath];
             
-            self.htmlString = [tmpHTMLString retain];
+            self.htmlString = tmpHTMLString ;
             
             data = [tmpHTMLString dataUsingEncoding:NSUTF8StringEncoding];
             [webField loadData:data MIMEType:@"text/html" textEncodingName:@"utf-8" baseURL:nil];
@@ -89,7 +89,7 @@
      }
    
     [webField setBackgroundColor:[UIColor clearColor]];
-     webField.scalesPageToFit = YES;
+    webField.scalesPageToFit = YES;
     viewObject = webField;
     [self sendSubviewToBack:viewObject];
     [webField release];

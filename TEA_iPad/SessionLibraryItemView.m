@@ -143,13 +143,10 @@
         
         [imageData writeToFile:filePath atomically:NO];
         
-        LocalDatabase *db = [[LocalDatabase alloc] init];
-        [db openDatabase];
-        [db executeQuery:[NSString stringWithFormat:@"update library set previewPath='%@' where path='%@'", fileName, path]];
-        [db closeDatabase];
+
+        [[LocalDatabase sharedInstance] executeQuery:[NSString stringWithFormat:@"update library set previewPath='%@' where path='%@'", fileName, path]];
         
         self.previewPath = fileName;
-        [db release];
         
         
         
@@ -173,7 +170,7 @@
     UIImage *anImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext(); 
     
-    NSData *imageData = UIImagePNGRepresentation(anImage);
+    NSData *imageData = [[NSData alloc] initWithData:UIImagePNGRepresentation(anImage)] ;
     if(imageData != nil)
     {
         NSArray *paths =NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
@@ -183,13 +180,10 @@
         
         [imageData writeToFile:filePath atomically:NO];
         
-        LocalDatabase *db = [[LocalDatabase alloc] init];
-        [db openDatabase];
-        [db executeQuery:[NSString stringWithFormat:@"update library set previewPath='%@' where path='%@'", fileName, path]];
-        [db closeDatabase];
+
+        [[LocalDatabase sharedInstance] executeQuery:[NSString stringWithFormat:@"update library set previewPath='%@' where path='%@'", fileName, path]];
         
         previewPath = fileName;
-        [db release];
         
         
        
@@ -205,6 +199,10 @@
     
     [previewWebView setHidden:YES];
     [previewWebView setDelegate:nil];
+    [previewWebView release];
+    previewWebView = nil;
+    
+    [imageData release];
 }
 
 
@@ -241,11 +239,9 @@
 - (void) updateNameOfLibraryItem
 {
     self.name = itemName.text;
-    LocalDatabase *db = [[LocalDatabase alloc] init];
-    [db openDatabase];
-    [db executeQuery:[NSString stringWithFormat:@"update library set name='%@' where path = '%@'", self.name, path]];
-    [db closeDatabase];
-    [db release];
+
+    [[LocalDatabase sharedInstance] executeQuery:[NSString stringWithFormat:@"update library set name='%@' where path = '%@'", self.name, path]];
+
 }
 
 
@@ -500,15 +496,12 @@
             //- (id)initWithFrame:(CGRect)frame andZipFileName:(NSString*) aZipFileName
 
             // Get homework name from db
-            LocalDatabase *db = [[LocalDatabase alloc] init];
-            [db openDatabase];
+
             
             NSString *sql = [NSString stringWithFormat: @"select name from homework where file = '%@'", self.path];
             
-            NSString *homeworkName = [[[db executeQuery:sql] objectAtIndex:0] valueForKey:@"name"] ;
-            
-            [db closeDatabase];
-            [db release];
+            NSString *homeworkName = [[[[LocalDatabase sharedInstance] executeQuery:sql] objectAtIndex:0] valueForKey:@"name"] ;
+  
             
             HWView *homeworkView = [[HWView alloc] initWithFrame:CGRectMake(0, 0, 1024, 748) andZipFileName:self.path andHomeworkId:self.guid];
             [homeworkView.titleOfHomework setText:homeworkName]; 

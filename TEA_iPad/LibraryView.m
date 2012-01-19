@@ -39,26 +39,33 @@
 
 - (void) refreshDate:(NSDate*)aDate
 {
-    NSDateComponents *components = [[NSCalendar currentCalendar] components: NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit fromDate:[NSDate date]];
     
-    int year = [components year];
-    int month = [components month];
-    int day = [components day];
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
-    for(MonthView *monthView in [monthsScrollView subviews])
+    if(appDelegate.state != kAppStateSyncing)
     {
-        if(monthView.month == month && monthView.year == year)
+        NSDateComponents *components = [[NSCalendar currentCalendar] components: NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit fromDate:[NSDate date]];
+        
+        int year = [components year];
+        int month = [components month];
+        int day = [components day];
+        
+        for(MonthView *monthView in [monthsScrollView subviews])
         {
-            [monthView touchesEnded:nil withEvent:nil];
-            self.selectedMonth = monthView;
-            break;
+            if(monthView.month == month && monthView.year == year)
+            {
+                [monthView touchesEnded:nil withEvent:nil];
+                self.selectedMonth = monthView;
+                break;
+            }
         }
+        
+        self.selectedDate = day;
+        [self.dateView selectDate:day - 1];
+        
+        [self initSessionNames];
     }
     
-    self.selectedDate = day;
-    [self.dateView selectDate:day - 1];
-    
-    [self initSessionNames];
 
 }
 
@@ -196,10 +203,8 @@
         [sessionV removeFromSuperview];
     }
     
-    LocalDatabase *db = [[LocalDatabase alloc] init];
-    [db openDatabase];
     
-    NSArray *result = [db executeQuery:sql];
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql];
     
     int counter = 0;
     CGRect sessionViewRect = CGRectMake(0, 0, 0, 0);
@@ -219,7 +224,6 @@
         sessionViewRect = sessionView.frame;
     }
     
-    [db release];
 
     contentsScrollView.contentSize = CGSizeMake(contentsScrollView.frame.size.width, sessionViewRect.size.height + sessionViewRect.origin.y + 50);
 }
@@ -233,10 +237,9 @@
         [lectureV removeFromSuperview];
     }
     
-    LocalDatabase *db = [[LocalDatabase alloc] init];
-    [db openDatabase];
+
     
-    NSArray *result = [db executeQuery:@"select * from lecture"];
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:@"select * from lecture"];
     
     int counter = 0;
     for(NSDictionary *resultDict in result)
@@ -253,7 +256,6 @@
         [lectureViews addObject:lectureView];
         counter++;
     }
-    [db release];
     lectureNamesScrollView.contentSize = CGSizeMake(177, 52 * counter);
 }
 
@@ -326,12 +328,7 @@
     blackScreen = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
     [blackScreen setBackgroundColor:[UIColor blackColor]];
     
-    syncView = [[Sync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-    [syncView setHidden:YES];
-    [self.view addSubview:syncView];
-    [syncView requestForSync];
-    [syncView release];
-    
+        
     
     if(!compactMode)
     {
@@ -383,18 +380,14 @@
     blackScreen = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
     [blackScreen setBackgroundColor:[UIColor blackColor]];
     
-    self.syncView = [[Sync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-    [syncView setHidden:YES];
-    [self.view addSubview:syncView];
-    [syncView requestForSync];
-    [syncView release];
-    
-    
     self.homeworkService = [[Homework alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
     [homeworkService setHidden:YES];
+    homeworkService.libraryViewController = self;
     [self.view addSubview:homeworkService];
     [homeworkService requestForHomework];
     [homeworkService release];
+    
+    
 
 }
 

@@ -51,23 +51,21 @@
 
 - (void) saveWorkspace
 {
-    LocalDatabase *db = [[LocalDatabase alloc] init];
-    [db openDatabase];
+
     
     // update old records
-    [db executeQuery: @"update notebookworkspace set state = 1"];
+    [[LocalDatabase sharedInstance] executeQuery: @"update notebookworkspace set state = 1"];
     
     NSString *sql = @"insert into notebookworkspace select '%@', 0, '%@', '%@', '%@', '%@', NULL";
     
     for(NotebookCover *cover in notebookCovers)
     {
         NSString *executeSql = [NSString stringWithFormat:sql, cover.notebookType, cover.notebookGuid, cover.notebookName, cover.notebookLectureGuid, cover.notebookPosition, cover.notebookCoverColor];
-        [db executeQuery: executeSql];
+        [[LocalDatabase sharedInstance] executeQuery: executeSql];
     }
     
-    [db executeQuery: @"delete from notebookworkspace where state = 1"];
-    [db closeDatabase];
-    [db release];
+    [[LocalDatabase sharedInstance] executeQuery: @"delete from notebookworkspace where state = 1"];
+
     
 }
 
@@ -121,11 +119,9 @@
     }
     
     [notebookCovers removeAllObjects];
+
     
-    LocalDatabase *db = [[LocalDatabase alloc] init];
-    [db openDatabase];
-    
-    NSArray *result = [db executeQuery: @"select * from notebookworkspace"];
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery: @"select * from notebookworkspace"];
     
     int counter = 0;
     int x = 0,y = 0;
@@ -156,8 +152,7 @@
         counter++;
     }
     
-    [db closeDatabase];
-    [db release];
+
 
     [self setContentSize:CGSizeMake(self.frame.size.width, y + 300)];
 }
