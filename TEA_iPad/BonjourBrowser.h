@@ -20,8 +20,7 @@
     NSMutableArray *clients;
     NSMutableArray *services;
     
-    NSInputStream *input;
-    NSOutputStream *output;
+   
 }
 
 @property (nonatomic, retain) NSNetServiceBrowser *netServiceBrowser;

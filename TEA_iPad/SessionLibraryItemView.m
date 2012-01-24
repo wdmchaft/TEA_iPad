@@ -19,6 +19,7 @@
 #import "LocalDatabase.h"
 #import "QuizViewer.h"
 #import "NotebookAddView.h"
+#import "HWView.h"
 
 @implementation SessionLibraryItemView
 @synthesize name, path, type, sessionView, quizImagePath, previewPath, correctAnswer, answer, guid, quizOptCount;
@@ -142,13 +143,10 @@
         
         [imageData writeToFile:filePath atomically:NO];
         
-        LocalDatabase *db = [[LocalDatabase alloc] init];
-        [db openDatabase];
-        [db executeQuery:[NSString stringWithFormat:@"update library set previewPath='%@' where path='%@'", fileName, path]];
-        [db closeDatabase];
+
+        [[LocalDatabase sharedInstance] executeQuery:[NSString stringWithFormat:@"update library set previewPath='%@' where path='%@'", fileName, path]];
         
         self.previewPath = fileName;
-        [db release];
         
         
         
@@ -172,7 +170,7 @@
     UIImage *anImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext(); 
     
-    NSData *imageData = UIImagePNGRepresentation(anImage);
+    NSData *imageData = [[NSData alloc] initWithData:UIImagePNGRepresentation(anImage)] ;
     if(imageData != nil)
     {
         NSArray *paths =NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
@@ -182,13 +180,10 @@
         
         [imageData writeToFile:filePath atomically:NO];
         
-        LocalDatabase *db = [[LocalDatabase alloc] init];
-        [db openDatabase];
-        [db executeQuery:[NSString stringWithFormat:@"update library set previewPath='%@' where path='%@'", fileName, path]];
-        [db closeDatabase];
+
+        [[LocalDatabase sharedInstance] executeQuery:[NSString stringWithFormat:@"update library set previewPath='%@' where path='%@'", fileName, path]];
         
         previewPath = fileName;
-        [db release];
         
         
        
@@ -204,6 +199,10 @@
     
     [previewWebView setHidden:YES];
     [previewWebView setDelegate:nil];
+    [previewWebView release];
+    previewWebView = nil;
+    
+    [imageData release];
 }
 
 
@@ -240,20 +239,19 @@
 - (void) updateNameOfLibraryItem
 {
     self.name = itemName.text;
-    LocalDatabase *db = [[LocalDatabase alloc] init];
-    [db openDatabase];
-    [db executeQuery:[NSString stringWithFormat:@"update library set name='%@' where path = '%@'", self.name, path]];
-    [db closeDatabase];
-    [db release];
+
+    [[LocalDatabase sharedInstance] executeQuery:[NSString stringWithFormat:@"update library set name='%@' where path = '%@'", self.name, path]];
+
 }
 
 
 - (void) initLibraryItemView
 {
     
+    
     /* Add preview image */
     
-    if (!([type isEqualToString:@"video"] || [type isEqualToString:@"audio"])) 
+    if (!([type isEqualToString:@"video"] || [type isEqualToString:@"audio"] || [type isEqualToString:@"homework"])) 
     {
         [self getFilePreview];
         
@@ -283,6 +281,10 @@
     else if ([type isEqualToString:@"image"]) 
     {
         [borderImage setImage:[UIImage imageNamed:@"LibraryItemImage.png"]];
+    }
+    else if ([type isEqualToString:@"homework"]) 
+    {
+        [borderImage setImage:[UIImage imageNamed:@"LibraryItemQuiz.png"]];
     }
     else if ([type isEqualToString:@"document"]) 
     {
@@ -486,6 +488,38 @@
             [appDelegate.viewController.view addSubview:documentViewer];
             [libraryDocumentItem release];
             [documentViewer release];
+            
+        }
+        else if([type isEqualToString:@"homework"])
+        {
+            TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+
+            //- (id)initWithFrame:(CGRect)frame andZipFileName:(NSString*) aZipFileName
+
+            // Get homework name from db
+
+            
+            NSString *sql = [NSString stringWithFormat: @"select name from homework where file = '%@'", self.path];
+            
+            NSString *homeworkName = [[[[LocalDatabase sharedInstance] executeQuery:sql] objectAtIndex:0] valueForKey:@"name"] ;
+  
+            
+            HWView *homeworkView = [[HWView alloc] initWithFrame:CGRectMake(0, 0, 1024, 748) andZipFileName:self.path andHomeworkId:self.guid];
+            [homeworkView.titleOfHomework setText:homeworkName]; 
+            
+            [appDelegate.viewController.view addSubview:homeworkView];
+            [homeworkView release];
+
+           /* LibraryDocumentItem *libraryDocumentItem = [[LibraryDocumentItem alloc] init];
+            libraryDocumentItem.path = [self getFullPathForFile:self.path];
+            libraryDocumentItem.name = name;
+            
+            DocumentViewer *documentViewer = [[DocumentViewer alloc] initWithLibraryItem:libraryDocumentItem];
+            TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+            
+            [appDelegate.viewController.view addSubview:documentViewer];
+            [libraryDocumentItem release];
+            [documentViewer release];*/
             
         }
     }

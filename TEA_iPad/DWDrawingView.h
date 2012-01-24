@@ -48,6 +48,7 @@
 @property (assign) DWTool *currentTool;
 @property (assign) DWDrawingViewController *drawingViewController;
 
+
 - (UIImage*) screenImage;
 
 @end

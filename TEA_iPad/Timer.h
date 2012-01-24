@@ -18,6 +18,7 @@
     id target;
     SEL selectorMethod;
     BOOL paused;
+    BOOL runForward;
 }
 
 @property (nonatomic, assign) int currentMinute;
@@ -26,6 +27,7 @@
 @property (assign) id target;
 @property (assign) BOOL paused;
 @property (assign) SEL selectorMethod;
+@property (assign) BOOL runForward;
 
 - (void) startTimer;
 - (void) stopTimer;

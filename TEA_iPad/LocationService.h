@@ -16,17 +16,18 @@
     LocationServiceMessageView *locationServiceMessageView;
     
     NSMutableArray *allowedBSSIDs;
+
+    NSMutableArray *staticBSSIDs;
+    
     int locationCount;
     int allowedACPRange;
     int allowed3GRange;
     int allowedRange;
-    CLLocation *currentLocation;
     CLLocation *allowedLocation;
-    float sumX;
-    float sumY;
     
     BOOL runningOperation;
-    
+    BOOL usingLocation;
+    int checkRange;
 }
 
 - (void) startService;

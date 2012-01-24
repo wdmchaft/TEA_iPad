@@ -36,8 +36,12 @@
 	<string>/DSSContent/DSSContent</string>
 	<key>SYNC_URL</key>
 	<string>http://192.168.2.50:8080</string>
+	<key>HOMEWORK_URL</key>
+	<string>http://192.168.2.50:8080</string>
 	<key>SYNC_ENABLED</key>
-	<true/>
+	<false/>
+	<key>HOMEWORK_ENABLED</key>
+	<false/>
 	<key>uploadURL</key>
 	<string>http://192.168.2.50:8080/upload.jsp</string>
 </dict>

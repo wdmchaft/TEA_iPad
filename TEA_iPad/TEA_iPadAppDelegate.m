@@ -82,16 +82,6 @@ void MyReachabilityCallback(
     PrintReachabilityFlags( (const char *) info, flags, NULL, info );
 }
 
-- (void) restartBonjourBrowser
-{
-     
-    [self stopBonjourBrowser];
-    
-    [bonjourBrowser startBrowse];
-
-    NSLog(@"Bonjour service restarted...");
-}
-
 - (void) stopBonjourBrowser
 {
     [bonjourBrowser.clients removeAllObjects];
@@ -102,6 +92,17 @@ void MyReachabilityCallback(
     
     NSLog(@"Bonjur service stoped...");
 }
+
+- (void) restartBonjourBrowser
+{
+     
+    [self stopBonjourBrowser];
+    
+    [self performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
+
+    NSLog(@"Bonjour service restarted...");
+}
+
 
 
 - (void) startBonjourBrowser
@@ -119,7 +120,7 @@ void MyReachabilityCallback(
     [[NSRunLoop currentRunLoop] run];
     [pool release];
     
-    
+    NSLog(@"Bonjur service started...");
 }
 
 - (void) reachabilityChanged: (NSNotification* )note
@@ -154,17 +155,47 @@ void MyReachabilityCallback(
     
 }
 
+
+void handleException(NSException *exception) 
+{
+      
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
+    NSString *iPadAppVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
+    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
+    NSString *subject = [NSString stringWithFormat:@"[iPad ERROR] %@ - %@ - %@", [appDelegate getDeviceUniqueIdentifier],  iPadAppVersion, iPadOSVersion];
+    NSString *body =  [NSString stringWithFormat:@"%@ \n\n%@", exception.reason, [exception.callStackSymbols description]]; 
+    
+   
+    NSString *downloadURL = [NSString stringWithFormat: @"subject=%@&body=%@&", subject, body];
+    NSData *postData = [downloadURL dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+    NSString *postLength = [NSString stringWithFormat:@"%d",[postData length]];
+    
+    NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
+    
+    [request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://www.dualware.com/Service/EU/email.php"]]];
+    
+    [request setHTTPMethod:@"POST"];
+    [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+    [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Current-Type"];
+    [request setHTTPBody:postData];
+    
+    // send e-mail
+    [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:nil];
+
+}
+
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+
+    NSSetUncaughtExceptionHandler(&handleException);
     
+     
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     [center addObserver:self selector:@selector(screenDidConnect:) name:UIScreenDidConnectNotification object:nil];
     [center addObserver:self selector:@selector(screenDidDisconnect:) name:UIScreenDidDisconnectNotification object:nil];
     [center addObserver:self selector:@selector(screenModeDidChange:) name:UIScreenModeDidChangeNotification object:nil];
-
- 
-    
-    
     
     application.idleTimerDisabled = YES;
     guestEnterNumber = 0;
@@ -197,8 +228,7 @@ void MyReachabilityCallback(
     LocationService *locationService = [[LocationService alloc] init];
     blackScreen = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
     [locationService startService];
-        
- 
+
     
    return YES;
 }
@@ -216,6 +246,8 @@ void MyReachabilityCallback(
         
         
         NSLog(@"logged in host is %@", connectedHost);
+        
+        [bonjourBrowser.netServiceBrowser stop];
         
         NSMutableArray *clientsToRemove = [[NSMutableArray alloc] init];
         for(BonjourClient *client in bonjourBrowser.clients)

@@ -25,6 +25,9 @@
     NSString *guid;
     BOOL displayMode;
     
+    BOOL displayingAlert;
+    BOOL quizFinished;
+    
     int currentAnswer;
     int correctAnswer;
     int optionCount;

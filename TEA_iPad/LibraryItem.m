@@ -39,8 +39,6 @@
 - (void) saveLibraryItem
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-    LocalDatabase *db = [[LocalDatabase alloc] init];
-    [db openDatabase];
     
     /* CREATE SESSION IF NOT EXISTS */
     NSString *session_guid = appDelegate.session.sessionGuid;
@@ -49,44 +47,35 @@
     NSString *lecture_guid = appDelegate.session.sessionLectureGuid;
     
     NSString *selectSql = [NSString stringWithFormat:@"select session_guid from session where session_guid = '%@'", session_guid];
-    NSArray *result = [db executeQuery:selectSql];
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:selectSql];
     
     if(!(result && [result count] > 0))
     {
         NSString *insertSQL = @"insert into session(lecture_guid, date, session_guid, name) values ('%@', '%@', '%@', '%@')";
         insertSQL = [NSString stringWithFormat:insertSQL, lecture_guid, session_date, session_guid, session_name];
         
-        [db executeQuery:insertSQL];
+        [[LocalDatabase sharedInstance] executeQuery:insertSQL];
     }
     
     
     
     
-    [db closeDatabase];
-    [db release];
-    
-    
-    
-    db = [[LocalDatabase alloc] init];
-    [db openDatabase];
-    
     /* CREATE LECTURE IF NOT EXISTS */
     NSString *lecture_name = appDelegate.session.sessionLectureName;
 
     selectSql = [NSString stringWithFormat:@"select lecture_name from lecture where lecture_name = '%@'", lecture_name];
-    result = [db executeQuery:selectSql];
+    result = [[LocalDatabase sharedInstance] executeQuery:selectSql];
 
     if(!(result && [result count] > 0))
     {
         NSString *insertSQL = @"insert into lecture(lecture_guid, lecture_name) values ('%@', '%@')";
         insertSQL = [NSString stringWithFormat:insertSQL, lecture_guid, lecture_name];
         
-        [db executeQuery:insertSQL];
+        [[LocalDatabase sharedInstance] executeQuery:insertSQL];
     }
     
         
-    [db closeDatabase];
-    [db release];
+
     
     [((LibraryView*) appDelegate.viewController) performSelectorOnMainThread:@selector(initLectureNames) withObject:nil waitUntilDone:YES]; 
 

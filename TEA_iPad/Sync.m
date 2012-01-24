@@ -1,3 +1,5 @@
+
+
 //
 //  Sync.m
 //  TEA_iPad
@@ -31,26 +33,29 @@
 
 @implementation Sync
 
+- (void) updateMessage:(NSString*) message
+{
+    [progressLabel setText:message];
+}
 
 - (NSString*) getSystemMessages
 {
-    LocalDatabase *db = [[LocalDatabase alloc] init];
-    [db openDatabase];
+    
     
     NSString *sql = @"select guid from system_messages where type <> 1";
     
-    NSArray *result = [db executeQuery:sql returnSimpleArray:YES] ;
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql returnSimpleArray:YES] ;
     
     NSString *returnValue = [[CJSONSerializer serializer] serializeArray:result];
     
-    [db closeDatabase];
-    [db release];
     
     return [NSString stringWithFormat:@"{'system_messages': %@ }", returnValue];
 }
 
 - (void) requestForSync
 {
+    
+    [progressLabel setText:@"Yedekten veri yükleme işlemi başlatılıyor..."];
     
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
@@ -68,7 +73,7 @@
     
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:syncURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
     
-    [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
+    NSData *tmpData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
     
     
     if(syncEnabled && response)
@@ -76,7 +81,7 @@
         @try 
         {
             fileSize = 0;
-
+            
             NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
             NSString *lastSyncTime = [defaults objectForKey:@"lastSyncTime"];
             
@@ -91,21 +96,21 @@
             
             //NSLog(@"[SYNC] %@", downloadURL);
             
-          //  downloadURL = [downloadURL stringByAddingPercentEscapesUsingEncoding: NSASCIIStringEncoding];
+            //  downloadURL = [downloadURL stringByAddingPercentEscapesUsingEncoding: NSASCIIStringEncoding];
             
             NSData *postData = [downloadURL dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
-
+            
             NSString *postLength = [NSString stringWithFormat:@"%d",[postData length]];
-
+            
             NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
             
             [request setURL:[NSURL URLWithString:[NSString stringWithFormat:syncURL]]];
-
+            
             [request setHTTPMethod:@"POST"];
             [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
             [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Current-Type"];
             [request setHTTPBody:postData];
-
+            
             NSData *syncFileData = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:nil];
             
             NSDictionary *dictionary = [[CJSONDeserializer deserializer] deserializeAsDictionary:syncFileData error:nil];
@@ -121,6 +126,7 @@
                     [defaults synchronize];
                 } 
                 
+                [progressLabel setText:@"Yedek veri dosyası yükleniyor..."];
                 [self downloadSyncFile];
             }
             else
@@ -134,7 +140,7 @@
         }
         @catch (NSException *exception) 
         {
-            //NSLog(@"Exception :: %@",  [exception description]);
+            NSLog(@"Exception :: %@",  [exception description]);
             [self setHidden:YES];
             appDelegate.state = previousState;
         }
@@ -147,13 +153,14 @@
         
     }
     
+    [tmpData release];
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
-    //NSLog(@"timout");
+    NSLog(@"timout");
     [self setHidden:YES];
     appDelegate.state = previousState;
     [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
@@ -166,7 +173,7 @@
     NSString *syncFileBaseURL = [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]; //[iPadConfigDictionary valueForKey:@"syncFileDownloadURL"];
     NSString *downloadURL = [NSString stringWithFormat: @"%@/%@", syncFileBaseURL, fileName];
 	
-    //NSLog(@"[SYNC] downloadingFile : %@", downloadURL);
+    NSLog(@"[SYNC] downloadingFile : %@", downloadURL);
     
     NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
 	[request setURL:  [NSURL URLWithString:downloadURL]];
@@ -187,11 +194,17 @@
 	} 
 }
 
+- (void) updateProgress:(NSNumber*) progressValue
+{
+    [progressView setProgress: [progressValue floatValue]];
+}
+
 - (void) extractZipFile
 {
     NSString *filePath = [NSString stringWithFormat:@"%@/%@", directoryPath, fileName];
     
-    [progressView setProgress: 0];
+    [self performSelectorInBackground:@selector(updateMessage:) withObject:@"Yedek veri arşiv dosyası açılıyor..."];
+    [self performSelectorInBackground:@selector(updateProgress:) withObject:[NSNumber numberWithFloat: 0.0]];
     
     ZipFile *zippedFile = [[[ZipFile alloc] initWithFileName:filePath mode:ZipFileModeUnzip] autorelease];
     float numberOfZippedFile = (float) [zippedFile numFilesInZip];
@@ -215,7 +228,7 @@
         NSError *error = nil;
         [data2 writeToFile:writePath options:NSDataWritingAtomic error:&error];
         if (error) {
-            //NSLog(@"Error unzipping file: %@", [error localizedDescription]);
+            NSLog(@"Error unzipping file: %@", [error localizedDescription]);
         }
         
         // Cleanup
@@ -227,9 +240,11 @@
         
         counter ++;
         
-        [progressView setProgress: 100.0 / numberOfZippedFile * (float) counter];
+        [self performSelectorInBackground:@selector(updateProgress:) withObject:[NSNumber numberWithFloat: (float) counter / numberOfZippedFile]];
+
     }
-    [progressView setProgress: 100.0];
+    [self updateProgress:[NSNumber numberWithFloat:100.0 ]];
+
     [zippedFile close];
     
     
@@ -239,7 +254,7 @@
 + (NSData *)generatePostDataForData:(NSData *)uploadData
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-
+    
     NSString *fileName = [NSString stringWithFormat:@"%@_documents.zip", [appDelegate getDeviceUniqueIdentifier]];
     
     // Generate the post header:
@@ -248,7 +263,7 @@
                                         encoding:NSASCIIStringEncoding];
     post = [NSString stringWithFormat:post, fileName];
     
-    //NSLog(@"Post Data........ %@", post);
+    NSLog(@"Post Data........ %@", post);
     // Get the post header int ASCII format:
     NSData *postHeaderData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
     
@@ -270,11 +285,11 @@
 + (void)uploadFile :(NSData*) yourData
 {
     
-   // NSLog(@"NSData----yourData---------%@", yourData);
+    NSLog(@"NSData----yourData---------%@", yourData);
     // Generate the postdata:
     NSData *postData = [Sync generatePostDataForData: yourData];
     
-   // NSLog(@"NSData----postData---------%@", postData);
+    NSLog(@"NSData----postData---------%@", postData);
     
     NSString *postLength = [NSString stringWithFormat:@"%d", [postData length]];
     
@@ -339,6 +354,36 @@
 }
 
 
+
+
+- (void) updateQuizAnswers
+{
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
+    NSString *questionAnswersURL = [NSString stringWithFormat: @"%@/quizAnswers.jsp?device_id=%@", [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"], [appDelegate getDeviceUniqueIdentifier]]; //[iPadConfigDictionary valueForKey:@"syncURL"];
+    
+    NSURLResponse *response = nil;
+    NSError **error=nil; 
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:questionAnswersURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    
+    NSData *quizAnswersData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
+    
+    NSDictionary *dictionary = [[CJSONDeserializer deserializer] deserializeAsDictionary:quizAnswersData error:nil];
+    NSArray *quizAnswers = [dictionary objectForKey:@"answers"];
+    
+    
+    [[LocalDatabase sharedInstance] executeQuery:@"update library set quizAnswer='-1'"];
+    for(NSDictionary *answer in quizAnswers)
+    {
+        
+        NSString *updateSql = [NSString stringWithFormat: @"update library set quizAnswer='%@' where session_guid='%@' and guid = '%@'", [answer valueForKey:@"answer"], [answer valueForKey:@"session_guid"], [answer valueForKey:@"question_context_guid"]];
+        
+        [[LocalDatabase sharedInstance] executeQuery:updateSql];
+    }
+    
+}
+
 - (void) applySyncing
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
@@ -346,8 +391,12 @@
     // extract zip file.
     [self extractZipFile];
     
+    
+    [self performSelectorInBackground:@selector(updateMessage:) withObject:@"Yedek veri mesajları işleniyor..."];
+    
     // process every message
-    for(int i=0; i < [fileList count]; i++)
+    int totalCount = [fileList count];
+    for(int i=0; i < totalCount; i++)
     {
         
         NSString *localFileName = [[fileList objectAtIndex:i] valueForKey:@"name"];
@@ -360,12 +409,12 @@
             NSDictionary *bonjourMessageDict = [NSPropertyListSerialization propertyListWithData:bonjourMessageData options:NSPropertyListImmutable format:nil error:nil];
             
             
-            BonjourMessage *aMessage = [[[BonjourMessage alloc] init] autorelease];
+            BonjourMessage *aMessage = [[BonjourMessage alloc] init];
             aMessage.guid = [bonjourMessageDict valueForKey:@"guid"];
             aMessage.messageType = [[bonjourMessageDict valueForKey:@"messageType"] intValue];
             aMessage.userData = [bonjourMessageDict valueForKey:@"userData"];
             
-            BonjouClientDataHandler *dataHandler = [[[BonjouClientDataHandler alloc] init] autorelease];
+            BonjouClientDataHandler *dataHandler = [[BonjouClientDataHandler alloc] init];
             BonjourMessageHandler *handler = [dataHandler findMessageHandlerForMessage:aMessage];
             
             //NSLog(@"Processing file[%d] %@ with handler %@", i, localFileName, NSStringFromClass([handler class]) );
@@ -375,19 +424,20 @@
                 [handler handleMessage:aMessage];
             }
             
-            // save system messages
+            
             
             NSString *messageInsert = [NSString stringWithFormat:@"insert into system_messages select '%@', '%@', '%d'", aMessage.guid, @"", aMessage.messageType];
             
-            LocalDatabase *db = [[LocalDatabase alloc] init];
-            [db openDatabase];
+            [[LocalDatabase sharedInstance] executeQuery:messageInsert];
             
-            [db executeQuery:messageInsert];
+            [dataHandler release];
+            [aMessage release];
             
-            [db closeDatabase];
-            [db release];
-            
+            //NSString *progressMessage = [NSString stringWithFormat:@"[%d / %d]", i, totalCount];
+           // [self performSelectorInBackground:@selector(updateMessage:) withObject:progressMessage];
         }
+        
+        [self performSelectorInBackground:@selector(updateProgress:) withObject:[NSNumber numberWithFloat:(float) i / (float) totalCount]];
         
     }
     
@@ -397,7 +447,11 @@
     [self setHidden:YES];
     appDelegate.state = previousState;
     
+    [self updateQuizAnswers]; // Load quiz answers from database and update library.
+    
     [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
+    
+    [((LibraryView*) appDelegate.viewController) performSelectorOnMainThread:@selector(refreshDate:) withObject:[NSDate date] waitUntilDone:YES];
 }
 
 - (void)dealloc {
@@ -421,10 +475,13 @@
         progressView = [[[UIProgressView alloc] initWithFrame:CGRectMake(100, 480, 824, 25)] autorelease];
         [self addSubview:progressView];
         
-        progressLabel = [[[UILabel alloc] initWithFrame:CGRectMake(0, 480, 1024, 25)] autorelease];
+        progressLabel = [[[UILabel alloc] initWithFrame:CGRectMake(0, 510, 1024, 25)] autorelease];
         [progressLabel setTextColor:[UIColor whiteColor]];
+        [progressLabel setBackgroundColor:[UIColor clearColor]];
         [progressLabel setTextAlignment:UITextAlignmentCenter];
-        //  [self addSubview:progressLabel]; 
+        [progressLabel setFont:[UIFont boldSystemFontOfSize:16.0]];
+        
+        [self addSubview:progressLabel]; 
         
         
     }

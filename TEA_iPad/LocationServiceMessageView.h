@@ -11,8 +11,14 @@
 @interface LocationServiceMessageView : UIView
 {
     UITextView *messageLabel;
+    
+    UILabel *errorMessageLabel;
+    UILabel *locationMessageLabel;
 }
 
 - (void) setMessage:(NSString*) message;
+- (void) setMessageLocationLabel:(NSString *) message;
+
+
 
 @end

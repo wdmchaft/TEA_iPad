@@ -112,11 +112,11 @@
         
         
         // replace old src value with new one
-        htmlString = newHtmlString;
+        //htmlString  = newHtmlString;
         //*************************************************************************************        
         
         
-        viewItemLibraryClip.htmlString = htmlString;
+        viewItemLibraryClip.htmlString = newHtmlString;
         [htmlString release];
         [viewItemLibraryClip resized];
     }

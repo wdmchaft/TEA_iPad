@@ -25,10 +25,9 @@
 
 - (void) insertContents
 {
-    LocalDatabase *db = [[LocalDatabase alloc] init];
-    [db openDatabase];
+
     
-    NSArray *result = [db executeQuery: [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@'", sessionGuid]];
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery: [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@'", sessionGuid]];
     
     int counter = 0;
     int x,y;
@@ -62,8 +61,21 @@
         sessionItemView.quizImagePath = [resultDict valueForKey:@"quizImagePath"];
         sessionItemView.previewPath = [resultDict valueForKey:@"previewPath"];
         sessionItemView.correctAnswer = [[resultDict valueForKey:@"quizCorrectAnswer"] intValue];
-        sessionItemView.answer = [[resultDict valueForKey:@"quizAnswer"] intValue];
-        sessionItemView.quizOptCount = [[resultDict valueForKey:@"quizOptCount"] intValue];
+        
+        int quizAnswer = -1;
+        
+        if([sessionItemView.guid isEqualToString:@"C869E8DD-B152-499B-B849-A60C9BCAF25D"])
+        {
+            NSLog(@"h");
+        }
+        
+        if(![[resultDict valueForKey:@"quizAnswer"] isEqualToString:@""])
+        {
+            quizAnswer = [[resultDict valueForKey:@"quizAnswer"] intValue];
+        }
+        
+        sessionItemView.answer = quizAnswer;
+        sessionItemView.quizOptCount = [  [resultDict valueForKey:@"quizOptCount"] intValue];
         
         [self addSubview:sessionItemView];
         [sessionItemView initLibraryItemView];
@@ -71,8 +83,7 @@
         counter++;
     }
 
-    [db closeDatabase];
-    [db release];
+
     
     self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, sessionItemViewRect.origin.y + sessionItemViewRect.size.height + 20);
 }

@@ -34,31 +34,39 @@
 @synthesize logonGlow;
 @synthesize guestEnterButton;
 @synthesize syncView;
+@synthesize homeworkService;
 @synthesize numericPadPopover;
 
 - (void) refreshDate:(NSDate*)aDate
 {
-    NSDateComponents *components = [[NSCalendar currentCalendar] components: NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit fromDate:[NSDate date]];
     
-    int year = [components year];
-    int month = [components month];
-    int day = [components day];
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
-    for(MonthView *monthView in [monthsScrollView subviews])
+    if(appDelegate.state != kAppStateSyncing)
     {
-        if(monthView.month == month && monthView.year == year)
+        NSDateComponents *components = [[NSCalendar currentCalendar] components: NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit fromDate:[NSDate date]];
+        
+        int year = [components year];
+        int month = [components month];
+        int day = [components day];
+        
+        for(MonthView *monthView in [monthsScrollView subviews])
         {
-            [monthView touchesEnded:nil withEvent:nil];
-            self.selectedMonth = monthView;
-            break;
+            if(monthView.month == month && monthView.year == year)
+            {
+                [monthView touchesEnded:nil withEvent:nil];
+                self.selectedMonth = monthView;
+                break;
+            }
         }
+        
+        self.selectedDate = day;
+        [self.dateView selectDate:day - 1];
+        
+        [self initSessionNames];
     }
     
-    self.selectedDate = day;
-    [self.dateView selectDate:day - 1];
     
-    [self initSessionNames];
-
 }
 
 - (void) setLibraryViewHidden:(BOOL) hidden
@@ -113,7 +121,7 @@
     {
         [backgroundView setImage:[UIImage imageNamed:@"NoteBookBGBlank.jpg"]]; 
     }
-
+    
     
     [notebook setHidden:hidden];
     
@@ -160,7 +168,7 @@
 
 - (void) initSessionNames
 {
-     
+    
     NSDateComponents *comps = [[[NSDateComponents alloc] init] autorelease];
     [comps setDay:self.selectedDate];
     [comps setMonth:self.selectedMonth.month];
@@ -186,7 +194,7 @@
         sql = [sql stringByAppendingFormat:@" and lecture_guid='%@'", lectureGuid];
     }
     
-   // NSString *lectureGuid = 
+    // NSString *lectureGuid = 
     
     // Clean up lecture names
     for(SessionView *sessionV in contentsScrollView.subviews)
@@ -195,10 +203,8 @@
         [sessionV removeFromSuperview];
     }
     
-    LocalDatabase *db = [[LocalDatabase alloc] init];
-    [db openDatabase];
     
-    NSArray *result = [db executeQuery:sql];
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql];
     
     int counter = 0;
     CGRect sessionViewRect = CGRectMake(0, 0, 0, 0);
@@ -218,8 +224,7 @@
         sessionViewRect = sessionView.frame;
     }
     
-    [db release];
-
+    
     contentsScrollView.contentSize = CGSizeMake(contentsScrollView.frame.size.width, sessionViewRect.size.height + sessionViewRect.origin.y + 50);
 }
 
@@ -232,10 +237,9 @@
         [lectureV removeFromSuperview];
     }
     
-    LocalDatabase *db = [[LocalDatabase alloc] init];
-    [db openDatabase];
     
-    NSArray *result = [db executeQuery:@"select * from lecture"];
+    
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:@"select * from lecture"];
     
     int counter = 0;
     for(NSDictionary *resultDict in result)
@@ -252,7 +256,6 @@
         [lectureViews addObject:lectureView];
         counter++;
     }
-    [db release];
     lectureNamesScrollView.contentSize = CGSizeMake(177, 52 * counter);
 }
 
@@ -273,6 +276,7 @@
     
     [numericPadPopover release];
     [syncView release];
+    [homeworkService release];
     [lectureViews release];
     [guestEnterButton release];
     [sessionNameScrollView release];
@@ -298,8 +302,8 @@
 
 - (void)accelerometer:(UIAccelerometer *)accelerometer didAccelerate:(UIAcceleration *)acceleration
 {
-
-    if (acceleration.z >= 0.7 && !screenClosed)
+    
+    if (acceleration.z >= 0.8 && !screenClosed)
     {
         [self.view addSubview:blackScreen];
     }
@@ -321,6 +325,9 @@
     [[UIAccelerometer sharedAccelerometer] setUpdateInterval:0.2];
     [[UIAccelerometer sharedAccelerometer] setDelegate:self];
     
+    blackScreen = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
+    [blackScreen setBackgroundColor:[UIColor blackColor]];
+    
     
     
     if(!compactMode)
@@ -338,7 +345,7 @@
         [notebookButton addTarget:self action:@selector(notebookButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
         [self.view addSubview:notebookButton];
         [notebookButton release];
-    
+        
 #ifdef HAS_GUEST_ENTER
         guestEnterButton = [[UIButton alloc] initWithFrame:CGRectMake(19, 280, 62, 71)];
         [guestEnterButton setImage:[UIImage imageNamed:@"LibraryGuestEnter.png"] forState:UIControlStateNormal];
@@ -355,7 +362,7 @@
         [self.notebook  setHidden:YES];
         [self.view addSubview:notebook ];
         [self.notebook setBackgroundColor:[UIColor clearColor]];
-                
+        
         
         [sessionNameScrollView setHidden:NO];
         
@@ -370,15 +377,16 @@
     [self initMonthView];
     [self initLectureNames];
     
-    
     blackScreen = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
     [blackScreen setBackgroundColor:[UIColor blackColor]];
     
-    syncView = [[Sync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-    [syncView setHidden:YES];
-    [self.view addSubview:syncView];
-    [syncView requestForSync];
-    [syncView release];
+    self.homeworkService = [[Homework alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
+    [homeworkService setHidden:YES];
+    homeworkService.libraryViewController = self;
+    [self.view addSubview:homeworkService];
+    [homeworkService requestForHomework];
+    [homeworkService release];
+    
     
     
 }
@@ -404,7 +412,7 @@
     CGFloat progress = (CGFloat)bytes / (CGFloat)totalBytes;
     contentProgress.progress = progress;
     [contentProgress setNeedsDisplay];
-  
+    
     NSLog(@"current progress is %f", progress); 
     
     if( fabsf(1.0 - progress) <= 0.1 )

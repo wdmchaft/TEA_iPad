@@ -17,11 +17,30 @@
     {
         [self setBackgroundColor:[UIColor blackColor]];
         
+/*        
         messageLabel = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
         [messageLabel setTextColor:[UIColor whiteColor]];
         [messageLabel setBackgroundColor:[UIColor clearColor]];
         [messageLabel setEditable:NO];
         [self addSubview:messageLabel];
+*/        
+        
+        UIImageView *imageView = [[[UIImageView alloc] initWithFrame:self.bounds] autorelease];
+        [imageView setImage:[UIImage imageNamed:@"LocationBG.jpg"]];
+        [self addSubview:imageView];
+        
+        
+        
+        errorMessageLabel = [[[UILabel alloc] initWithFrame:CGRectMake(100, 480, 824, 25)] autorelease];
+        [self addSubview:errorMessageLabel];
+        
+        locationMessageLabel = [[[UILabel alloc] initWithFrame:CGRectMake(0, 510, 1024, 25)] autorelease];
+        [locationMessageLabel setTextColor:[UIColor whiteColor]];
+        [locationMessageLabel setBackgroundColor:[UIColor clearColor]];
+        [locationMessageLabel setTextAlignment:UITextAlignmentCenter];
+        [locationMessageLabel setFont:[UIFont boldSystemFontOfSize:16.0]];
+        
+        [self addSubview:locationMessageLabel]; 
         
     }
     return self;
@@ -43,7 +62,26 @@
 
 - (void) setMessage:(NSString*) message
 {
-    messageLabel.text = message;
+    
+    [errorMessageLabel setBackgroundColor:[UIColor clearColor]];
+    [errorMessageLabel setTextAlignment:UITextAlignmentCenter];
+    [errorMessageLabel setTextColor:[UIColor whiteColor]];
+    errorMessageLabel.text = message;
+}
+
+
+- (void) setMessageLocationLabelAsync:(NSString *) aMessage
+{
+    [locationMessageLabel setBackgroundColor:[UIColor clearColor]];
+    [locationMessageLabel setTextAlignment:UITextAlignmentCenter];
+    [locationMessageLabel setTextColor:[UIColor whiteColor]];
+    [locationMessageLabel setFont:[UIFont fontWithName:@"Helvetica" size:12]];
+    locationMessageLabel.text = aMessage;
+}
+
+- (void) setMessageLocationLabel:(NSString *) message
+{
+    [self performSelectorInBackground:@selector(setMessageLocationLabelAsync:) withObject:message];
 }
 
 @end
