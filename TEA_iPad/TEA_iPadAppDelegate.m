@@ -136,8 +136,41 @@ void MyReachabilityCallback(
     }
 }
 
+void handleException(NSException *exception) 
+{
+    
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
+    NSString *iPadAppVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
+    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
+    NSString *subject = [NSString stringWithFormat:@"[iPad ERROR] %@ - %@ - %@", [appDelegate getDeviceUniqueIdentifier],  iPadAppVersion, iPadOSVersion];
+    NSString *body =  [NSString stringWithFormat:@"%@ \n\n%@", exception.reason, [exception.callStackSymbols description]]; 
+    
+    
+    NSString *downloadURL = [NSString stringWithFormat: @"subject=%@&body=%@&", subject, body];
+    NSData *postData = [downloadURL dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+    NSString *postLength = [NSString stringWithFormat:@"%d",[postData length]];
+    
+    NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
+    
+    [request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://www.dualware.com/Service/EU/email.php"]]];
+    
+    [request setHTTPMethod:@"POST"];
+    [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+    [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Current-Type"];
+    [request setHTTPBody:postData];
+    
+    // send e-mail
+    [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:nil];
+    
+}
+
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    
+    NSSetUncaughtExceptionHandler(&handleException);
+    
     application.idleTimerDisabled = YES;
     guestEnterNumber = 0;
     
