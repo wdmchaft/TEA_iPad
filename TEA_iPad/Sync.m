@@ -37,7 +37,7 @@
 {
 
     
-    NSString *sql = @"select guid from system_messages where type <> 1";
+    NSString *sql = @"select guid from system_messages";
     
     NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql returnSimpleArray:YES] ;
     
@@ -356,6 +356,7 @@
     {
         
         NSString *localFileName = [[fileList objectAtIndex:i] valueForKey:@"name"];
+        NSString *localFileSessionId = [[fileList objectAtIndex:i] valueForKey:@"sessionGuid"];
         
         NSString *filePath = [NSString stringWithFormat:@"%@/%@", directoryPath, [[localFileName componentsSeparatedByString:@"/"] lastObject]];
         
@@ -377,6 +378,16 @@
             
             if(aMessage.messageType != kMessageTypePauseQuiz)
             {
+                
+                if(aMessage.messageType != kMessageTypeSessionInfo)
+                {
+                    // Check active session is same with the message's session. If they are not the same then change iPad's current session to message's sesssion.
+                    if(![appDelegate.session.sessionGuid isEqualToString:localFileSessionId])
+                    {
+                        appDelegate.session.sessionGuid = localFileSessionId;
+                    }
+                }
+                
                 [handler handleMessage:aMessage];
             }
             
@@ -403,7 +414,6 @@
     // remove sync view...
     [self setHidden:YES];
     appDelegate.state = previousState;
-    
     [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
     
     [((LibraryView*) appDelegate.viewController) performSelectorOnMainThread:@selector(refreshDate:) withObject:[NSDate date] waitUntilDone:YES];

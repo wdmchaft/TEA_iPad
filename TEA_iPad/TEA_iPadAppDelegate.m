@@ -84,9 +84,16 @@ void MyReachabilityCallback(
 
 - (void) stopBonjourBrowser
 {
-    [bonjourBrowser.clients removeAllObjects];
+
+      
+    @synchronized([bonjourBrowser bonjourServers])
+    {
+        [[bonjourBrowser bonjourServers] removeAllObjects];
+    }
+
     [bonjourBrowser.netServiceBrowser stop];
     [bonjourBrowser.services removeAllObjects];
+
     
     self.state = kAppStateIdle;
     
@@ -109,13 +116,9 @@ void MyReachabilityCallback(
 {
     NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
     
+    if(!bonjourBrowser)
+        bonjourBrowser = [[BonjourBrowser alloc] init];
     
-    Reachability *reachibility = [Reachability reachabilityForLocalWiFi];
-    [reachibility startNotifier];
-    
-    [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(reachabilityChanged:) name: kReachabilityChangedNotification object: nil];
-
-    bonjourBrowser = [[BonjourBrowser alloc] init];
     [bonjourBrowser startBrowse];
     [[NSRunLoop currentRunLoop] run];
     [pool release];
@@ -222,20 +225,27 @@ void handleException(NSException *exception)
         NSLog(@"logged in host is %@", connectedHost);
         
         NSMutableArray *clientsToRemove = [[NSMutableArray alloc] init];
-        for(BonjourClient *client in bonjourBrowser.clients)
+        
+        
+        @synchronized([bonjourBrowser bonjourServers])
         {
-            if(! [[client hostName] isEqualToString:connectedHost])
+            for(BonjourClient *client in [bonjourBrowser bonjourServers])
             {
-                [clientsToRemove addObject:client];
-                NSLog(@"Removing host %@", client.hostName);
+                if(! [[client hostName] isEqualToString:connectedHost])
+                {
+                    [clientsToRemove addObject:client];
+                    NSLog(@"Removing host %@", client.hostName);
+                }
+            }
+            
+            for(BonjourClient *client in clientsToRemove)
+            {
+                [bonjourBrowser.services removeObject:client];
+                [[bonjourBrowser bonjourServers] removeObject:client];
             }
         }
         
-        for(BonjourClient *client in clientsToRemove)
-        {
-            [bonjourBrowser.services removeObject:client];
-            [bonjourBrowser.clients removeObject:client];
-        }
+        
         
         [clientsToRemove release];
         
