@@ -494,21 +494,24 @@
         {
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
 
-            //- (id)initWithFrame:(CGRect)frame andZipFileName:(NSString*) aZipFileName
+            //if session is not logon state
+            
+            if (appDelegate.state != kAppStateLogon) {
 
             // Get homework name from db
 
-            
-            NSString *sql = [NSString stringWithFormat: @"select name from homework where file = '%@'", self.path];
-            
-            NSString *homeworkName = [[[[LocalDatabase sharedInstance] executeQuery:sql] objectAtIndex:0] valueForKey:@"name"] ;
-  
-            
-            HWView *homeworkView = [[HWView alloc] initWithFrame:CGRectMake(0, 0, 1024, 748) andZipFileName:self.path andHomeworkId:self.guid];
-            [homeworkView.titleOfHomework setText:homeworkName]; 
-            
-            [appDelegate.viewController.view addSubview:homeworkView];
-            [homeworkView release];
+                NSString *sql = [NSString stringWithFormat: @"select name from homework where file = '%@'", self.path];
+                
+                NSString *homeworkName = [[[[LocalDatabase sharedInstance] executeQuery:sql] objectAtIndex:0] valueForKey:@"name"] ;
+                
+                
+                HWView *homeworkView = [[HWView alloc] initWithFrame:CGRectMake(0, 0, 1024, 748) andZipFileName:self.path andHomeworkId:self.guid];
+                [homeworkView.titleOfHomework setText:homeworkName]; 
+                
+                [appDelegate.viewController.view addSubview:homeworkView];
+                [homeworkView release];
+                
+            }
 
            /* LibraryDocumentItem *libraryDocumentItem = [[LibraryDocumentItem alloc] init];
             libraryDocumentItem.path = [self getFullPathForFile:self.path];

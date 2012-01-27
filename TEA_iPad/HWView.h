@@ -35,8 +35,9 @@ enum kHomeworkDelivered {
     Timer *timer;
     
     //**************
-    // timer eklenecek
-    
+    // timer eklendi
+    Timer *questionTimer;
+    //**********************
     
     HWAnswerSheet *answerSheetView;
     
@@ -49,6 +50,12 @@ enum kHomeworkDelivered {
     
     int delivered;
 }
+
+
+
+//**********>>>>>>
+@property (nonatomic, assign) Timer *questionTimer;
+//**********<<<<<<
 
 
 - (id)initWithFrame:(CGRect)frame andZipFileName:(NSString*) aZipFileName andHomeworkId:(NSString*) aHomeworkGUID;
@@ -65,7 +72,7 @@ enum kHomeworkDelivered {
 @property (nonatomic, retain) NSString *homeworkGuid;
 
 - (void) showQuestion:(int) questionIndex;
-- (int) returnCurrentQuestion;
+- (int) getCurrentQuestionTimer;
 - (void) extractZipFile;
 
 @end

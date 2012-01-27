@@ -100,6 +100,11 @@ static NSMutableArray *sharedInstances;
             NSString *homeworkAnswerTableCreate = @"CREATE TABLE homework_answer (homework TEXT, question TEXT, answer TEXT, correct_answer TEXT, time TEXT);";
             [self executeQuery:homeworkAnswerTableCreate];
         }
+        else {
+            NSString *homeworkAnswerAlterTable = @"ALTER TABLE homework_answer ADD time CHAR(25) NULL;";
+            [self executeQuery:homeworkAnswerAlterTable];
+        }
+            
         
         
         

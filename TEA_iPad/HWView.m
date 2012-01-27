@@ -16,11 +16,19 @@
 
 @implementation HWView
 
-@synthesize answerSheetView, parser, questionImageURL, currentQuestion, timer, zipFileName, titleOfHomework, homeworkGuid, delivered;
+@synthesize answerSheetView, parser, questionImageURL, currentQuestion, timer, zipFileName, titleOfHomework, homeworkGuid, delivered, questionTimer;
 
-- (int) returnCurrentQuestion
+- (int) getCurrentQuestionTimer
 {
-    return currentQuestion;
+    int timers;
+    if ([self.questionTimer currentMinute] != 0) {
+        timers = [self.questionTimer currentMinute]*60 + [self.questionTimer currentSecond];
+    }
+    else
+        timers = [self.questionTimer currentSecond];
+    
+    return timers;
+    
 }
 
 - (void) showQuestion:(int) questionIndex
@@ -108,6 +116,39 @@
         [questionView setContentMode:UIViewContentModeScaleAspectFit];
         [questionContainerView addSubview:questionView];
         
+//***********************************************************************        
+        self.questionTimer = [[[Timer alloc] initWithFrame:CGRectMake(0, 0, 78, 43)] autorelease];
+        [questionContainerView addSubview:self.questionTimer];
+        
+        
+        NSString *selectHomeworkAnswer = [NSString stringWithFormat:@"select time from homework_answer where homework = '%@' and question = '%@'", homeworkGuid, [NSString stringWithFormat:@"%d", 1]];
+        
+        NSArray *rows = [[LocalDatabase sharedInstance] executeQuery:selectHomeworkAnswer];
+        
+        
+        if (![rows isEqual:[NSNull null]] && ([rows count]>0)) {
+            
+            if (delivered != -1) {
+                [self.questionTimer setCurrentSecond:[[[rows objectAtIndex:0] valueForKey:@"time"] intValue]];
+                [self.questionTimer setRunForward:YES];
+                [self.questionTimer startTimer];
+            }
+            else
+            {
+                [self.questionTimer setCurrentSecond:[[[rows objectAtIndex:0] valueForKey:@"time"] intValue]];
+            }
+            //            [self.timer setHidden:NO]
+        }
+        else{
+            [self.questionTimer setCurrentSecond:0];
+            [self.questionTimer setRunForward:YES];
+            [self.questionTimer startTimer];
+            
+        }
+        [self.questionTimer setHidden:YES];
+        
+//***********************************************************************
+        
         prevQuestion = [[UIButton alloc] initWithFrame:CGRectMake(0, 65, 652, 72)];
         [prevQuestion setBackgroundColor:[UIColor whiteColor]];
         [prevQuestion setImage:[UIImage imageNamed:@"HWPrevQuestionButton.png"] forState:UIControlStateNormal];
@@ -156,20 +197,29 @@
         
         [self showQuestion:currentQuestion];
         
-        
+//***********************************************************************        
         // add timer
         self.timer = [[[Timer alloc] initWithFrame:CGRectMake(651, 13, 78, 43)] autorelease];
         [hwView addSubview:self.timer];
-        [self.timer setCurrentSecond:0];
-        [self.timer setRunForward:YES];
-        [self.timer startTimer];
-        [self.timer setHidden:YES];
+        
+        NSString *selectSql = [NSString stringWithFormat:@"select total_time from homework where guid = '%@'", homeworkGuid];
+        
+        NSDictionary *dictionary = [[[LocalDatabase sharedInstance] executeQuery:selectSql] objectAtIndex:0];
+        
+        if (delivered == 0) {
+            [self.timer setCurrentSecond:[[dictionary objectForKey:@"total_time"]intValue]];
+            [self.timer setRunForward:YES];
+            [self.timer startTimer];
+            //            [self.timer setHidden:NO]
+        }
+        else{
+            [self.timer setCurrentSecond:[[dictionary objectForKey:@"total_time"]intValue]];
+        }
+        
+//***********************************************************************
+        
         
         [self addSubview:hwView];
-        
-        
-        
-        
         
     }
     return self;
@@ -177,24 +227,175 @@
 
 - (IBAction)prevQuestionButtonClicked:(id)sender
 {
+//***********************************************************************    
+//***********************************************************************    
+    int timers = [self.questionTimer currentSecond];
+    NSLog(@"%d", timers);
+    
+    if ([self.questionTimer currentMinute] != 0) {
+        timers = [self.questionTimer currentMinute]*60 + [self.questionTimer currentSecond];
+    }
+    else
+        timers = [self.questionTimer currentSecond];
+    
+    
+    NSDictionary *dataDict = [[parser.quiz objectForKey:@"questions"] objectAtIndex:currentQuestion-1];
+    
+    NSString *selectHWans = [NSString stringWithFormat:@"select * from homework_answer where homework = '%@' and question = '%@'", homeworkGuid, [dataDict objectForKey:@"number"]];
+    NSArray *allHWansTable = [[LocalDatabase sharedInstance] executeQuery:selectHWans];
+    
+    
+    NSString *deleteSql = [NSString stringWithFormat:@"delete from homework_answer where homework = '%@' and question = '%@'", homeworkGuid, [dataDict objectForKey:@"number"]];
+    [[LocalDatabase sharedInstance] executeQuery:deleteSql];
+    
+    
+    NSString *updateSql;
+    if ([allHWansTable count]>0 && ![allHWansTable isEqual:[NSNull null]]) {
+        updateSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, answer, correct_answer, selected_option, time) values ('%@', '%@', '%@', '%@', '%@', '%d')", homeworkGuid, [dataDict objectForKey:@"number"], [[allHWansTable objectAtIndex:0] objectForKey:@"answer"], [dataDict  objectForKey:@"correctAnswer"], [[[allHWansTable objectAtIndex:0] objectForKey:@"selected_option"] intValue], timers];
+    }
+    else {
+        updateSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, correct_answer, time) values ('%@', '%@', '@%', '%d')", homeworkGuid, [dataDict objectForKey:@"number"], [dataDict  objectForKey:@"correctAnswer"], timers];
+    }
+    
+    [[LocalDatabase sharedInstance] executeQuery:updateSql];
     if (currentQuestion > 1) {
         currentQuestion--;
+        
+        
+        NSLog(@"%@", [parser.quiz description]);
+        
+        
+        
+        NSString *select = [NSString stringWithFormat:@"select time from homework_answer where homework = '%@' and question = '%@'", homeworkGuid, [dataDict objectForKey:@"number"]];
+        
+        allHWansTable = [[LocalDatabase sharedInstance] executeQuery:select];
+        int questionTimers=0;
+        
+        if ([allHWansTable count]>0 && ![allHWansTable isEqual:[NSNull null]]) {
+            questionTimers = [[dataDict objectForKey:@"time"] intValue];
+        }
+        
+        [self.questionTimer setCurrentSecond:questionTimers];
         [self showQuestion:currentQuestion];
     }
+    
+    
+//***********************************************************************    
+//***********************************************************************
+
 }
 
 - (IBAction)nextQuestionButtonClicked:(id)sender
 {
+//***********************************************************************
+//***********************************************************************    
+    int timers = [self.questionTimer currentSecond];
+    NSLog(@"%d", timers);
+    
+    if ([self.questionTimer currentMinute] != 0) {
+        timers = [self.questionTimer currentMinute]*60 + [self.questionTimer currentSecond];
+    }
+    else
+        timers = [self.questionTimer currentSecond];
+    
+    
+    NSDictionary *dataDict = [[self.parser.quiz objectForKey:@"questions"] objectAtIndex:currentQuestion-1];
+    
+    NSString *selectHWans = [NSString stringWithFormat:@"select * from homework_answer where homework = '%@' and question = '%@'", homeworkGuid, [dataDict objectForKey:@"number"]];
+    NSArray *allHWansTable = [[LocalDatabase sharedInstance] executeQuery:selectHWans];
+    
+    
+    NSString *deleteSql = [NSString stringWithFormat:@"delete from homework_answer where homework = '%@' and question = '%@'", homeworkGuid, [dataDict objectForKey:@"number"]];
+    [[LocalDatabase sharedInstance] executeQuery:deleteSql];
+    
+    
+    NSString *updateSql;
+    if ([allHWansTable count]>0 && ![allHWansTable isEqual:[NSNull null]]) {
+        updateSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, answer, correct_answer, selected_option, time) values ('%@', '%@', '%@', '%@', '%@', '%d')", homeworkGuid, [dataDict objectForKey:@"number"], [[allHWansTable objectAtIndex:0] objectForKey:@"answer"], [dataDict objectForKey:@"correctAnswer"], [[allHWansTable objectAtIndex:0] objectForKey:@"selected_option"], timers];
+    }
+    else {
+        updateSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, correct_answer, time) values ('%@', '%@','%@', '%d')", homeworkGuid, [dataDict objectForKey:@"number"], [dataDict objectForKey:@"correctAnswer"], timers];
+    }
+    
+    [[LocalDatabase sharedInstance] executeQuery:updateSql];    
+    
     if (currentQuestion < ([[parser.quiz objectForKey:@"questions"] count])) {
         currentQuestion++;
+        
+        NSString *select = [NSString stringWithFormat:@"select time from homework_answer where homework = '%@' and question = '%d'", homeworkGuid, [dataDict objectForKey:@"number"]];
+        
+        allHWansTable = [[LocalDatabase sharedInstance] executeQuery:select];
+        int questionTimers=0;
+        
+        if ([allHWansTable count]>0 && ![allHWansTable isEqual:[NSNull null]]) {
+            questionTimers = [[[allHWansTable objectAtIndex:0] objectForKey:@"time"] intValue];
+        }
+        
+        [self.questionTimer setCurrentSecond:questionTimers];
         [self showQuestion:currentQuestion];
     }
+    
+//***********************************************************************
+//***********************************************************************
     
 }
 
 
 - (IBAction)closeButtonClicked:(id)sender
 {
+//***********************************************************************
+//***********************************************************************
+    int total_timers;// = [self.timer currentSecond];
+    int question_timers;// = [self.questionTimer currentSecond];
+    
+    if (delivered == 0) {
+
+        if ([self.timer currentMinute] != 0) {
+            total_timers = [self.timer currentMinute]*60 + [self.timer currentSecond];
+        }
+        else
+            total_timers = [self.timer currentSecond];
+        
+        
+        if ([self.questionTimer currentMinute] != 0) {
+            question_timers = [self.questionTimer currentMinute]*60 + [self.questionTimer currentSecond];
+        }
+        else
+            question_timers = [self.questionTimer currentSecond];
+        
+        
+        NSDictionary *dataDict = [[self.parser.quiz objectForKey:@"questions"] objectAtIndex:currentQuestion-1];
+        
+        NSString *updateHomework = [NSString stringWithFormat:@"update homework set total_time = '%d' where guid = '%@'", total_timers, homeworkGuid];    
+        
+        [[LocalDatabase sharedInstance] executeQuery:updateHomework];
+        
+        
+        NSString *selectHWans = [NSString stringWithFormat:@"select * from homework_answer where homework = '%@' and question = '%@'", homeworkGuid, [dataDict objectForKey:@"number"]];
+        NSArray *allHWansTable = [[LocalDatabase sharedInstance] executeQuery:selectHWans];
+        
+        
+        NSString *deleteSql = [NSString stringWithFormat:@"delete from homework_answer where homework = '%@' and question = '%@'", homeworkGuid, [dataDict objectForKey:@"number"]];
+        [[LocalDatabase sharedInstance] executeQuery:deleteSql];
+        
+        
+        
+        
+        NSString *updateSql;
+        if ([allHWansTable count]>0 && ![allHWansTable isEqual:[NSNull null]]) {
+            updateSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, answer, correct_answer, time) values ('%@', '%@', '%@', '%@', '%d')", homeworkGuid, [dataDict objectForKey:@"number"], [[allHWansTable objectAtIndex:0] objectForKey:@"answer"], [[allHWansTable objectAtIndex:0] objectForKey:@"correct_answer"], question_timers];
+        }
+        else {
+            updateSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, correct_answer, time) values ('%@', '%@','%@', '%d')", homeworkGuid, [dataDict objectForKey:@"number"], [dataDict objectForKey:@"correctAnswer"], question_timers];
+            
+        }
+        
+        
+        [[LocalDatabase sharedInstance] executeQuery:updateSql];
+    }
+//***********************************************************************
+//***********************************************************************    
+    
     [self removeFromSuperview];
 }
 
@@ -206,11 +407,21 @@
     {
         if(delivered == kHomeworkDeliveredNormal)
         {
-
+            int timers = [self.timer currentSecond];
+            NSLog(@"%d", timers);
             
-            NSString *sql = [NSString stringWithFormat:@"update homework set delivered = '-1' where guid='%@'", homeworkGuid];
+            if ([self.timer currentMinute] != 0) {
+                timers = [self.timer currentMinute]*60 + [self.timer currentSecond];
+            }
+            else
+                timers = [self.timer currentSecond];
+            
+            NSString *sql = [NSString stringWithFormat:@"update homework set delivered = '-1', total_time = '%d' where guid='%@'", timers, homeworkGuid];
+            
+            
             [[LocalDatabase sharedInstance] executeQuery:sql];
-
+            
+            [finishButton setHidden:YES];
         }
         
         [self removeFromSuperview];

@@ -16,6 +16,8 @@
     
     int number;
     int optionCounter;
+    int selectedOption;
+    
     
     UIView *answerView;
     HWAnswerSheet *answerSheet;
@@ -42,6 +44,7 @@
 @property (nonatomic, assign) BOOL isSelected;
 @property (nonatomic, assign) int number;
 @property (nonatomic, assign) int optionCounter;
+@property (nonatomic, assign) int selectedOption;
 @property (nonatomic, assign) int indexOfQuestion;
 @property (nonatomic, retain) UIView *coverView;
 
