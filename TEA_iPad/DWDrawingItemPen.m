@@ -11,18 +11,19 @@
 
 
 @implementation DWDrawingItemPen
-
+@synthesize vertices;
 
 - (id)init {
     self = [super init];
     if (self) {
-        vertices = [[NSMutableArray alloc] initWithCapacity:128];
+        self.vertices = [[NSMutableArray alloc] initWithCapacity:128];
     }
     return self;
 }
 
 - (void)dealloc {
 
+    [vertices release];
     [super dealloc];
 }
 

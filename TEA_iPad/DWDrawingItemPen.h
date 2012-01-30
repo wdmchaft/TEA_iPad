@@ -15,6 +15,6 @@
     BOOL firstLoop;
 }
 
-
+@property (nonatomic, retain) NSMutableArray *vertices;
 
 @end

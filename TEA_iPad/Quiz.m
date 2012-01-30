@@ -158,7 +158,7 @@
 
 - (void)dealloc
 {
-    [image dealloc];
+    [image release];
     [guid release];
     [timerLabel release];
     [quizImage release];
@@ -265,14 +265,11 @@
 
 - (void) updateCorrectAnswer
 {
-    LocalDatabase *db = [[LocalDatabase alloc] init];
-    [db openDatabase];
+
     
     NSString *sql = [NSString stringWithFormat:@"update library set quizCorrectAnswer = '%d' where guid = '%@'", self.correctAnswer, self.guid];
-    [db executeQuery:sql];
-    
-    [db closeDatabase];
-    [db release];
+    [[LocalDatabase sharedInstance] executeQuery:sql];
+
 }
 
 - (void) saveQuizItem
@@ -297,7 +294,8 @@
     quizItem.quizOptCount = optionCount;
     
     // save image
-    [UIImageJPEGRepresentation(image, 1.0) writeToFile:quizImagePath atomically:YES];
+    NSData *jpegImageData = UIImageJPEGRepresentation(image, 1.0);
+    [jpegImageData writeToFile:quizImagePath atomically:YES];
     [quizItem saveLibraryItem];
     [quizItem release];
 }

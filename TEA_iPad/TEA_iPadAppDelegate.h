@@ -16,7 +16,7 @@ enum appState
 {
     kAppStateIdle   = 0,
     kAppStateLogon = 1,
-    kAppStateSyncing = 2
+    kAppStateSyncing = 2,
 };
 
 @class Quiz;

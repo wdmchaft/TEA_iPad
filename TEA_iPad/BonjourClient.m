@@ -311,7 +311,11 @@
             }
             else
             {
-                [bonjourBrowser.clients removeObject:self];
+                @synchronized([bonjourBrowser bonjourServers])
+                {
+                    [[bonjourBrowser bonjourServers] removeObject:self];
+                }
+                
             }
 			break;
 		}

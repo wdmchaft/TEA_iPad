@@ -26,7 +26,7 @@
 
 - (void) initDrawingView
 {
-    contextImage = [[UIImage alloc] init];
+    self.contextImage = [[[UIImage alloc] init] autorelease];
     self.drawingItemList = [[[NSMutableArray alloc] initWithCapacity:3] autorelease]; 
     
     // init tools
@@ -204,7 +204,7 @@
        currentTool == ovalTool)
     {
         
-        contextImage = [[[currentTool drawingItem] drawIntoImage:contextImage withRect:self.frame] retain];
+        self.contextImage = [[currentTool drawingItem] drawIntoImage:contextImage withRect:self.frame];
         [drawingViewController.target performSelector:drawingViewController.pageEdited];
     }
     
@@ -241,11 +241,6 @@
     [super dealloc];
 }
 
-- (void) setContextImage:(UIImage *)pContextImage
-{
-    contextImage = [pContextImage retain];
-  //  [self setNeedsDisplay];
-}
 
 - (void) drawRect:(CGRect)rect
 {
@@ -260,6 +255,9 @@
         CGContextRestoreGState(drawingContext);
     }
     [[currentTool drawingItem] drawIntoContext:drawingContext];
+    
+    
+    
     
     //[[currentTool drawingItem] drawIntoContext:drawingContext];
     

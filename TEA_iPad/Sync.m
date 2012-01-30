@@ -28,23 +28,21 @@
 #import <ifaddrs.h>
 #import <netdb.h>
 #import "ZipWriteStream.h"
+#import "LibraryView.h"
 
 @implementation Sync
 
 
 - (NSString*) getSystemMessages
 {
-    LocalDatabase *db = [[LocalDatabase alloc] init];
-    [db openDatabase];
+
     
-    NSString *sql = @"select guid from system_messages where type <> 1";
+    NSString *sql = @"select guid from system_messages";
     
-    NSArray *result = [db executeQuery:sql returnSimpleArray:YES] ;
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql returnSimpleArray:YES] ;
     
     NSString *returnValue = [[CJSONSerializer serializer] serializeArray:result];
-    
-    [db closeDatabase];
-    [db release];
+
     
     return [NSString stringWithFormat:@"{'system_messages': %@ }", returnValue];
 }
@@ -68,7 +66,7 @@
     
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:syncURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
     
-    [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
+    NSData *tmpData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
     
     
     if(syncEnabled && response)
@@ -87,12 +85,26 @@
             
             NSString *systemMessges = [self getSystemMessages];
             
-            NSString *downloadURL = [NSString stringWithFormat: @"%@?system_messages=%@&device_id=%@&start_date_time=%@", syncURL, systemMessges, [appDelegate getDeviceUniqueIdentifier], lastSyncTime];
+            NSString *downloadURL = [NSString stringWithFormat: @"system_messages=%@&device_id=%@&start_date_time=%@", systemMessges, [appDelegate getDeviceUniqueIdentifier], lastSyncTime];
             
-            NSLog(@"[SYNC] %@", downloadURL);
+            //NSLog(@"[SYNC] %@", downloadURL);
             
-            downloadURL = [downloadURL stringByAddingPercentEscapesUsingEncoding: NSASCIIStringEncoding];
-            NSData *syncFileData = [NSData dataWithContentsOfURL:[NSURL URLWithString:downloadURL]];
+            //  downloadURL = [downloadURL stringByAddingPercentEscapesUsingEncoding: NSASCIIStringEncoding];
+            
+            NSData *postData = [downloadURL dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+            
+            NSString *postLength = [NSString stringWithFormat:@"%d",[postData length]];
+            
+            NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
+            
+            [request setURL:[NSURL URLWithString:[NSString stringWithFormat:syncURL]]];
+            
+            [request setHTTPMethod:@"POST"];
+            [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+            [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Current-Type"];
+            [request setHTTPBody:postData];
+            
+            NSData *syncFileData = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:nil];
             
             NSDictionary *dictionary = [[CJSONDeserializer deserializer] deserializeAsDictionary:syncFileData error:nil];
             
@@ -115,6 +127,7 @@
                 appDelegate.state = previousState;
                 [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
             }
+
             
             
         }
@@ -133,6 +146,7 @@
         
     }
     
+    [tmpData release];
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
@@ -324,6 +338,10 @@
     [Sync uploadFile:[NSData dataWithContentsOfFile:filePath]];
 }
 
+- (void) updateProgress:(NSNumber*) aValue
+{
+    [progressView setProgress: [aValue floatValue]];
+}
 
 - (void) applySyncing
 {
@@ -333,10 +351,12 @@
     [self extractZipFile];
     
     // process every message
-    for(int i=0; i < [fileList count]; i++)
+    int totalCount = [fileList count];
+    for(int i=0; i < totalCount; i++)
     {
         
         NSString *localFileName = [[fileList objectAtIndex:i] valueForKey:@"name"];
+        NSString *localFileSessionId = [[fileList objectAtIndex:i] valueForKey:@"sessionGuid"];
         
         NSString *filePath = [NSString stringWithFormat:@"%@/%@", directoryPath, [[localFileName componentsSeparatedByString:@"/"] lastObject]];
         
@@ -346,34 +366,46 @@
             NSDictionary *bonjourMessageDict = [NSPropertyListSerialization propertyListWithData:bonjourMessageData options:NSPropertyListImmutable format:nil error:nil];
             
             
-            BonjourMessage *aMessage = [[[BonjourMessage alloc] init] autorelease];
+            BonjourMessage *aMessage = [[BonjourMessage alloc] init];
             aMessage.guid = [bonjourMessageDict valueForKey:@"guid"];
             aMessage.messageType = [[bonjourMessageDict valueForKey:@"messageType"] intValue];
             aMessage.userData = [bonjourMessageDict valueForKey:@"userData"];
             
-            BonjouClientDataHandler *dataHandler = [[[BonjouClientDataHandler alloc] init] autorelease];
+            BonjouClientDataHandler *dataHandler = [[BonjouClientDataHandler alloc] init];
             BonjourMessageHandler *handler = [dataHandler findMessageHandlerForMessage:aMessage];
             
-            NSLog(@"Processing file[%d] %@ with handler %@", i, localFileName, NSStringFromClass([handler class]) );
+            NSLog(@"Processing  %d ", i );
             
             if(aMessage.messageType != kMessageTypePauseQuiz)
             {
+                
+                if(aMessage.messageType != kMessageTypeSessionInfo)
+                {
+                    // Check active session is same with the message's session. If they are not the same then change iPad's current session to message's sesssion.
+                    if(![appDelegate.session.sessionGuid isEqualToString:localFileSessionId])
+                    {
+                        appDelegate.session.sessionGuid = localFileSessionId;
+                    }
+                }
+                
                 [handler handleMessage:aMessage];
             }
             
-            // save system messages
+            
             
             NSString *messageInsert = [NSString stringWithFormat:@"insert into system_messages select '%@', '%@', '%d'", aMessage.guid, @"", aMessage.messageType];
+
+            [[LocalDatabase sharedInstance] executeQuery:messageInsert];
             
-            LocalDatabase *db = [[LocalDatabase alloc] init];
-            [db openDatabase];
-            
-            [db executeQuery:messageInsert];
-            
-            [db closeDatabase];
-            [db release];
-            
+            [dataHandler release];
+            [aMessage release];
         }
+        
+        [self performSelectorInBackground:@selector(updateProgress:) withObject:[NSNumber numberWithFloat:(float) i / (float) totalCount]];
+        
+         
+      //  [progressView setProgress: ];
+
         
     }
     
@@ -382,9 +414,12 @@
     // remove sync view...
     [self setHidden:YES];
     appDelegate.state = previousState;
-    
     [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
+    
+    [((LibraryView*) appDelegate.viewController) performSelectorOnMainThread:@selector(refreshDate:) withObject:[NSDate date] waitUntilDone:YES];
 }
+         
+         
 
 - (void)dealloc {
     [fileList release];

@@ -25,10 +25,9 @@
 
 - (void) insertContents
 {
-    LocalDatabase *db = [[LocalDatabase alloc] init];
-    [db openDatabase];
+
     
-    NSArray *result = [db executeQuery: [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@'", sessionGuid]];
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery: [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@'", sessionGuid]];
     
     int counter = 0;
     int x,y;
@@ -71,8 +70,7 @@
         counter++;
     }
 
-    [db closeDatabase];
-    [db release];
+
     
     self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, sessionItemViewRect.origin.y + sessionItemViewRect.size.height + 20);
 }

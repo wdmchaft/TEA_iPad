@@ -1,4 +1,4 @@
-//
+  //
 //  BonjourBrowser.m
 //  TEA_iPad
 //
@@ -14,8 +14,8 @@
 
 @implementation BonjourBrowser
 
-@synthesize netServiceBrowser, clients, services;
-
+@synthesize netServiceBrowser, services;
+/*
 - (void) sendData:(NSData *)dataValue groupCode:(uint8_t)groupCode groupCodeType:(uint8_t)groupCodetype dataType:(uint8_t)dataType 
 {
     
@@ -37,7 +37,13 @@
     }
     
 }
+*/
 
+- (NSMutableArray*) bonjourServers
+{
+    return clients;
+}
+/*
 - (void) sendString:(NSString *)dataString groupCode:(uint8_t)groupCode groupCodeType:(uint8_t)groupCodetype dataType:(uint8_t)dataType
 {
     [self sendData:[dataString dataUsingEncoding:NSUTF8StringEncoding]  groupCode:groupCode groupCodeType:groupCodetype dataType:dataType];
@@ -48,7 +54,7 @@
     [self sendData:[NSData dataWithBytes:&dataInt length:sizeof(int)]  groupCode:groupCode groupCodeType:groupCodetype dataType:dataType];
 }
 
-
+*/
 
 - (id)init
 {
@@ -113,14 +119,23 @@
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
+    NSInputStream *input;
+    NSOutputStream *output;
+    
     BonjourClient *client = [[BonjourClient alloc] init];
     client.bonjourBrowser = self;
-    [clients addObject:client];
+    
+    @synchronized(clients)
+    {
+        [clients addObject:client];
+    }
+    
+    
     [client release];
     [pService getInputStream:&input outputStream:&output];
     
-    NSArray *components = [[pService description] componentsSeparatedByString:@" "];
-    NSString *hostName = [components objectAtIndex:[components count] - 1];
+    NSArray *components = [[pService description] componentsSeparatedByString:@"."];
+    NSString *hostName = [components lastObject];
     
     client.hostName = hostName;
     client.inputStream = input;
@@ -128,6 +143,9 @@
     client.netService = pService;
     [client openStreams];
     
+    [input release];
+    [output release];
+
     
     //**********************************************************************    
     /* Check the version */
@@ -176,8 +194,8 @@
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
-    NSArray *components = [[pService description] componentsSeparatedByString:@" "];
-    NSString *hostName = [components objectAtIndex:[components count] - 1];
+    NSArray *components = [[pService description] componentsSeparatedByString:@"."];
+    NSString *hostName = [components lastObject];
     
     NSLog(@"[BONJOUR] tea service resolved from host %@", hostName);
     NSLog(@"App State is %d", appDelegate.state);
@@ -189,21 +207,27 @@
             
             // Remove clients already connected...
             
-            NSMutableArray *clientsToRemove = [[NSMutableArray alloc] init];
-            for(BonjourClient *tClient in clients)
+            
+            @synchronized(clients)
             {
-                if ([tClient.hostName isEqualToString:hostName]) 
+                NSMutableArray *clientsToRemove = [[NSMutableArray alloc] init];
+                for(BonjourClient *tClient in clients)
                 {
-                    [clientsToRemove addObject:tClient];
+                    if ([tClient.hostName isEqualToString:hostName]) 
+                    {
+                        [clientsToRemove addObject:tClient];
+                    }
                 }
+                
+                for(BonjourClient *tClient in clientsToRemove)
+                {
+                    [clients removeObject:tClient];
+                }
+                
+                [clientsToRemove release];
             }
             
-            for(BonjourClient *tClient in clientsToRemove)
-            {
-                [clients removeObject:tClient];
-            }
             
-            [clientsToRemove release];
             
             
             [self initClient:pService];
@@ -220,20 +244,25 @@
         
         // Remove clients already connected...
         NSMutableArray *clientsToRemove = [[NSMutableArray alloc] init];
-        for(BonjourClient *tClient in clients)
+       
+        @synchronized(clients)
         {
-            if ([tClient.hostName isEqualToString:hostName]) 
+            for(BonjourClient *tClient in clients)
             {
-                [clientsToRemove addObject:tClient];
+                if ([tClient.hostName isEqualToString:hostName]) 
+                {
+                    [clientsToRemove addObject:tClient];
+                }
             }
+            
+            for(BonjourClient *tClient in clientsToRemove)
+            {
+                [clients removeObject:tClient];
+            }
+            
+            [clientsToRemove release];
         }
         
-        for(BonjourClient *tClient in clientsToRemove)
-        {
-            [clients removeObject:tClient];
-        }
-        
-        [clientsToRemove release];
         
         
         [self initClient:pService];
@@ -247,8 +276,8 @@
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
-    NSArray *components = [[netService description] componentsSeparatedByString:@" "];
-    NSString *hostName = [components objectAtIndex:[components count] - 1];
+    NSArray *components = [[netService description] componentsSeparatedByString:@"."];
+    NSString *hostName = [components lastObject];
     
     if([appDelegate.connectedHost isEqualToString:hostName])
     {
@@ -288,8 +317,8 @@
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
-    NSArray *components = [[netService description] componentsSeparatedByString:@" "];
-    NSString *hostName = [components objectAtIndex:[components count] - 1];
+    NSArray *components = [[netService description] componentsSeparatedByString:@"."];
+    NSString *hostName = [components lastObject];
     
     if(appDelegate.state == kAppStateLogon) 
     {
@@ -298,7 +327,7 @@
             NSLog(@"[BONJOUR] tea service found on %@", hostName);
             
             [netService setDelegate:self];
-            [netService resolveWithTimeout:0.0];
+            [netService resolveWithTimeout:20.0];
             
             [services addObject:netService];
         }
@@ -312,7 +341,7 @@
         NSLog(@"[BONJOUR] tea service found on %@", hostName);
         
         [netService setDelegate:self];
-        [netService resolveWithTimeout:0.0];
+        [netService resolveWithTimeout:20.0];
         
         [services addObject:netService];
     } 

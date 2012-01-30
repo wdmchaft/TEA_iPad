@@ -34,12 +34,9 @@
     NSString *guid = [aMessage.userData valueForKey:@"guid"];
     
     
-    LocalDatabase *db = [[LocalDatabase alloc] init];
-    [db openDatabase];
-    
     NSString *sql = [NSString stringWithFormat:@"select * from library where guid = '%@'", guid];
     
-    NSArray *libraryRows = [db executeQuery:sql];
+    NSArray *libraryRows = [[LocalDatabase sharedInstance] executeQuery:sql];
     if(libraryRows && [libraryRows count] > 0)
     {
        // NSDictionary *library = [libraryRows objectAtIndex:0];
@@ -52,13 +49,11 @@
         else*/
         {
             sql = [NSString stringWithFormat:@"update library set quizCorrectAnswer = '%d' where guid = '%@'", answer, guid];
-            [db executeQuery:sql];
+            [[LocalDatabase sharedInstance] executeQuery:sql];
         }
     }
     
-    
-    [db closeDatabase];
-    [db release];
+
     
     [((LibraryView*) appDelegate.viewController) performSelectorOnMainThread:@selector(refreshDate:) withObject:[NSDate date] waitUntilDone:YES];
     

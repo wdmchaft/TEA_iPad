@@ -81,14 +81,9 @@
         NSString *convertedDate = [dateFormatter stringFromDate:[NSDate date]];
         
         NSString *messageInsert = [NSString stringWithFormat:@"insert into system_messages select '%@', '%@', '%d'", messageGuid, convertedDate, typeBits];
-        
-        LocalDatabase *db = [[LocalDatabase alloc] init];
-        [db openDatabase];
-        
-        [db executeQuery:messageInsert];
-        
-        [db closeDatabase];
-        [db release];
+   
+        [[LocalDatabase sharedInstance] executeQuery:messageInsert];
+
         [dateFormatter release];
         
         BonjourMessageHandler *handler = [self findMessageHandlerForMessage:message];

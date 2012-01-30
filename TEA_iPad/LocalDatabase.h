@@ -17,12 +17,16 @@ enum kLocalDbState {
 @interface LocalDatabase : NSObject {
 @private
     sqlite3 *database;
+    
+    //NSOperationQueue *operationQue;
+    BOOL busy;
 }
 
-- (void) openDatabase;
 - (NSMutableArray*) executeQuery:(NSString*)pQuery;
 - (NSMutableArray*) executeQuery:(NSString*)pQuery returnSimpleArray:(BOOL) returnSimpleArray;
-- (void) closeDatabase;
 + (NSString*) stringWithUUID;
++ (LocalDatabase*) sharedInstance;
+
+@property (nonatomic, assign) BOOL busy;
 
 @end
