@@ -19,14 +19,15 @@
     
     NSMutableArray *clients;
     NSMutableArray *services;
-    
-   
+
 }
 
 @property (nonatomic, retain) NSNetServiceBrowser *netServiceBrowser;
 @property (nonatomic, assign) NSMutableArray *services;
 //@property (nonatomic, retain) NSNetService *service;
-@property (nonatomic, retain) NSMutableArray *clients;
+//@property (nonatomic, retain) NSMutableArray *clients;
+
+- (NSMutableArray*) bonjourServers;
 
 - (void) restartBrowse;
 - (void) startBrowse;

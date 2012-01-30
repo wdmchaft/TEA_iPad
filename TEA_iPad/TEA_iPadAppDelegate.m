@@ -84,9 +84,16 @@ void MyReachabilityCallback(
 
 - (void) stopBonjourBrowser
 {
-    [bonjourBrowser.clients removeAllObjects];
+
+      
+    @synchronized([bonjourBrowser bonjourServers])
+    {
+        [[bonjourBrowser bonjourServers] removeAllObjects];
+    }
+
     [bonjourBrowser.netServiceBrowser stop];
     [bonjourBrowser.services removeAllObjects];
+
     
     self.state = kAppStateIdle;
     
@@ -109,13 +116,9 @@ void MyReachabilityCallback(
 {
     NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
     
+    if(!bonjourBrowser)
+        bonjourBrowser = [[BonjourBrowser alloc] init];
     
-    Reachability *reachibility = [Reachability reachabilityForLocalWiFi];
-    [reachibility startNotifier];
-    
-    [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(reachabilityChanged:) name: kReachabilityChangedNotification object: nil];
-
-    bonjourBrowser = [[BonjourBrowser alloc] init];
     [bonjourBrowser startBrowse];
     [[NSRunLoop currentRunLoop] run];
     [pool release];
@@ -135,6 +138,7 @@ void MyReachabilityCallback(
         [self restartBonjourBrowser];
     }
 }
+
 
 - (void) screenDidConnect:(NSNotification *)aNotification{
     NSLog(@"A new screen got connected: %@", [aNotification object]);
@@ -166,7 +170,7 @@ void handleException(NSException *exception)
     NSString *subject = [NSString stringWithFormat:@"[iPad ERROR] %@ - %@ - %@", [appDelegate getDeviceUniqueIdentifier],  iPadAppVersion, iPadOSVersion];
     NSString *body =  [NSString stringWithFormat:@"%@ \n\n%@", exception.reason, [exception.callStackSymbols description]]; 
     
-   
+
     NSString *downloadURL = [NSString stringWithFormat: @"subject=%@&body=%@&", subject, body];
     NSData *postData = [downloadURL dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
     NSString *postLength = [NSString stringWithFormat:@"%d",[postData length]];
@@ -196,6 +200,7 @@ void handleException(NSException *exception)
     [center addObserver:self selector:@selector(screenDidConnect:) name:UIScreenDidConnectNotification object:nil];
     [center addObserver:self selector:@selector(screenDidDisconnect:) name:UIScreenDidDisconnectNotification object:nil];
     [center addObserver:self selector:@selector(screenModeDidChange:) name:UIScreenModeDidChangeNotification object:nil];
+
     
     application.idleTimerDisabled = YES;
     guestEnterNumber = 0;
@@ -250,20 +255,27 @@ void handleException(NSException *exception)
         [bonjourBrowser.netServiceBrowser stop];
         
         NSMutableArray *clientsToRemove = [[NSMutableArray alloc] init];
-        for(BonjourClient *client in bonjourBrowser.clients)
+        
+        
+        @synchronized([bonjourBrowser bonjourServers])
         {
-            if(! [[client hostName] isEqualToString:connectedHost])
+            for(BonjourClient *client in [bonjourBrowser bonjourServers])
             {
-                [clientsToRemove addObject:client];
-                NSLog(@"Removing host %@", client.hostName);
+                if(! [[client hostName] isEqualToString:connectedHost])
+                {
+                    [clientsToRemove addObject:client];
+                    NSLog(@"Removing host %@", client.hostName);
+                }
+            }
+            
+            for(BonjourClient *client in clientsToRemove)
+            {
+                [bonjourBrowser.services removeObject:client];
+                [[bonjourBrowser bonjourServers] removeObject:client];
             }
         }
         
-        for(BonjourClient *client in clientsToRemove)
-        {
-            [bonjourBrowser.services removeObject:client];
-            [bonjourBrowser.clients removeObject:client];
-        }
+        
         
         [clientsToRemove release];
         

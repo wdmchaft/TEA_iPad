@@ -256,6 +256,9 @@
     }
     [[currentTool drawingItem] drawIntoContext:drawingContext];
     
+    
+    
+    
     //[[currentTool drawingItem] drawIntoContext:drawingContext];
     
     

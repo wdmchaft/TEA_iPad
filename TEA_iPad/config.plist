@@ -39,9 +39,9 @@
 	<key>HOMEWORK_URL</key>
 	<string>http://192.168.2.50:8080</string>
 	<key>SYNC_ENABLED</key>
-	<false/>
+	<true/>
 	<key>HOMEWORK_ENABLED</key>
-	<false/>
+	<true/>
 	<key>uploadURL</key>
 	<string>http://192.168.2.50:8080/upload.jsp</string>
 </dict>

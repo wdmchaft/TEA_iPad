@@ -14,7 +14,8 @@
 
 @implementation BonjourBrowser
 
-@synthesize netServiceBrowser, clients, services;
+
+@synthesize netServiceBrowser, services;
 
 /*
 - (void) sendData:(NSData *)dataValue groupCode:(uint8_t)groupCode groupCodeType:(uint8_t)groupCodetype dataType:(uint8_t)dataType 
@@ -40,6 +41,12 @@
 }
 */
 
+
+- (NSMutableArray*) bonjourServers
+{
+    return clients;
+}
+
 /*
 - (void) sendString:(NSString *)dataString groupCode:(uint8_t)groupCode groupCodeType:(uint8_t)groupCodetype dataType:(uint8_t)dataType
 {
@@ -50,7 +57,9 @@
 {
     [self sendData:[NSData dataWithBytes:&dataInt length:sizeof(int)]  groupCode:groupCode groupCodeType:groupCodetype dataType:dataType];
 }
+
 */
+
 
 
 - (id)init
@@ -128,10 +137,16 @@
     NSInputStream *input;
     NSOutputStream *output;
     
-    
+
     BonjourClient *client = [[BonjourClient alloc] init];
     client.bonjourBrowser = self;
-    [clients addObject:client];
+    
+    @synchronized(clients)
+    {
+        [clients addObject:client];
+    }
+    
+    
     [client release];
     [pService getInputStream:&input outputStream:&output];
     
@@ -146,6 +161,7 @@
     
     [input release];
     [output release];
+
     
     //**********************************************************************    
     /* Check the version */
@@ -207,21 +223,27 @@
             
             // Remove clients already connected...
             
-            NSMutableArray *clientsToRemove = [[NSMutableArray alloc] init];
-            for(BonjourClient *tClient in clients)
+            
+            @synchronized(clients)
             {
-                if ([tClient.hostName isEqualToString:hostName]) 
+                NSMutableArray *clientsToRemove = [[NSMutableArray alloc] init];
+                for(BonjourClient *tClient in clients)
                 {
-                    [clientsToRemove addObject:tClient];
+                    if ([tClient.hostName isEqualToString:hostName]) 
+                    {
+                        [clientsToRemove addObject:tClient];
+                    }
                 }
+                
+                for(BonjourClient *tClient in clientsToRemove)
+                {
+                    [clients removeObject:tClient];
+                }
+                
+                [clientsToRemove release];
             }
             
-            for(BonjourClient *tClient in clientsToRemove)
-            {
-                [clients removeObject:tClient];
-            }
             
-            [clientsToRemove release];
             
             
             [self initClient:pService];
@@ -238,20 +260,25 @@
         
         // Remove clients already connected...
         NSMutableArray *clientsToRemove = [[NSMutableArray alloc] init];
-        for(BonjourClient *tClient in clients)
+       
+        @synchronized(clients)
         {
-            if ([tClient.hostName isEqualToString:hostName]) 
+            for(BonjourClient *tClient in clients)
             {
-                [clientsToRemove addObject:tClient];
+                if ([tClient.hostName isEqualToString:hostName]) 
+                {
+                    [clientsToRemove addObject:tClient];
+                }
             }
+            
+            for(BonjourClient *tClient in clientsToRemove)
+            {
+                [clients removeObject:tClient];
+            }
+            
+            [clientsToRemove release];
         }
         
-        for(BonjourClient *tClient in clientsToRemove)
-        {
-            [clients removeObject:tClient];
-        }
-        
-        [clientsToRemove release];
         
         
         [self initClient:pService];

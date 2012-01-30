@@ -315,7 +315,10 @@
     
 }
 
-
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer{
+    NSLog(@"Here");
+    return YES;
+}
 
 - (void)viewDidLoad
 {
