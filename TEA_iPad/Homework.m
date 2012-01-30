@@ -33,6 +33,37 @@
 @implementation Homework
 @synthesize dictionary, libraryViewController;
 
+
+
+- (void) insertHomeworkAnswers
+{
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
+    NSString *questionAnswersURL = [NSString stringWithFormat: @"%@/homeworkAnswers.jsp?device_id=%@", [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"], [appDelegate getDeviceUniqueIdentifier]]; //[iPadConfigDictionary valueForKey:@"syncURL"];
+    
+    NSURLResponse *response = nil;
+    NSError **error=nil; 
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:questionAnswersURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    
+    NSData *homeworkAnswerData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
+    
+    NSDictionary *homeworkAnswersDictionary = [[CJSONDeserializer deserializer] deserializeAsDictionary:homeworkAnswerData error:nil];
+    NSArray *homeworkAnswers = [homeworkAnswersDictionary objectForKey:@"answers"];
+    
+    
+    for(NSDictionary *answer in homeworkAnswers)
+    {
+              
+        
+        NSString *insertSql = [NSString stringWithFormat: @"insert into homework_answer ('homework','question','answer','correct_answer','time') values ('%@','%@','%@','%@','%@')", [answer objectForKey:@"homework"], [answer objectForKey:@"question"], [answer objectForKey:@"answer"], [answer objectForKey:@"correct_answer"], [answer objectForKey:@"time"]];
+        
+        [[LocalDatabase sharedInstance] executeQuery:insertSql];
+    }
+    
+}
+
+
 - (NSString*) getSystemMessages
 {
     NSString *sql = @"select guid from homework";
@@ -81,8 +112,9 @@
                 {   
                     NSString *systemMessges = [self getSystemMessagesOfUndeliveredHomework:[[result objectAtIndex:i] objectForKey:@"guid"]];
                     
+                    NSString *totalTime = [[result objectAtIndex:i] objectForKey:@"total_time"];
                     
-                    NSString *requestURL = [NSString stringWithFormat:@"device_id=%@&homework_id=%@&homework_answers=%@", [appDelegate getDeviceUniqueIdentifier], [[result objectAtIndex:i] objectForKey:@"guid"], systemMessges];
+                    NSString *requestURL = [NSString stringWithFormat:@"device_id=%@&homework_id=%@&homework_answers=%@&total_time=%@", [appDelegate getDeviceUniqueIdentifier], [[result objectAtIndex:i] objectForKey:@"guid"], systemMessges, totalTime];
                     
                     
                     NSData *postData = [requestURL dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
@@ -183,6 +215,7 @@
         else
         {
             [self setHidden:YES];
+            [self insertHomeworkAnswers];
             [self startSyncingAfterHomework];
             //[appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
         }
@@ -191,6 +224,7 @@
     else
     {
         [self setHidden:YES];
+        [self insertHomeworkAnswers];
         [self startSyncingAfterHomework];
         //[appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
     }
@@ -257,7 +291,7 @@
             
             
             
-        //    [self postHomeworkFile];
+            [self postHomeworkFile];
             
             [self downloadHomeworkFile];
             
@@ -381,9 +415,9 @@
     // save homework
     
     
-    NSString *insertSQL = @"INSERT INTO homework (guid, lecture_id, name, type, date, file, delivered, total_time) VALUES ('%@', '%d', '%@', 0, '%@', '%@', '%@', '0')";
+    NSString *insertSQL = @"INSERT INTO homework (guid, lecture_id, name, type, date, file, delivered, total_time) VALUES ('%@', '%d', '%@', 0, '%@', '%@', '%@', '%@')";
     
-    insertSQL = [NSString stringWithFormat:insertSQL, [file valueForKey:@"guid"], [[file valueForKey:@"lecture_id"] intValue], [file valueForKey:@"name"], dateString, [file valueForKey:@"file"], [file valueForKey:@"delivered"]];
+    insertSQL = [NSString stringWithFormat:insertSQL, [file valueForKey:@"guid"], [[file valueForKey:@"lecture_id"] intValue], [file valueForKey:@"name"], dateString, [file valueForKey:@"file"], [file valueForKey:@"delivered"], [file valueForKey:@"time"]];
     
     [[LocalDatabase sharedInstance] executeQuery:insertSQL];
     

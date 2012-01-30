@@ -13,6 +13,7 @@
 #import "FileInZipInfo.h"
 #import "TEA_iPadAppDelegate.h"
 #import "LocalDatabase.h"
+#import "DWDatabase.h"
 
 @implementation HWView
 
@@ -251,10 +252,10 @@
     
     NSString *updateSql;
     if ([allHWansTable count]>0 && ![allHWansTable isEqual:[NSNull null]]) {
-        updateSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, answer, correct_answer, selected_option, time) values ('%@', '%@', '%@', '%@', '%@', '%d')", homeworkGuid, [dataDict objectForKey:@"number"], [[allHWansTable objectAtIndex:0] objectForKey:@"answer"], [dataDict  objectForKey:@"correctAnswer"], [[[allHWansTable objectAtIndex:0] objectForKey:@"selected_option"] intValue], timers];
+        updateSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, answer, correct_answer, selected_option, time) values ('%@', '%@', '%@', '%@', '%@', '%d')", homeworkGuid, [dataDict objectForKey:@"number"], [[allHWansTable objectAtIndex:0] objectForKey:@"answer"], [dataDict  objectForKey:@"correctAnswer"], [[[allHWansTable objectAtIndex:0] objectForKey:@"selected_option"] intValue], timers+1];
     }
     else {
-        updateSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, correct_answer, time) values ('%@', '%@', '@%', '%d')", homeworkGuid, [dataDict objectForKey:@"number"], [dataDict  objectForKey:@"correctAnswer"], timers];
+        updateSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, correct_answer, time) values ('%@', '%@', '@%', '%d')", homeworkGuid, [dataDict objectForKey:@"number"], [dataDict  objectForKey:@"correctAnswer"], timers+1];
     }
     
     [[LocalDatabase sharedInstance] executeQuery:updateSql];
@@ -275,7 +276,7 @@
             questionTimers = [[dataDict objectForKey:@"time"] intValue];
         }
         
-        [self.questionTimer setCurrentSecond:questionTimers];
+        [self.questionTimer setCurrentSecond:questionTimers+1];
         [self showQuestion:currentQuestion];
     }
     
@@ -311,10 +312,10 @@
     
     NSString *updateSql;
     if ([allHWansTable count]>0 && ![allHWansTable isEqual:[NSNull null]]) {
-        updateSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, answer, correct_answer, selected_option, time) values ('%@', '%@', '%@', '%@', '%@', '%d')", homeworkGuid, [dataDict objectForKey:@"number"], [[allHWansTable objectAtIndex:0] objectForKey:@"answer"], [dataDict objectForKey:@"correctAnswer"], [[allHWansTable objectAtIndex:0] objectForKey:@"selected_option"], timers];
+        updateSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, answer, correct_answer, selected_option, time) values ('%@', '%@', '%@', '%@', '%@', '%d')", homeworkGuid, [dataDict objectForKey:@"number"], [[allHWansTable objectAtIndex:0] objectForKey:@"answer"], [dataDict objectForKey:@"correctAnswer"], [[allHWansTable objectAtIndex:0] objectForKey:@"selected_option"], timers+1];
     }
     else {
-        updateSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, correct_answer, time) values ('%@', '%@','%@', '%d')", homeworkGuid, [dataDict objectForKey:@"number"], [dataDict objectForKey:@"correctAnswer"], timers];
+        updateSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, correct_answer, time) values ('%@', '%@','%@', '%d')", homeworkGuid, [dataDict objectForKey:@"number"], [dataDict objectForKey:@"correctAnswer"], timers+1];
     }
     
     [[LocalDatabase sharedInstance] executeQuery:updateSql];    
@@ -331,7 +332,7 @@
             questionTimers = [[[allHWansTable objectAtIndex:0] objectForKey:@"time"] intValue];
         }
         
-        [self.questionTimer setCurrentSecond:questionTimers];
+        [self.questionTimer setCurrentSecond:questionTimers+1];
         [self showQuestion:currentQuestion];
     }
     
@@ -370,7 +371,7 @@
         
         [[LocalDatabase sharedInstance] executeQuery:updateHomework];
         
-        
+
         NSString *selectHWans = [NSString stringWithFormat:@"select * from homework_answer where homework = '%@' and question = '%@'", homeworkGuid, [dataDict objectForKey:@"number"]];
         NSArray *allHWansTable = [[LocalDatabase sharedInstance] executeQuery:selectHWans];
         
@@ -383,10 +384,10 @@
         
         NSString *updateSql;
         if ([allHWansTable count]>0 && ![allHWansTable isEqual:[NSNull null]]) {
-            updateSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, answer, correct_answer, time) values ('%@', '%@', '%@', '%@', '%d')", homeworkGuid, [dataDict objectForKey:@"number"], [[allHWansTable objectAtIndex:0] objectForKey:@"answer"], [[allHWansTable objectAtIndex:0] objectForKey:@"correct_answer"], question_timers];
+            updateSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, answer, correct_answer, time) values ('%@', '%@', '%@', '%@', '%d')", homeworkGuid, [dataDict objectForKey:@"number"], [[allHWansTable objectAtIndex:0] objectForKey:@"answer"], [[allHWansTable objectAtIndex:0] objectForKey:@"correct_answer"], question_timers+1];
         }
         else {
-            updateSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, correct_answer, time) values ('%@', '%@','%@', '%d')", homeworkGuid, [dataDict objectForKey:@"number"], [dataDict objectForKey:@"correctAnswer"], question_timers];
+            updateSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, correct_answer, time) values ('%@', '%@','%@', '%d')", homeworkGuid, [dataDict objectForKey:@"number"], [dataDict objectForKey:@"correctAnswer"], question_timers+1];
             
         }
         
@@ -422,6 +423,24 @@
             [[LocalDatabase sharedInstance] executeQuery:sql];
             
             [finishButton setHidden:YES];
+        
+            
+            NSString *selectSQL = [NSString stringWithFormat:@"select * from homework_answer where homework = '%@'", homeworkGuid];
+            NSArray *result = [[LocalDatabase sharedInstance] executeQuery:selectSQL];
+            
+            TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+            
+            
+            for (int i=0; i<[result count]; i++)
+            {
+                NSString *insertSQL = [NSString stringWithFormat:@"insert into DWHomeworkResult (homework_guid, device_id, question_number,answer,correct_answer, time) values ('%@','%@', '%@','%@','%@','%@')", [[result objectAtIndex:i] objectForKey:@"homework"], [appDelegate getDeviceUniqueIdentifier], [[result objectAtIndex:i] objectForKey:@"question"],[[result objectAtIndex:i] objectForKey:@"answer"],[[result objectAtIndex:i] objectForKey:@"correct_answer"], [[result objectAtIndex:i] objectForKey:@"time"]];
+                
+                
+                [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:insertSQL];
+            }
+
+        
+        
         }
         
         [self removeFromSuperview];
