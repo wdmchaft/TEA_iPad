@@ -155,9 +155,7 @@
                     else{
                         selectedOption = -1;
                     }
-                }/*
-                else
-                    selectedOption = -1;*/
+                }
             }
             else
                 selectedOption=-1;
@@ -200,11 +198,11 @@
             
             NSString *insertSql;
             if ([getAllQuestionValues count]>0 && ![getAllQuestionValues isEqual:[NSNull null]]) {
-                insertSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, answer, correct_answer, time) values ('%@', '%@', '%@', '%@', '%d')", homeworkName, [dataDictionary valueForKey:@"number"], [buttonText uppercaseString], [dataDictionary valueForKey:@"correctAnswer"], [mainView getCurrentQuestionTimer]+1];
+                insertSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, answer, correct_answer, time) values ('%@', '%@', '%@', '%@', '%d')", homeworkName, [dataDictionary valueForKey:@"number"], [buttonText uppercaseString], [dataDictionary valueForKey:@"correctAnswer"], [mainView getCurrentQuestionTimer]];
             }
             else{
 
-                insertSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, answer, correct_answer, time) values ('%@', '%@', '%@', '%@', '%d')", homeworkName, [dataDictionary valueForKey:@"number"], [buttonText uppercaseString], [dataDictionary valueForKey:@"correctAnswer"], [mainView getCurrentQuestionTimer]+1];
+                insertSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, answer, correct_answer, time) values ('%@', '%@', '%@', '%@', '%d')", homeworkName, [dataDictionary valueForKey:@"number"], [buttonText uppercaseString], [dataDictionary valueForKey:@"correctAnswer"], [mainView getCurrentQuestionTimer]];
             }
             [[LocalDatabase sharedInstance] executeQuery:insertSql];
             
@@ -221,10 +219,9 @@
 - (IBAction)quesitonNumberClicked:(id)sender
 {
     
-    //HWAnswerSheet *answerSheet = (HWAnswerSheet*)[[sender superview] superview];
     HWAnswerSheetQuestion *question = (HWAnswerSheetQuestion*)[sender superview];
     HWView *mainView = question.answerSheet.mainView;
-    
+/*    
     NSString *select = [NSString stringWithFormat:@"select time from homework_answer where homework = '%@' and question = '%d'", mainView.homeworkGuid, question.tag];
     
     NSArray *allHWansTable = [[LocalDatabase sharedInstance] executeQuery:select];
@@ -235,7 +232,7 @@
     }
     
     [mainView.questionTimer setCurrentSecond:questionTimers];
-    
+*/    
     [mainView showQuestion:question.tag];
     
     //[answerSheet selectQuestion:question.tag];

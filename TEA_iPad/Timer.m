@@ -146,9 +146,13 @@
 
 - (void) stopTimer
 {
-    [timer invalidate];
-    [timer release];
-    timer = nil;
+    if(timer)
+    {
+        [timer invalidate];
+        [timer release];
+        timer = nil;
+    }
+    
 }
 
 - (void)dealloc

@@ -49,6 +49,9 @@ enum kHomeworkDelivered {
     NSString *homeworkGuid;
     
     int delivered;
+    
+    
+    int previousQuestionNumber;
 }
 
 
