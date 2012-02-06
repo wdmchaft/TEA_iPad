@@ -21,7 +21,6 @@
 		<dict>
 			<key>CFBundleIconFiles</key>
 			<array>
-				<string>LogoTerra.png</string>
 				<string>Logo_iPadTerra.png</string>
 				<string>LogoiPhone.png</string>
 			</array>
