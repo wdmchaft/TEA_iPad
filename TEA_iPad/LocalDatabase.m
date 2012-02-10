@@ -79,11 +79,19 @@ static NSMutableArray *sharedInstances;
         NSArray *systemMessagesTableResult = [self executeQuery:systemMessagesCheck];
         if(!systemMessagesTableResult || [systemMessagesTableResult count] <= 0)
         {
-            NSString *systemMessagesCreate = @"CREATE TABLE system_messages (guid TEXT, date TEXT, type TEXT);";
+            NSString *systemMessagesCreate = @"CREATE TABLE system_messages (guid TEXT, date TEXT, type TEXT, deleted TEXT);";
             [self executeQuery:systemMessagesCreate];
         }
+        else {
+            NSString *systemMessagesAlterTable = @"ALTER TABLE system_messages ADD deleted CHAR(25) NULL;";
+            [self executeQuery:systemMessagesAlterTable];
+            
+            NSString *updateSystemMessages = @"update system_messages set deleted='0' where deleted is NULL";
+            [self executeQuery:updateSystemMessages];
+            
+        }
         
-        
+        // Check homework table
         NSString *homeworkTableCheck = @"SELECT name FROM sqlite_master WHERE name='homework'";
         NSArray *homeworkTableResult = [self executeQuery:homeworkTableCheck];
         if(!homeworkTableResult || [homeworkTableResult count] <= 0)
@@ -93,6 +101,7 @@ static NSMutableArray *sharedInstances;
         }
         
         
+        // Check homework asnwers table
         NSString *homeworkAnswersCheck = @"SELECT name FROM sqlite_master WHERE name='homework_answer'";
         NSArray *homeworkAnswerTableResult = [self executeQuery:homeworkAnswersCheck];
         if(!homeworkAnswerTableResult || [homeworkAnswerTableResult count] <= 0)
@@ -106,6 +115,14 @@ static NSMutableArray *sharedInstances;
         }
             
         
+        // Check Device Log table
+        NSString *deviceLogTableCheck = @"SELECT name FROM sqlite_master WHERE name='device_log'";
+        NSArray *deviceLogTableResult = [self executeQuery:deviceLogTableCheck];
+        if (deviceLogTableResult || [deviceLogTableResult count]<= 0) 
+        {
+            NSString *deviceLogTableCreate = @"CREATE TABLE device_log (device_id TEXT, system_version TEXT, version TEXT, key TEXT, lecture TEXT, content_type TEXT, time TEXT, data TEXT, lat TEXT, long TEXT );";
+            [self executeQuery:deviceLogTableCreate];
+        }
         
         
         // NSLog(@"DB OPENED");

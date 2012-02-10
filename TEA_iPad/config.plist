@@ -44,5 +44,9 @@
 	<true/>
 	<key>uploadURL</key>
 	<string>http://192.168.2.50:8080/upload.jsp</string>
+	<key>EXCEPTION_ENABLED</key>
+	<true/>
+	<key>EXCEPTION_POST_URL</key>
+	<string>http://www.dualware.com/Service/EU/email.php</string>
 </dict>
 </plist>

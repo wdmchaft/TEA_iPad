@@ -447,12 +447,43 @@
 
 - (IBAction) libraryButtonClicked:(id) sender
 {
+    //*********************************************************    
+    TEA_iPadAppDelegate *logAppDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
+    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
+    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
+    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
+    
+    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
+    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+    
+    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key,  time) values ('%@','%@','%@','%@','%@')", [logAppDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"openedLibrary", dateString];
+    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
+    //********************************************************* 
+    
+    
     [self setNotebookViewHidden:YES];
     [self setLibraryViewHidden:NO];
 }
 
 - (IBAction) notebookButtonClicked:(id) sender
 {
+    
+//*********************************************************    
+    TEA_iPadAppDelegate *logAppDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
+    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
+    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
+    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
+    
+    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
+    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+    
+    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key,  time) values ('%@','%@','%@','%@','%@')", [logAppDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"openedNotebook", dateString];
+    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
+//*********************************************************    
+
+    
     [self setNotebookViewHidden:NO];
     [self setLibraryViewHidden:YES];
 }

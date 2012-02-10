@@ -23,10 +23,13 @@
 #import "BonjourQuizExtraTimeHandler.h"
 #import "BonjourQuizFinishHandler.h"
 #import "BonjourParametersHandler.h"
+//#import "BonjourUpdateSessionHandler.h"
 #import "Reachability.h"
 #import "BonjourStudentLockHandler.h"
 #import "LocationService.h"
+#import "ConfigurationManager.h"
 #include <SystemConfiguration/SystemConfiguration.h>
+
 
 @implementation TEA_iPadAppDelegate
 
@@ -177,7 +180,12 @@ void handleException(NSException *exception)
     
     NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
     
-    [request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://www.dualware.com/Service/EU/email.php"]]];
+    
+    
+    NSString *postURL = [ConfigurationManager getConfigurationValueForKey:@"EXCEPTION_POST_URL"];
+    
+    
+    [request setURL:[NSURL URLWithString:[NSString stringWithFormat:postURL]]];
     
     [request setHTTPMethod:@"POST"];
     [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
@@ -192,9 +200,9 @@ void handleException(NSException *exception)
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-
-    NSSetUncaughtExceptionHandler(&handleException);
-    
+    if ([[ConfigurationManager getConfigurationValueForKey:@"EXCEPTION_ENABLED"] intValue]){
+        NSSetUncaughtExceptionHandler(&handleException);
+    }
      
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     [center addObserver:self selector:@selector(screenDidConnect:) name:UIScreenDidConnectNotification object:nil];
@@ -219,8 +227,10 @@ void handleException(NSException *exception)
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizExtraTimeHandler alloc] init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizFinishHandler alloc] init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourParametersHandler alloc]init] autorelease]];
+    //[handlerManager.bonjourMessageHandlers addObject:[[[BonjourUpdateSessionHandler alloc]init] autorelease]];
     
-    self.state = kAppStateIdle;
+     
+     self.state = kAppStateIdle;
     
     
     Session *tSession = [[Session alloc] init];
@@ -295,6 +305,16 @@ void handleException(NSException *exception)
 
 - (void)applicationWillResignActive:(UIApplication *)application
 {
+/*    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
+    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
+    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
+    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
+    
+    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, time) values ('%@','%@','%@','%@','%@')", [self getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"appMovedInactiveMode", dateString];
+    
+    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
+ */
     
     NSLog(@"App is not active");
  
@@ -316,6 +336,21 @@ void handleException(NSException *exception)
         [userData setValue:[NSNumber numberWithInt:kNotificationCodeAppInBg] forKey:@"NotificationCode"];
         notificationMessage.userData = userData;
         [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
+        
+        
+//***********************************************
+        
+        NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
+        [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
+        NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
+        NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
+        
+        NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+        NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, time) values ('%@','%@','%@','%@','%@')", [self getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"appMovedBackground", dateString];
+        
+        [[LocalDatabase sharedInstance] executeQuery:insertSQL];
+        
+//***********************************************
     }
 }
 
@@ -330,10 +365,38 @@ void handleException(NSException *exception)
     [userData setValue:[NSNumber numberWithInt:kNotificationCodeAppInFg] forKey:@"NotificationCode"];
     notificationMessage.userData = userData;
     [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
+    
+    
+    
+    //***********************************************
+    
+    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
+    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
+    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
+    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
+    
+    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+     NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, time) values ('%@','%@','%@','%@','%@')", [self getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"appMovedForeground", dateString];
+    
+    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
+    
+    //***********************************************
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
+    /*
+    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
+    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
+    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
+    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
+    
+    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, time) values ('%@','%@','%@','%@','%@')", [self getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"appMovedActiveMode", dateString];
+    
+    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
+    */
+    
     NSLog(@"App did enter active mode");
     
     /*
@@ -343,6 +406,15 @@ void handleException(NSException *exception)
 
 - (void)applicationWillTerminate:(UIApplication *)application
 {
+    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
+    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
+    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
+    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
+    
+    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, time) values ('%@','%@','%@','%@','%@')", [self getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"appTerminated", dateString];
+    
+    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
     NSLog(@"App will be terminated");
     exitingApp = YES;
     

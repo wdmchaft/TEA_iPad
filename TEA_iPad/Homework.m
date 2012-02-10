@@ -34,6 +34,73 @@
 @synthesize dictionary, libraryViewController;
 
 
+- (NSString*) getDeviceLogMessages
+{
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    NSString *sql =[NSString stringWithFormat:@"select * from device_log where device_id = '%@'", [appDelegate getDeviceUniqueIdentifier]];
+    
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql];
+    NSString *returnValue = [[CJSONSerializer serializer] serializeArray:result];
+    return [NSString stringWithFormat:@"{'device_log':%@}", returnValue];
+}
+
+
+- (void) postDeviceLog
+{
+     
+    NSString *deviceLogURL = [NSString stringWithFormat: @"%@/deviceLog.jsp", [ConfigurationManager getConfigurationValueForKey:@"HOMEWORK_URL"]]; 
+    
+    NSURLResponse *response = nil;
+    NSError **error=nil;
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:deviceLogURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    
+    NSData *tmpData = [[[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]] autorelease];
+    
+    if(response)
+    {
+        @try 
+        {   
+            NSString *systemMessges = [self getDeviceLogMessages];
+            
+            
+            NSString *requestURL = [NSString stringWithFormat:@"device_log=%@", systemMessges];
+            
+            
+            NSData *postData = [requestURL dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+            
+            NSString *postLength = [NSString stringWithFormat:@"%d",[postData length]];
+            
+            NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
+            
+            [request setURL:[NSURL URLWithString:[NSString stringWithFormat:deviceLogURL]]];
+            
+            [request setHTTPMethod:@"POST"];
+            [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+            [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Current-Type"];
+            [request setHTTPBody:postData];
+            
+            NSData *deviceLogFileData = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:nil];
+            
+            
+            NSString *checkString = [[[NSString alloc] initWithData:deviceLogFileData encoding:NSUTF8StringEncoding] autorelease];
+            checkString = [checkString substringToIndex:2];
+            
+            if ([checkString isEqualToString:@"OK"]) {
+                NSLog(@"Device Log alındı...");
+                [[LocalDatabase sharedInstance] executeQuery:@"delete from device_log;"];
+            }
+            else
+                NSLog(@"HATA oluştu....");
+            
+        }
+        @catch (NSException *exception) 
+        {
+            NSLog(@"Exception :: %@",  [exception description]);
+        }
+    }
+}
+
 
 - (void) insertHomeworkAnswers
 {
@@ -75,6 +142,7 @@
     
     return [NSString stringWithFormat:@"{'system_messages': %@ }", returnValue];
 }
+
 
 - (NSString*) getSystemMessagesOfUndeliveredHomework:(NSString *)filter
 {
@@ -289,7 +357,7 @@
             
             dictionary = [[[CJSONDeserializer deserializer] deserializeAsDictionary:homeworkFileData error:nil] retain];
             
-            
+            [self postDeviceLog];
             
             [self postHomeworkFile];
             
