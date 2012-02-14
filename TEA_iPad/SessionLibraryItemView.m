@@ -24,13 +24,21 @@
 @implementation SessionLibraryItemView
 @synthesize name, path, type, sessionView, quizImagePath, previewPath, correctAnswer, answer, guid, quizOptCount;
 
+- (NSString *) getFileNameOfPath:(NSString *) pathString
+{
+    NSString *returnValue = [[pathString componentsSeparatedByString:@"/"] lastObject];
+    return returnValue;
+}
+
 - (NSString *) getFullPathForFile:(NSString *) file
 {
+    NSString *fileName = [self getFileNameOfPath:file];
+    
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     
     NSString *documentsPath = [paths objectAtIndex:0];
     
-    NSString *fullPath = [NSString stringWithFormat:@"%@/%@", documentsPath, file];
+    NSString *fullPath = [NSString stringWithFormat:@"%@/%@", documentsPath, fileName];
     
     return fullPath;
     

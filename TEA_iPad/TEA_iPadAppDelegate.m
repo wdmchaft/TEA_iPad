@@ -28,6 +28,8 @@
 #import "LocationService.h"
 #include <SystemConfiguration/SystemConfiguration.h>
 
+
+
 @implementation TEA_iPadAppDelegate
 
 
@@ -156,7 +158,7 @@ void handleException(NSException *exception)
     
     NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
     
-    [request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://www.dualware.com/Service/EU/email.php"]]];
+    [request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://www.dualware.com/Service/Doga/exception_email.php"]]];
     
     [request setHTTPMethod:@"POST"];
     [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
@@ -171,6 +173,11 @@ void handleException(NSException *exception)
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    
+    
+    
+    
+    
     
     NSSetUncaughtExceptionHandler(&handleException);
     
@@ -206,6 +213,7 @@ void handleException(NSException *exception)
     
    // [locationService startService];
     [self.window makeKeyAndVisible];
+    
     
    return YES;
 }

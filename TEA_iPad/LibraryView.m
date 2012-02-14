@@ -113,6 +113,10 @@
     {
         [backgroundView setImage:[UIImage imageNamed:@"NoteBookBGSquared.jpg"]]; 
     }
+    else if([notebook.type isEqualToString:@""] || [notebook.type isEqualToString:@"squared"])
+    {
+        [backgroundView setImage:[UIImage imageNamed:@"NoteBookBGSquared.jpg"]]; 
+    }
     else if([notebook.type isEqualToString:@"lined"])
     {
         [backgroundView setImage:[UIImage imageNamed:@"NoteBookBGLined.jpg"]]; 
@@ -120,6 +124,10 @@
     else if([notebook.type isEqualToString:@"blank"])
     {
         [backgroundView setImage:[UIImage imageNamed:@"NoteBookBGBlank.jpg"]]; 
+    }
+    else
+    {
+        [backgroundView setImage:[UIImage imageNamed:@"NoteBookBGSquared.jpg"]]; 
     }
 
     
