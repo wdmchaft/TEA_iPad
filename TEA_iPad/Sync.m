@@ -42,9 +42,9 @@
 {
     
     
-    NSString *sql = @"select guid from system_messages";
+    NSString *sql = @"select * from system_messages";
     
-    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql returnSimpleArray:YES] ;
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql] ;
     
     NSString *returnValue = [[CJSONSerializer serializer] serializeArray:result];
     
@@ -74,8 +74,7 @@
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:syncURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
     
     NSData *tmpData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
-    
-    
+       
     if(syncEnabled && response)
     {
         @try 
@@ -112,6 +111,9 @@
             [request setHTTPBody:postData];
             
             NSData *syncFileData = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:nil];
+            
+            NSString *result = [[[NSString alloc] initWithData:syncFileData encoding:NSUTF8StringEncoding] autorelease];
+            NSLog(@"data is %@", result);
             
             NSDictionary *dictionary = [[CJSONDeserializer deserializer] deserializeAsDictionary:syncFileData error:nil];
             
@@ -402,52 +404,81 @@
         NSString *localFileName = [[fileList objectAtIndex:i] valueForKey:@"name"];
         NSString *localFileSessionId = [[fileList objectAtIndex:i] valueForKey:@"sessionGuid"];
         
-        NSString *filePath = [NSString stringWithFormat:@"%@/%@", directoryPath, [[localFileName componentsSeparatedByString:@"/"] lastObject]];
         
-        NSData *bonjourMessageData = [NSData dataWithContentsOfFile:filePath];
-        if(bonjourMessageData)
-        {
-            NSDictionary *bonjourMessageDict = [NSPropertyListSerialization propertyListWithData:bonjourMessageData options:NSPropertyListImmutable format:nil error:nil];
+        
+            NSString *filePath = [NSString stringWithFormat:@"%@/%@", directoryPath, [[localFileName componentsSeparatedByString:@"/"] lastObject]];
             
-            
-            BonjourMessage *aMessage = [[BonjourMessage alloc] init];
-            aMessage.guid = [bonjourMessageDict valueForKey:@"guid"];
-            aMessage.messageType = [[bonjourMessageDict valueForKey:@"messageType"] intValue];
-            aMessage.userData = [bonjourMessageDict valueForKey:@"userData"];
-            
-            BonjouClientDataHandler *dataHandler = [[BonjouClientDataHandler alloc] init];
-            BonjourMessageHandler *handler = [dataHandler findMessageHandlerForMessage:aMessage];
-            
-            //NSLog(@"Processing file[%d] %@ with handler %@", i, localFileName, NSStringFromClass([handler class]) );
-            
-            if(aMessage.messageType != kMessageTypePauseQuiz)
+            NSData *bonjourMessageData = [NSData dataWithContentsOfFile:filePath];
+            if(bonjourMessageData)
             {
+                NSDictionary *bonjourMessageDict = [NSPropertyListSerialization propertyListWithData:bonjourMessageData options:NSPropertyListImmutable format:nil error:nil];
                 
-                if(aMessage.messageType != kMessageTypeSessionInfo)
+                
+                if (![[[fileList objectAtIndex:i] valueForKey:@"deleted"] intValue]) 
                 {
-                    // Check active session is same with the message's session. If they are not the same then change iPad's current session to message's sesssion.
-                    if(![appDelegate.session.sessionGuid isEqualToString:localFileSessionId])
+                    BonjourMessage *aMessage = [[BonjourMessage alloc] init];
+                    aMessage.guid = [bonjourMessageDict valueForKey:@"guid"];
+                    aMessage.messageType = [[bonjourMessageDict valueForKey:@"messageType"] intValue];
+                    aMessage.userData = [bonjourMessageDict valueForKey:@"userData"];
+                    
+                    BonjouClientDataHandler *dataHandler = [[BonjouClientDataHandler alloc] init];
+                    BonjourMessageHandler *handler = [dataHandler findMessageHandlerForMessage:aMessage];
+                    
+                    //NSLog(@"Processing file[%d] %@ with handler %@", i, localFileName, NSStringFromClass([handler class]) );
+                    
+                    if(aMessage.messageType != kMessageTypePauseQuiz)
                     {
-                        appDelegate.session.sessionGuid = localFileSessionId;
+                        
+                        if(aMessage.messageType != kMessageTypeSessionInfo)
+                        {
+                            // Check active session is same with the message's session. If they are not the same then change iPad's current session to message's sesssion.
+                            if(![appDelegate.session.sessionGuid isEqualToString:localFileSessionId])
+                            {
+                                appDelegate.session.sessionGuid = localFileSessionId;
+                            }
+                        }
+                        
+                        [handler handleMessage:aMessage];
                     }
+                    
+                    
+                    
+                    NSString *messageInsert = [NSString stringWithFormat:@"insert into system_messages select '%@', '%@', '%d', 0", aMessage.guid, @"", aMessage.messageType];
+                    
+                    [[LocalDatabase sharedInstance] executeQuery:messageInsert];
+                    
+                    [dataHandler release];
+                    [aMessage release];
+                }
+                else
+                {
+                    
+                    NSString *deleteSQL;
+                    
+                    if ([[bonjourMessageDict valueForKey:@"messageType"] intValue ] == 3) {
+                        deleteSQL = [NSString stringWithFormat:@"delete from library where guid = '%@'",  [bonjourMessageDict valueForKey:@"guid"]];
+                    }
+                    else{
+                        deleteSQL = [NSString stringWithFormat:@"delete from library where guid = '%@'",  [[bonjourMessageDict objectForKey:@"userData"] valueForKey:@"guid"]];
+                        
+                    }
+                    
+                    [[LocalDatabase sharedInstance] executeQuery:deleteSQL];
+                    
+                    NSString *deleteSystemMessagesSQL = [NSString stringWithFormat:@"delete from system_messages where guid = '%@'", [bonjourMessageDict valueForKey:@"guid"]];
+                    [[LocalDatabase sharedInstance] executeQuery:deleteSystemMessagesSQL];
+                    
+                    NSString *insertSystemMessagesSQL = [NSString stringWithFormat:@"insert into system_messages select '%@', '%@', '%d', 1", [bonjourMessageDict valueForKey:@"guid"], @"", [[bonjourMessageDict valueForKey:@"messageType"]intValue]];
+                    
+                    [[LocalDatabase sharedInstance] executeQuery:insertSystemMessagesSQL];
                 }
                 
-                [handler handleMessage:aMessage];
+               
+                
+                //NSString *progressMessage = [NSString stringWithFormat:@"[%d / %d]", i, totalCount];
+               // [self performSelectorInBackground:@selector(updateMessage:) withObject:progressMessage];
             }
-            
-            
-            
-            NSString *messageInsert = [NSString stringWithFormat:@"insert into system_messages select '%@', '%@', '%d'", aMessage.guid, @"", aMessage.messageType];
-            
-            [[LocalDatabase sharedInstance] executeQuery:messageInsert];
-            
-            [dataHandler release];
-            [aMessage release];
-            
-            //NSString *progressMessage = [NSString stringWithFormat:@"[%d / %d]", i, totalCount];
-           // [self performSelectorInBackground:@selector(updateMessage:) withObject:progressMessage];
-        }
-        
+       
         [self performSelectorInBackground:@selector(updateProgress:) withObject:[NSNumber numberWithFloat:(float) i / (float) totalCount]];
         
     }
