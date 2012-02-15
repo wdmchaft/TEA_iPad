@@ -19,7 +19,7 @@
 }
 
 @property (nonatomic, assign) LibraryView *controller;
-
+- (void) markDate:(int) aSelectedDate;
 - (void) selectDate:(int) aSelectedDate;
 
 @end

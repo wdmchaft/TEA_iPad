@@ -64,6 +64,9 @@
         [self.dateView selectDate:day - 1];
         
         [self initSessionNames];
+        
+        
+        
     }
     
     
@@ -224,6 +227,41 @@
         sessionViewRect = sessionView.frame;
     }
     
+
+
+    // Update content date marks
+
+    NSString *monthString = @"";
+    if(self.selectedMonth.month < 10)
+    {
+        monthString = [NSString stringWithFormat:@"0%d", self.selectedMonth.month];
+    }
+    else
+    {
+        monthString = [NSString stringWithFormat:@"%d", self.selectedMonth.month];
+    }
+    
+    NSString *startDate = [NSString stringWithFormat:@"%d%@01", self.selectedMonth.year, monthString];
+    NSString *endDate = [NSString stringWithFormat:@"%d%@31", self.selectedMonth.year, monthString];
+    
+    sql = [NSString stringWithFormat:@"select distinct date from session where (substr(date,7)||substr(date,4,2)||substr(date,1,2)) between '%@' and '%@'", startDate, endDate];
+    
+    NSArray *sessionDatesForMonths = [[LocalDatabase sharedInstance] executeQuery:sql];
+    
+    // remove old marks
+    for(UIView *view in self.dateView.subviews)
+    {
+        if(view.tag == 100)
+        {
+            [view removeFromSuperview];
+        }
+    }
+    
+    for(NSDictionary *sessionDate in sessionDatesForMonths)
+    {
+        int sessionDay = [[[sessionDate valueForKey:@"date"] substringToIndex:2] intValue];
+        [self.dateView markDate:sessionDay];
+    }
     
     contentsScrollView.contentSize = CGSizeMake(contentsScrollView.frame.size.width, sessionViewRect.size.height + sessionViewRect.origin.y + 50);
 }
@@ -390,8 +428,8 @@
     [homeworkService requestForHomework];
     [homeworkService release];
     
-    
-    
+    [self refreshDate:[NSDate date]];
+
 }
 
 - (void) selectLecture:(LectureView *) lecture
