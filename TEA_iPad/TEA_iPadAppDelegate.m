@@ -23,7 +23,7 @@
 #import "BonjourQuizExtraTimeHandler.h"
 #import "BonjourQuizFinishHandler.h"
 #import "BonjourParametersHandler.h"
-//#import "BonjourUpdateSessionHandler.h"
+#import "BonjourUpdateSessionHandler.h"
 #import "Reachability.h"
 #import "BonjourStudentLockHandler.h"
 #import "LocationService.h"
@@ -227,7 +227,7 @@ void handleException(NSException *exception)
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizExtraTimeHandler alloc] init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizFinishHandler alloc] init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourParametersHandler alloc]init] autorelease]];
-    //[handlerManager.bonjourMessageHandlers addObject:[[[BonjourUpdateSessionHandler alloc]init] autorelease]];
+    [handlerManager.bonjourMessageHandlers addObject:[[[BonjourUpdateSessionHandler alloc]init] autorelease]];
     
      
      self.state = kAppStateIdle;

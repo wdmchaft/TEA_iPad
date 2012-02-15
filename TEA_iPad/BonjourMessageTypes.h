@@ -24,7 +24,8 @@ enum MessageTypes
     kMessageTypeExtraTimeForQuiz        = 12,
     kMessageTypeFinishQuiz              = 13,
     kMessageTypeGetParameters           = 14,
-    kMessageTypeSendParameters          = 15
+    kMessageTypeSendParameters          = 15,
+    kMessageTypeUpdateSessionInfo       = 16
 };
 
 typedef enum MessageTypes MessageTypes;
