@@ -22,9 +22,9 @@
 {
     
     
-    UIView *mark = [[UIView alloc] initWithFrame:CGRectMake((aSelectedDate - 1) * 23, 0, 23, 37)];
-    [mark setBackgroundColor:[UIColor redColor]];
-    [mark setAlpha:0.15];
+    UIView *mark = [[UIView alloc] initWithFrame:CGRectMake(((aSelectedDate - 1) * 23) + 3, 22, 17, 3)];
+    [mark setBackgroundColor:[UIColor orangeColor]];
+    [mark setAlpha:0.8];
     mark.tag = 100;
     [self insertSubview:mark belowSubview:numbers];
     [mark release];

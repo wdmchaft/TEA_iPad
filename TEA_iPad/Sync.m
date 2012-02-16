@@ -41,14 +41,14 @@
 - (NSString*) getSystemMessages
 {
     
+    NSLog(@"start");
+    NSString *sql = @"select guid||'_'||deleted as guid from system_messages";
     
-    NSString *sql = @"select * from system_messages";
-    
-    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql] ;
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql returnSimpleArray:YES] ;
     
     NSString *returnValue = [[CJSONSerializer serializer] serializeArray:result];
     
-    
+    NSLog(@"end");
     return [NSString stringWithFormat:@"{'system_messages': %@ }", returnValue];
 }
 
