@@ -176,11 +176,7 @@
         [locationServiceMessageView setHidden:NO];
         return;
     }
-    else if (![self reachable]) {
-        [locationServiceMessageView setMessage:@"Wi-Fi Servisiniz çalışmıyor. Lütfen ayarlarınızı kontrol ediniz"];
-        [locationServiceMessageView setHidden:NO];
-        return;
-    }
+
 
 //--*************************************<<<<<<<<<<<<<<<<<<<<<<<<<<
     
