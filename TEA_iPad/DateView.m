@@ -18,6 +18,18 @@
     selection.frame = CGRectMake(aSelectedDate * 23, 0, 23, 37);
 }
 
+- (void) markDate:(int) aSelectedDate
+{
+    
+    
+    UIView *mark = [[UIView alloc] initWithFrame:CGRectMake(((aSelectedDate - 1) * 23) + 3, 22, 17, 3)];
+    [mark setBackgroundColor:[UIColor orangeColor]];
+    [mark setAlpha:0.8];
+    mark.tag = 100;
+    [self insertSubview:mark belowSubview:numbers];
+    [mark release];
+}
+
 - (void) initDateView
 {
     UIImage *numbersImage = [UIImage imageNamed:@"LibraryDays.png"];

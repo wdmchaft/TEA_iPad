@@ -13,7 +13,7 @@
 #import "TEA_iPadAppDelegate.h"
 
 @implementation HWAnswerSheetQuestion
-@synthesize answerView, markupImage, isDark, isSelected, number, optionCounter, indexOfQuestion, totalNumberQuestion, answerSheet, coverView, dataDictionary, currentHomework;
+@synthesize answerView, markupImage, isDark, isSelected, number, optionCounter, indexOfQuestion, totalNumberQuestion, answerSheet, coverView, dataDictionary, currentHomework, selectedOption;
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -136,33 +136,80 @@
         }
         else
         {
-            [[buttonArray objectAtIndex:i] setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionSelectedBG.png"] forState:UIControlStateNormal];
-  
             
             NSString *homeworkName = [[currentHomework componentsSeparatedByString:@"."] objectAtIndex:0];
             
+            NSString *getSelectedOption = [NSString stringWithFormat:@"select answer from homework_answer where question = '%@' and homework = '%@'", [dataDictionary valueForKey:@"number"], homeworkName];
+            
+            NSArray *rows = [[LocalDatabase sharedInstance] executeQuery:getSelectedOption];
+            
+            if ([rows count]>0 && ![rows isEqual:[NSNull null]]) {
+                
+                NSString *str = [[rows objectAtIndex:0] objectForKey:@"answer"];
+                if (str){
+                    str = [str isEqualToString:@""] ? @" " : str;
+                    int charValueOfString = (int)[str characterAtIndex:0];
+                    if (charValueOfString > 64 || charValueOfString <= 69){
+                        selectedOption = charValueOfString-65;
+                    }
+                    else{
+                        selectedOption = -1;
+                    }
+                }
+            }
+            else
+                selectedOption=-1;
+            
+            if (selectedOption == [sender tag]-1) {
+                selectedOption = -1;
+                [[buttonArray objectAtIndex:i] setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
+                
+                
+            }
+            else{
+                selectedOption = [sender tag]-1;
+                [[buttonArray objectAtIndex:i] setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionSelectedBG.png"] forState:UIControlStateNormal];
+            }
             
             NSString *selectSql = [NSString stringWithFormat:@"select * from homework_answer where question = '%@' and homework = '%@'", [dataDictionary valueForKey:@"number"], homeworkName];
             
             
-            NSArray *selectResult = [[LocalDatabase sharedInstance] executeQuery:selectSql];
+            NSArray *getAllQuestionValues = [[LocalDatabase sharedInstance] executeQuery:selectSql];
             
-            NSString *insertSql;
-            if ([selectResult count]>0) {
-                insertSql = [NSString stringWithFormat:@"delete from homework_answer where question = '%@' and homework = '%@'", [dataDictionary valueForKey:@"number"], homeworkName];
-                [[LocalDatabase sharedInstance] executeQuery:insertSql];
+            NSString *deleteSql;
+            if ([getAllQuestionValues count]>0 && ![getAllQuestionValues isEqual:[NSNull null]]) {
+                deleteSql = [NSString stringWithFormat:@"delete from homework_answer where question = '%@' and homework = '%@'", [dataDictionary valueForKey:@"number"], homeworkName];
+                
+                [[LocalDatabase sharedInstance] executeQuery:deleteSql];
                 
             }
             
-            NSString *buttonText = [sender currentTitle];
-            insertSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, answer, correct_answer) values ('%@', '%@', '%@', '%@')", homeworkName, [dataDictionary valueForKey:@"number"], [buttonText uppercaseString], [dataDictionary valueForKey:@"correctAnswer"]];
+            NSString *buttonText;
             
-           
-            [[LocalDatabase sharedInstance] executeQuery:insertSql];
+            if (selectedOption != -1) {
+                buttonText = [sender currentTitle];
+            }
+            else{
+                buttonText = @" ";
+            }
+            
+            HWAnswerSheetQuestion *question = (HWAnswerSheetQuestion*)[sender superview];
+            HWView *mainView = question.answerSheet.mainView;
+            
+            NSString *insertSql;
+            if ([getAllQuestionValues count]>0 && ![getAllQuestionValues isEqual:[NSNull null]]) {
+                insertSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, answer, correct_answer, time) values ('%@', '%@', '%@', '%@', '%d')", homeworkName, [dataDictionary valueForKey:@"number"], [buttonText uppercaseString], [dataDictionary valueForKey:@"correctAnswer"], [mainView getCurrentQuestionTimer]];
+            }
+            else{
 
+                insertSql = [NSString stringWithFormat:@"insert into homework_answer (homework, question, answer, correct_answer, time) values ('%@', '%@', '%@', '%@', '%d')", homeworkName, [dataDictionary valueForKey:@"number"], [buttonText uppercaseString], [dataDictionary valueForKey:@"correctAnswer"], [mainView getCurrentQuestionTimer]];
+            }
+            [[LocalDatabase sharedInstance] executeQuery:insertSql];
+            
             
         }
     }
+
     
     
 }
@@ -172,34 +219,23 @@
 - (IBAction)quesitonNumberClicked:(id)sender
 {
     
-    //HWAnswerSheet *answerSheet = (HWAnswerSheet*)[[sender superview] superview];
     HWAnswerSheetQuestion *question = (HWAnswerSheetQuestion*)[sender superview];
     HWView *mainView = question.answerSheet.mainView;
+/*    
+    NSString *select = [NSString stringWithFormat:@"select time from homework_answer where homework = '%@' and question = '%d'", mainView.homeworkGuid, question.tag];
     
+    NSArray *allHWansTable = [[LocalDatabase sharedInstance] executeQuery:select];
+    int questionTimers=0;
+    
+    if ([allHWansTable count]>0 && ![allHWansTable isEqual:[NSNull null]]) {
+        questionTimers = [[[allHWansTable objectAtIndex:0] objectForKey:@"time"] intValue];
+    }
+    
+    [mainView.questionTimer setCurrentSecond:questionTimers];
+*/    
     [mainView showQuestion:question.tag];
     
     //[answerSheet selectQuestion:question.tag];
-}
-            
-            /*
-            if ([[[[sender superview] superview] subviews] isKindOfClass:[UIImageView class]]) {
-                [self.markupImage setHidden:YES];
-            }
-                    }*/
- //       else{
- //           [self.markupImage setHidden:YES];
-            
- //       }
-
-
-- (void) display
-{
-    
-}
-
-- (void) chooseOption
-{
-    
 }
 
 

@@ -1,3 +1,5 @@
+
+
 //
 //  Sync.m
 //  TEA_iPad
@@ -28,27 +30,32 @@
 #import <ifaddrs.h>
 #import <netdb.h>
 #import "ZipWriteStream.h"
-#import "LibraryView.h"
 
 @implementation Sync
 
+- (void) updateMessage:(NSString*) message
+{
+    [progressLabel setText:message];
+}
 
 - (NSString*) getSystemMessages
 {
-
     
-    NSString *sql = @"select guid from system_messages";
+    NSLog(@"start");
+    NSString *sql = @"select guid||'_'||deleted as guid from system_messages";
     
     NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql returnSimpleArray:YES] ;
     
     NSString *returnValue = [[CJSONSerializer serializer] serializeArray:result];
-
     
+    NSLog(@"end");
     return [NSString stringWithFormat:@"{'system_messages': %@ }", returnValue];
 }
 
 - (void) requestForSync
 {
+    
+    [progressLabel setText:@"Yedekten veri yükleme işlemi başlatılıyor..."];
     
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
@@ -67,8 +74,7 @@
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:syncURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
     
     NSData *tmpData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
-    
-    
+       
     if(syncEnabled && response)
     {
         @try 
@@ -106,6 +112,9 @@
             
             NSData *syncFileData = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:nil];
             
+            NSString *result = [[[NSString alloc] initWithData:syncFileData encoding:NSUTF8StringEncoding] autorelease];
+            NSLog(@"data is %@", result);
+            
             NSDictionary *dictionary = [[CJSONDeserializer deserializer] deserializeAsDictionary:syncFileData error:nil];
             
             if(dictionary)
@@ -119,6 +128,7 @@
                     [defaults synchronize];
                 } 
                 
+                [progressLabel setText:@"Yedek veri dosyası yükleniyor..."];
                 [self downloadSyncFile];
             }
             else
@@ -127,7 +137,6 @@
                 appDelegate.state = previousState;
                 [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
             }
-
             
             
         }
@@ -187,11 +196,17 @@
 	} 
 }
 
+- (void) updateProgress:(NSNumber*) progressValue
+{
+    [progressView setProgress: [progressValue floatValue]];
+}
+
 - (void) extractZipFile
 {
     NSString *filePath = [NSString stringWithFormat:@"%@/%@", directoryPath, fileName];
     
-    [progressView setProgress: 0];
+    [self performSelectorInBackground:@selector(updateMessage:) withObject:@"Yedek veri arşiv dosyası açılıyor..."];
+    [self performSelectorInBackground:@selector(updateProgress:) withObject:[NSNumber numberWithFloat: 0.0]];
     
     ZipFile *zippedFile = [[[ZipFile alloc] initWithFileName:filePath mode:ZipFileModeUnzip] autorelease];
     float numberOfZippedFile = (float) [zippedFile numFilesInZip];
@@ -227,9 +242,11 @@
         
         counter ++;
         
-        [progressView setProgress: 100.0 / numberOfZippedFile * (float) counter];
+        [self performSelectorInBackground:@selector(updateProgress:) withObject:[NSNumber numberWithFloat: (float) counter / numberOfZippedFile]];
+
     }
-    [progressView setProgress: 100.0];
+    [self updateProgress:[NSNumber numberWithFloat:100.0 ]];
+
     [zippedFile close];
     
     
@@ -239,7 +256,7 @@
 + (NSData *)generatePostDataForData:(NSData *)uploadData
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-
+    
     NSString *fileName = [NSString stringWithFormat:@"%@_documents.zip", [appDelegate getDeviceUniqueIdentifier]];
     
     // Generate the post header:
@@ -338,9 +355,35 @@
     [Sync uploadFile:[NSData dataWithContentsOfFile:filePath]];
 }
 
-- (void) updateProgress:(NSNumber*) aValue
+
+
+
+- (void) updateQuizAnswers
 {
-    [progressView setProgress: [aValue floatValue]];
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
+    NSString *questionAnswersURL = [NSString stringWithFormat: @"%@/quizAnswers.jsp?device_id=%@", [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"], [appDelegate getDeviceUniqueIdentifier]]; //[iPadConfigDictionary valueForKey:@"syncURL"];
+    
+    NSURLResponse *response = nil;
+    NSError **error=nil; 
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:questionAnswersURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    
+    NSData *quizAnswersData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
+    
+    NSDictionary *dictionary = [[CJSONDeserializer deserializer] deserializeAsDictionary:quizAnswersData error:nil];
+    NSArray *quizAnswers = [dictionary objectForKey:@"answers"];
+    
+    
+    [[LocalDatabase sharedInstance] executeQuery:@"update library set quizAnswer='-1'"];
+    for(NSDictionary *answer in quizAnswers)
+    {
+        
+        NSString *updateSql = [NSString stringWithFormat: @"update library set quizAnswer='%@' where session_guid='%@' and guid = '%@'", [answer valueForKey:@"answer"], [answer valueForKey:@"session_guid"], [answer valueForKey:@"question_context_guid"]];
+        
+        [[LocalDatabase sharedInstance] executeQuery:updateSql];
+    }
+    
 }
 
 - (void) applySyncing
@@ -350,6 +393,9 @@
     // extract zip file.
     [self extractZipFile];
     
+    
+    [self performSelectorInBackground:@selector(updateMessage:) withObject:@"Yedek veri mesajları işleniyor..."];
+    
     // process every message
     int totalCount = [fileList count];
     for(int i=0; i < totalCount; i++)
@@ -358,54 +404,82 @@
         NSString *localFileName = [[fileList objectAtIndex:i] valueForKey:@"name"];
         NSString *localFileSessionId = [[fileList objectAtIndex:i] valueForKey:@"sessionGuid"];
         
-        NSString *filePath = [NSString stringWithFormat:@"%@/%@", directoryPath, [[localFileName componentsSeparatedByString:@"/"] lastObject]];
         
-        NSData *bonjourMessageData = [NSData dataWithContentsOfFile:filePath];
-        if(bonjourMessageData)
-        {
-            NSDictionary *bonjourMessageDict = [NSPropertyListSerialization propertyListWithData:bonjourMessageData options:NSPropertyListImmutable format:nil error:nil];
+        
+            NSString *filePath = [NSString stringWithFormat:@"%@/%@", directoryPath, [[localFileName componentsSeparatedByString:@"/"] lastObject]];
             
-            
-            BonjourMessage *aMessage = [[BonjourMessage alloc] init];
-            aMessage.guid = [bonjourMessageDict valueForKey:@"guid"];
-            aMessage.messageType = [[bonjourMessageDict valueForKey:@"messageType"] intValue];
-            aMessage.userData = [bonjourMessageDict valueForKey:@"userData"];
-            
-            BonjouClientDataHandler *dataHandler = [[BonjouClientDataHandler alloc] init];
-            BonjourMessageHandler *handler = [dataHandler findMessageHandlerForMessage:aMessage];
-            
-            NSLog(@"Processing  %d ", i );
-            
-            if(aMessage.messageType != kMessageTypePauseQuiz)
+            NSData *bonjourMessageData = [NSData dataWithContentsOfFile:filePath];
+            if(bonjourMessageData)
             {
+                NSDictionary *bonjourMessageDict = [NSPropertyListSerialization propertyListWithData:bonjourMessageData options:NSPropertyListImmutable format:nil error:nil];
                 
-                if(aMessage.messageType != kMessageTypeSessionInfo)
+                
+                if (![[[fileList objectAtIndex:i] valueForKey:@"deleted"] intValue]) 
                 {
-                    // Check active session is same with the message's session. If they are not the same then change iPad's current session to message's sesssion.
-                    if(![appDelegate.session.sessionGuid isEqualToString:localFileSessionId])
+                    BonjourMessage *aMessage = [[BonjourMessage alloc] init];
+                    aMessage.guid = [bonjourMessageDict valueForKey:@"guid"];
+                    aMessage.messageType = [[bonjourMessageDict valueForKey:@"messageType"] intValue];
+                    aMessage.userData = [bonjourMessageDict valueForKey:@"userData"];
+                    
+                    BonjouClientDataHandler *dataHandler = [[BonjouClientDataHandler alloc] init];
+                    BonjourMessageHandler *handler = [dataHandler findMessageHandlerForMessage:aMessage];
+                    
+                    //NSLog(@"Processing file[%d] %@ with handler %@", i, localFileName, NSStringFromClass([handler class]) );
+                    
+                    if(aMessage.messageType != kMessageTypePauseQuiz)
                     {
-                        appDelegate.session.sessionGuid = localFileSessionId;
+                        
+                        if(aMessage.messageType != kMessageTypeSessionInfo)
+                        {
+                            // Check active session is same with the message's session. If they are not the same then change iPad's current session to message's sesssion.
+                            if(![appDelegate.session.sessionGuid isEqualToString:localFileSessionId])
+                            {
+                                appDelegate.session.sessionGuid = localFileSessionId;
+                            }
+                        }
+                        
+                        [handler handleMessage:aMessage];
                     }
+                    
+                    
+                    
+                    NSString *messageInsert = [NSString stringWithFormat:@"insert into system_messages select '%@', '%@', '%d', 0", aMessage.guid, @"", aMessage.messageType];
+                    
+                    [[LocalDatabase sharedInstance] executeQuery:messageInsert];
+                    
+                    [dataHandler release];
+                    [aMessage release];
+                }
+                else
+                {
+                    
+                    NSString *deleteSQL;
+                    
+                    if ([[bonjourMessageDict valueForKey:@"messageType"] intValue ] == 3) {
+                        deleteSQL = [NSString stringWithFormat:@"delete from library where guid = '%@'",  [bonjourMessageDict valueForKey:@"guid"]];
+                    }
+                    else{
+                        deleteSQL = [NSString stringWithFormat:@"delete from library where guid = '%@'",  [[bonjourMessageDict objectForKey:@"userData"] valueForKey:@"guid"]];
+                        
+                    }
+                    
+                    [[LocalDatabase sharedInstance] executeQuery:deleteSQL];
+                    
+                    NSString *deleteSystemMessagesSQL = [NSString stringWithFormat:@"delete from system_messages where guid = '%@'", [bonjourMessageDict valueForKey:@"guid"]];
+                    [[LocalDatabase sharedInstance] executeQuery:deleteSystemMessagesSQL];
+                    
+                    NSString *insertSystemMessagesSQL = [NSString stringWithFormat:@"insert into system_messages select '%@', '%@', '%d', 1", [bonjourMessageDict valueForKey:@"guid"], @"", [[bonjourMessageDict valueForKey:@"messageType"]intValue]];
+                    
+                    [[LocalDatabase sharedInstance] executeQuery:insertSystemMessagesSQL];
                 }
                 
-                [handler handleMessage:aMessage];
+               
+                
+                //NSString *progressMessage = [NSString stringWithFormat:@"[%d / %d]", i, totalCount];
+               // [self performSelectorInBackground:@selector(updateMessage:) withObject:progressMessage];
             }
-            
-            
-            
-            NSString *messageInsert = [NSString stringWithFormat:@"insert into system_messages select '%@', '%@', '%d'", aMessage.guid, @"", aMessage.messageType];
-
-            [[LocalDatabase sharedInstance] executeQuery:messageInsert];
-            
-            [dataHandler release];
-            [aMessage release];
-        }
-        
+       
         [self performSelectorInBackground:@selector(updateProgress:) withObject:[NSNumber numberWithFloat:(float) i / (float) totalCount]];
-        
-         
-      //  [progressView setProgress: ];
-
         
     }
     
@@ -414,12 +488,13 @@
     // remove sync view...
     [self setHidden:YES];
     appDelegate.state = previousState;
+ 
+    [self updateQuizAnswers]; // Load quiz answers from database and update library.
+
     [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
     
     [((LibraryView*) appDelegate.viewController) performSelectorOnMainThread:@selector(refreshDate:) withObject:[NSDate date] waitUntilDone:YES];
 }
-         
-         
 
 - (void)dealloc {
     [fileList release];
@@ -442,10 +517,13 @@
         progressView = [[[UIProgressView alloc] initWithFrame:CGRectMake(100, 480, 824, 25)] autorelease];
         [self addSubview:progressView];
         
-        progressLabel = [[[UILabel alloc] initWithFrame:CGRectMake(0, 480, 1024, 25)] autorelease];
+        progressLabel = [[[UILabel alloc] initWithFrame:CGRectMake(0, 510, 1024, 25)] autorelease];
         [progressLabel setTextColor:[UIColor whiteColor]];
+        [progressLabel setBackgroundColor:[UIColor clearColor]];
         [progressLabel setTextAlignment:UITextAlignmentCenter];
-        //  [self addSubview:progressLabel]; 
+        [progressLabel setFont:[UIFont boldSystemFontOfSize:16.0]];
+        
+        [self addSubview:progressLabel]; 
         
         
     }

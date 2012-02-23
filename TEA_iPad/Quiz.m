@@ -51,13 +51,9 @@
         
         [appDelegate.viewController dismissModalViewControllerAnimated:YES];
     }
-}
-
-- (void) sendSolution
-{
-    
-    if(currentAnswer == -1) // empty answer
+    else if(buttonIndex == 0 && quizFinished) //ok
     {
+        // Send empty answer
         TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
         BonjourMessage *solutionMessage = [[[BonjourMessage alloc] init] autorelease];
         solutionMessage.messageType = kMessageTypeQuizAnswer;
@@ -66,16 +62,43 @@
         
         NSMutableDictionary *userData = [[[NSMutableDictionary alloc] init] autorelease];
         [userData setValue:self.guid forKey:@"guid"];
-        [userData setValue:[NSNumber numberWithInt:currentAnswer] forKey:@"answer"];
+        [userData setValue:[NSNumber numberWithInt:-1] forKey:@"answer"];
         [userData setValue:[NSNumber numberWithInt:time] forKey:@"solutionTime"];
         solutionMessage.userData = userData;
         [appDelegate.bonjourBrowser sendBonjourMessageToAllClients:solutionMessage];
         
         [appDelegate.viewController dismissModalViewControllerAnimated:YES];
+    }
+}
 
+- (void) sendSolution
+{
+    
+    if(currentAnswer == -1) // empty answer
+    {
+        if(!displayingAlert)
+        {
+            TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+            BonjourMessage *solutionMessage = [[[BonjourMessage alloc] init] autorelease];
+            solutionMessage.messageType = kMessageTypeQuizAnswer;
+            
+            int time = solveTime - timerControl.currentSecond;
+            
+            NSMutableDictionary *userData = [[[NSMutableDictionary alloc] init] autorelease];
+            [userData setValue:self.guid forKey:@"guid"];
+            [userData setValue:[NSNumber numberWithInt:currentAnswer] forKey:@"answer"];
+            [userData setValue:[NSNumber numberWithInt:time] forKey:@"solutionTime"];
+            solutionMessage.userData = userData;
+            [appDelegate.bonjourBrowser sendBonjourMessageToAllClients:solutionMessage];
+            
+            [appDelegate.viewController dismissModalViewControllerAnimated:YES];
+
+        }
     }
     else
     {
+        displayingAlert = YES;
+        
         int asciiCode = 97; // ascii code of a
         NSString *alertString = [NSString stringWithFormat:NSLocalizedString(@"Answer Send Message", NULL), asciiCode + currentAnswer]; 
         
@@ -106,29 +129,40 @@
 
 - (void) continueTimer
 {
+    quizFinished = NO;
+    displayingAlert = NO;
+    
     timerControl.paused = NO;
     [self lockQuizOptions:NO];
 }
 
 - (void) finishQuiz
 {
-    if(!displayMode)
+    quizFinished = YES;
+    
+    
+    
+    if(!displayingAlert)
     {
-        currentAnswer = -1;
-        [self sendSolution];
+        if(!displayMode)
+        {
+            currentAnswer = -1;
+            [self sendSolution];
+        }
+        
+        TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+        [appDelegate.viewController dismissModalViewControllerAnimated:YES];
+        appDelegate.currentQuizWindow = nil;
+        [timerControl stopTimer];
+        [timerControl release];
+        timerControl = nil;
     }
     
-    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-    [appDelegate.viewController dismissModalViewControllerAnimated:YES];
-    appDelegate.currentQuizWindow = nil;
-    [timerControl stopTimer];
-    [timerControl release];
-    timerControl = nil;
 }
 
 - (void) timeIsOver
 {
-    
+
     
     if(!displayMode)
     {
@@ -148,7 +182,9 @@
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        
+      //  currentAnswer = -1;
+        quizFinished = NO;
+        displayingAlert = NO;
     }
     return self;
 }

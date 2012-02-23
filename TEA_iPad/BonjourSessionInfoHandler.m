@@ -9,6 +9,7 @@
 #import "BonjourSessionInfoHandler.h"
 #import "BonjourService.h"
 #import "TEA_iPadAppDelegate.h"
+#import "ConfigurationManager.h"
 
 @implementation BonjourSessionInfoHandler
 
@@ -35,6 +36,10 @@
     appDelegate.session.sessionLectureGuid  = [aMessage.userData valueForKey:@"courseGuid"];
     appDelegate.session.sessionTeacherName = [aMessage.userData valueForKey:@"teacherName"];
     appDelegate.session.dateInfo = [aMessage.userData valueForKey:@"dateinfo"];
+    
+    // Get configuration values from server.
+    NSDictionary *iPadConfigDictionary = [aMessage.userData objectForKey:@"iPadConfig"];
+    [ConfigurationManager setConfigurationValue:iPadConfigDictionary forKey:@"iPadConfig"];
     
     if(appDelegate.state != kAppStateSyncing)
     {

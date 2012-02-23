@@ -24,7 +24,7 @@
     {
         info = (NSDictionary*)CNCopyCurrentNetworkInfo((CFStringRef)ifnam);
         bssid = [info valueForKey:@"BSSID"];
-        NSLog(@"%s: %@ => %@", __func__, ifnam, info);
+        //NSLog(@"%s: %@ => %@", __func__, ifnam, info);
         if (info && [info count]) {
             break;
         }
@@ -35,11 +35,11 @@
     runningOperation = NO;
     
     //simulator returns false for BSSID
-    if([bssid isEqual:[NSNumber numberWithBool:0]])
-    {
-        bssid = @"0";
-    }
+#if TARGET_IPHONE_SIMULATOR
+    bssid = @"0";
+#endif 
     
+    //NSLog(@"bssid %@", bssid);
     return bssid;
 }
 
@@ -51,6 +51,8 @@
     NSString *deviceUDID = [appDelegate getDeviceUniqueIdentifier];
     NSString *sql = [NSString stringWithFormat:@"select * from location where device_id='%@'", deviceUDID];
     NSArray *rows = [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:sql];
+    
+    
     
     allowedLocation = nil;
     if([rows count] == 1)
@@ -93,12 +95,7 @@
 
 - (void) startLocationTracking
 {
-    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
-    locationServiceMessageView = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-    [appDelegate.viewController.view addSubview:locationServiceMessageView];
-    //[locationServiceMessageView setHidden:YES];
-    [locationServiceMessageView setMessage:@"Eşleştirme kontrolü yapılıyor..."];
     
     [locationManager startUpdatingLocation];
 }
@@ -125,8 +122,32 @@
     
 }
 
+
+
+//*************************************>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+-(BOOL)reachable {
+    Reachability *r = [Reachability reachabilityForLocalWiFi];
+    NetworkStatus internetStatus = [r currentReachabilityStatus];
+    if(internetStatus == NotReachable) {
+        return NO;
+    }
+    return YES;
+}
+
+//*************************************<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
 - (void) startService
 {
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
+    locationServiceMessageView = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
+    [appDelegate.viewController.view addSubview:locationServiceMessageView];
+    [locationServiceMessageView setHidden:NO];
+    [locationServiceMessageView setMessage:@"Eşleştirme kontrolü yapılıyor..."];
+    
+    
      // Set known access points
     allowedBSSIDs = [[NSMutableArray alloc] initWithCapacity:10];
     staticBSSIDs = [[NSMutableArray alloc] initWithCapacity:10];
@@ -136,7 +157,7 @@
     [staticBSSIDs addObject:@"24:b6:57:8c:2:40"];
     [staticBSSIDs addObject:@"68:bc:c:ca:be:0"];
     [staticBSSIDs addObject:@"24:b6:57:43:35:b0"];
-    [staticBSSIDs addObject:@"c0:c1:c0:58:e5:2e"];   
+//    [staticBSSIDs addObject:@"c0:c1:c0:58:e5:2d"];   
     [staticBSSIDs addObject:@"0"]; 
     
     locationManager = [[CLLocationManager alloc] init];
@@ -144,8 +165,26 @@
     locationManager.desiredAccuracy = kCLLocationAccuracyBest;
     [locationServiceMessageView setHidden:NO];
     
+    
+//--*************************************>>>>>>>>>>>>>>>>>>>>>>>>>>    
+   
+    NSError *error=nil;
+    NSString *protocolURL = [NSString stringWithContentsOfURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] encoding:NSUTF8StringEncoding error:&error];
+    
+    if (protocolURL == NULL ) {
+        [locationServiceMessageView setMessage:@"İnternet Bağlantısı Sağlanamadı. Lütfen bağlantınızı kontrol edin."];
+        [locationServiceMessageView setHidden:NO];
+        return;
+    }
+
+
+//--*************************************<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    [locationServiceMessageView setHidden:YES];
+    
     //[self startLocationTracking];
     [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(checkLocation) userInfo:nil repeats:YES];
+    
 }
 
 
@@ -159,7 +198,11 @@
        didFailWithError:(NSError *)error
 {
     [locationServiceMessageView setHidden:NO];
-    [locationServiceMessageView setMessage:@"Eşleştirme kontrolü yapılamıyor, servis hatası..."];
+//    [locationServiceMessageView setMessage:@"Eşleştirme kontrolü yapılamıyor, servis hatası..."];
+    
+    
+    [locationServiceMessageView setMessage:@"Lokasyon bilgileri alınamıyor. Lütfen lokasyon servisinin açık olduğundan emin olun"];
+    
     NSLog(@"location service failed.");
 }
 
@@ -169,7 +212,20 @@
 {
         NSLog(@"%f, %f", [newLocation verticalAccuracy], [newLocation horizontalAccuracy]);
     
+//*************************************>>>>>>>>>>>>>>>>>>>>>>>>>> 
+    
+        NSString *locationInfoMessage = [NSString stringWithFormat:@"Lat - %f, Long - %f, ", newLocation.coordinate.latitude, newLocation.coordinate.longitude];
+        locationInfoMessage = [locationInfoMessage stringByAppendingFormat:@"Yatay Hassasiyet : %f, ", newLocation.verticalAccuracy];
+        locationInfoMessage = [locationInfoMessage stringByAppendingFormat:@"Dikey Hassasiyet :  %f", newLocation.horizontalAccuracy];
         
+    NSLog(@"message %@", locationInfoMessage);
+    
+        [locationServiceMessageView setMessageLocationLabel:locationInfoMessage];
+
+//*************************************<<<<<<<<<<<<<<<<<<<<<<<<<<        
+    
+    
+    
         if(runningOperation)
         {
             [locationServiceMessageView setHidden:YES];
@@ -184,7 +240,7 @@
         
         if(!allowedLocation)
         {
-            if ([newLocation verticalAccuracy] <= 70 && [newLocation horizontalAccuracy] <= 70) 
+            if ([newLocation verticalAccuracy] <= 260 && [newLocation horizontalAccuracy] <= 260) 
             {
                 runningOperation = YES;
                 
@@ -195,6 +251,13 @@
                     if(![self getAllowedLocation])
                     {
                         [locationServiceMessageView setMessage:@"Uygulama eşleştirme kaydınız oluşturulamadı. Lütfen sistem yöneticinize haber veriniz! "];
+                        
+                        //*************************************>>>>>>>>>>>>>>>>>>>>>>>>>>
+                        
+                        //[locationServiceMessageView setMessage:@""];
+                        
+                        //*************************************<<<<<<<<<<<<<<<<<<<<<<<<<<
+                        
                         [locationServiceMessageView setHidden:NO];
                         [locationManager stopUpdatingLocation];
                     }
@@ -204,6 +267,7 @@
             }
             else
             {
+                [locationServiceMessageView setMessage:@"Uygulama yatay ve dikey doğruluk değerleri sınır değerlerinin üstünde."];
                 return;
             }
         }
@@ -222,14 +286,18 @@
         
         if ( distanceInMeters > allowedRange ) 
         {
-            
+            /*
             NSString *message = [NSString stringWithFormat: @"Uygulama kullanım dışı bırakıldı. \n(Uzaklık:%f)\n", distanceInMeters];
             message = [message stringByAppendingFormat:@"Geçerli bölge : %f, %f\n", newLocation.coordinate.latitude, newLocation.coordinate.longitude];
             message = [message stringByAppendingFormat:@"Lokasyon Güncelleme Sayısı : %d\n", locationCount];
             message = [message stringByAppendingFormat:@"Yatay Hassasiyet : %f\n", newLocation.verticalAccuracy];
             message = [message stringByAppendingFormat:@"Dikey Hassasiyet :  %f", newLocation.horizontalAccuracy];
             
-            [locationServiceMessageView setMessage:message];
+             */
+            
+            locationInfoMessage = [NSString stringWithFormat: @"Uygulama kullanım dışı bırakıldı. (Uzaklık:%f metre)", distanceInMeters];
+            
+            [locationServiceMessageView setMessage:locationInfoMessage];
             [locationServiceMessageView setHidden:NO];
         }
         else

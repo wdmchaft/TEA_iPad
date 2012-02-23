@@ -20,6 +20,7 @@
 #import "QuizViewer.h"
 #import "NotebookAddView.h"
 #import "HWView.h"
+#import "ConfigurationManager.h"
 
 @implementation SessionLibraryItemView
 @synthesize name, path, type, sessionView, quizImagePath, previewPath, correctAnswer, answer, guid, quizOptCount;
@@ -256,6 +257,7 @@
 - (void) initLibraryItemView
 {
     
+    
     /* Add preview image */
     
     if (!([type isEqualToString:@"video"] || [type isEqualToString:@"audio"] || [type isEqualToString:@"homework"])) 
@@ -430,18 +432,38 @@
     
 }
 
+- (void) logDeviceModule:(NSString*)itemType
+{
+    TEA_iPadAppDelegate *logAppDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
+    
+    NSString *selectSQL = [NSString stringWithFormat:@"select lecture_name from lecture, library, session where library.guid = '%@' and library.session_guid = session.session_guid and session.lecture_guid = lecture.lecture_guid", guid ];
+    NSString *lectureName = [[[[LocalDatabase sharedInstance] executeQuery:selectSQL] objectAtIndex:0] objectForKey:@"lecture_name"];
+    
+    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
+    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
+    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
+    
+    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
+    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+    
+    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, lecture, content_type, time) values ('%@','%@','%@', '%@','%@','%@','%@')", [logAppDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"openedLibraryItems",lectureName, itemType, dateString];
+    
+    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
+}
 
 -(void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    
- 
     if(state == kStateNormalMode)
     {
+        
+        [self logDeviceModule:type];
+        
         if([type isEqualToString:@"video"])
         {
             MediaPlayer *player = [[MediaPlayer alloc] initWithFrame:CGSizeMake(500, 500) andVideoPath:[self getFullPathForFile:self.path]];
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-            
+                        
             [appDelegate.viewController.view addSubview:player];
             [player release];
         }
@@ -501,21 +523,24 @@
         {
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
 
-            //- (id)initWithFrame:(CGRect)frame andZipFileName:(NSString*) aZipFileName
+            //if session is not logon state
+            
+            if (appDelegate.state != kAppStateLogon) {
 
             // Get homework name from db
 
-            
-            NSString *sql = [NSString stringWithFormat: @"select name from homework where file = '%@'", self.path];
-            
-            NSString *homeworkName = [[[[LocalDatabase sharedInstance] executeQuery:sql] objectAtIndex:0] valueForKey:@"name"] ;
-  
-            
-            HWView *homeworkView = [[HWView alloc] initWithFrame:CGRectMake(0, 0, 1024, 748) andZipFileName:self.path andHomeworkId:self.guid];
-            [homeworkView.titleOfHomework setText:homeworkName]; 
-            
-            [appDelegate.viewController.view addSubview:homeworkView];
-            [homeworkView release];
+                NSString *sql = [NSString stringWithFormat: @"select name from homework where file = '%@'", self.path];
+                
+                NSString *homeworkName = [[[[LocalDatabase sharedInstance] executeQuery:sql] objectAtIndex:0] valueForKey:@"name"] ;
+                
+                
+                HWView *homeworkView = [[HWView alloc] initWithFrame:CGRectMake(0, 0, 1024, 748) andZipFileName:self.path andHomeworkId:self.guid];
+                [homeworkView.titleOfHomework setText:homeworkName]; 
+                
+                [appDelegate.viewController.view addSubview:homeworkView];
+                [homeworkView release];
+                
+            }
 
            /* LibraryDocumentItem *libraryDocumentItem = [[LibraryDocumentItem alloc] init];
             libraryDocumentItem.path = [self getFullPathForFile:self.path];

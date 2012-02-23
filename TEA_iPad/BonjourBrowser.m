@@ -14,7 +14,9 @@
 
 @implementation BonjourBrowser
 
+
 @synthesize netServiceBrowser, services;
+
 /*
 - (void) sendData:(NSData *)dataValue groupCode:(uint8_t)groupCode groupCodeType:(uint8_t)groupCodetype dataType:(uint8_t)dataType 
 {
@@ -39,10 +41,12 @@
 }
 */
 
+
 - (NSMutableArray*) bonjourServers
 {
     return clients;
 }
+
 /*
 - (void) sendString:(NSString *)dataString groupCode:(uint8_t)groupCode groupCodeType:(uint8_t)groupCodetype dataType:(uint8_t)dataType
 {
@@ -55,6 +59,8 @@
 }
 
 */
+
+
 
 - (id)init
 {
@@ -90,6 +96,15 @@
     
     self = [self init];
     
+  /*  input.delegate = nil;
+    [input release];
+    input = nil;
+    
+    output.delegate = nil;
+    [input release];
+    input = nil;
+    */
+    
     [self startBrowse];
 }
 
@@ -122,6 +137,7 @@
     NSInputStream *input;
     NSOutputStream *output;
     
+
     BonjourClient *client = [[BonjourClient alloc] init];
     client.bonjourBrowser = self;
     

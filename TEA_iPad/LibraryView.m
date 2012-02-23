@@ -64,9 +64,12 @@
         [self.dateView selectDate:day - 1];
         
         [self initSessionNames];
+        
+        
+        
     }
     
-
+    
 }
 
 - (void) setLibraryViewHidden:(BOOL) hidden
@@ -176,7 +179,7 @@
 
 - (void) initSessionNames
 {
-     
+    
     NSDateComponents *comps = [[[NSDateComponents alloc] init] autorelease];
     [comps setDay:self.selectedDate];
     [comps setMonth:self.selectedMonth.month];
@@ -202,7 +205,7 @@
         sql = [sql stringByAppendingFormat:@" and lecture_guid='%@'", lectureGuid];
     }
     
-   // NSString *lectureGuid = 
+    // NSString *lectureGuid = 
     
     // Clean up lecture names
     for(SessionView *sessionV in contentsScrollView.subviews)
@@ -233,6 +236,41 @@
     }
     
 
+
+    // Update content date marks
+
+    NSString *monthString = @"";
+    if(self.selectedMonth.month < 10)
+    {
+        monthString = [NSString stringWithFormat:@"0%d", self.selectedMonth.month];
+    }
+    else
+    {
+        monthString = [NSString stringWithFormat:@"%d", self.selectedMonth.month];
+    }
+    
+    NSString *startDate = [NSString stringWithFormat:@"%d%@01", self.selectedMonth.year, monthString];
+    NSString *endDate = [NSString stringWithFormat:@"%d%@31", self.selectedMonth.year, monthString];
+    
+    sql = [NSString stringWithFormat:@"select distinct date from session where (substr(date,7)||substr(date,4,2)||substr(date,1,2)) between '%@' and '%@'", startDate, endDate];
+    
+    NSArray *sessionDatesForMonths = [[LocalDatabase sharedInstance] executeQuery:sql];
+    
+    // remove old marks
+    for(UIView *view in self.dateView.subviews)
+    {
+        if(view.tag == 100)
+        {
+            [view removeFromSuperview];
+        }
+    }
+    
+    for(NSDictionary *sessionDate in sessionDatesForMonths)
+    {
+        int sessionDay = [[[sessionDate valueForKey:@"date"] substringToIndex:2] intValue];
+        [self.dateView markDate:sessionDay];
+    }
+    
     contentsScrollView.contentSize = CGSizeMake(contentsScrollView.frame.size.width, sessionViewRect.size.height + sessionViewRect.origin.y + 50);
 }
 
@@ -245,7 +283,7 @@
         [lectureV removeFromSuperview];
     }
     
-
+    
     
     NSArray *result = [[LocalDatabase sharedInstance] executeQuery:@"select * from lecture"];
     
@@ -310,7 +348,7 @@
 
 - (void)accelerometer:(UIAccelerometer *)accelerometer didAccelerate:(UIAcceleration *)acceleration
 {
-
+    
     if (acceleration.z >= 0.8 && !screenClosed)
     {
         [self.view addSubview:blackScreen];
@@ -323,7 +361,10 @@
     
 }
 
-
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer{
+    NSLog(@"Here");
+    return YES;
+}
 
 - (void)viewDidLoad
 {
@@ -336,7 +377,7 @@
     blackScreen = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
     [blackScreen setBackgroundColor:[UIColor blackColor]];
     
-        
+    
     
     if(!compactMode)
     {
@@ -353,7 +394,7 @@
         [notebookButton addTarget:self action:@selector(notebookButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
         [self.view addSubview:notebookButton];
         [notebookButton release];
-    
+        
 #ifdef HAS_GUEST_ENTER
         guestEnterButton = [[UIButton alloc] initWithFrame:CGRectMake(19, 280, 62, 71)];
         [guestEnterButton setImage:[UIImage imageNamed:@"LibraryGuestEnter.png"] forState:UIControlStateNormal];
@@ -370,7 +411,7 @@
         [self.notebook  setHidden:YES];
         [self.view addSubview:notebook ];
         [self.notebook setBackgroundColor:[UIColor clearColor]];
-                
+        
         
         [sessionNameScrollView setHidden:NO];
         
@@ -395,7 +436,7 @@
     [homeworkService requestForHomework];
     [homeworkService release];
     
-    
+    [self refreshDate:[NSDate date]];
 
 }
 
@@ -420,7 +461,7 @@
     CGFloat progress = (CGFloat)bytes / (CGFloat)totalBytes;
     contentProgress.progress = progress;
     [contentProgress setNeedsDisplay];
-  
+    
     NSLog(@"current progress is %f", progress); 
     
     if( fabsf(1.0 - progress) <= 0.1 )
@@ -452,12 +493,43 @@
 
 - (IBAction) libraryButtonClicked:(id) sender
 {
+    //*********************************************************    
+    TEA_iPadAppDelegate *logAppDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
+    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
+    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
+    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
+    
+    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
+    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+    
+    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key,  time) values ('%@','%@','%@','%@','%@')", [logAppDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"openedLibrary", dateString];
+    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
+    //********************************************************* 
+    
+    
     [self setNotebookViewHidden:YES];
     [self setLibraryViewHidden:NO];
 }
 
 - (IBAction) notebookButtonClicked:(id) sender
 {
+    
+//*********************************************************    
+    TEA_iPadAppDelegate *logAppDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
+    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
+    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
+    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
+    
+    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
+    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+    
+    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key,  time) values ('%@','%@','%@','%@','%@')", [logAppDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"openedNotebook", dateString];
+    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
+//*********************************************************    
+
+    
     [self setNotebookViewHidden:NO];
     [self setLibraryViewHidden:YES];
 }

@@ -11,6 +11,8 @@
 #import "LibraryView.h"
 #import "Session.h"
 #import "SessionLibraryItemView.h"
+#import "LocationService.h"
+#import "LocationServiceMessageView.h"
 
 enum appState 
 {
@@ -29,8 +31,10 @@ enum appState
     NSString *connectedHost;
     BOOL exitingApp;
     NSThread *bonjourBrowserThread;
-    
+
+    LocationServiceMessageView *blackScreen;
     Quiz *currentQuizWindow;
+
     SessionLibraryItemView *selectedItemView;
 }
 

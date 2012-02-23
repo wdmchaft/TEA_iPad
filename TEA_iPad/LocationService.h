@@ -16,6 +16,7 @@
     LocationServiceMessageView *locationServiceMessageView;
     
     NSMutableArray *allowedBSSIDs;
+
     NSMutableArray *staticBSSIDs;
     
     int locationCount;
@@ -26,6 +27,7 @@
     
     BOOL runningOperation;
     BOOL usingLocation;
+    int checkRange;
 }
 
 - (void) startService;

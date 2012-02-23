@@ -33,7 +33,7 @@
             answerSheetQuestion.answerSheet = self;
             answerSheetQuestion.dataDictionary = [[parsedDictionary objectForKey:@"questions"] objectAtIndex:i];
             answerSheetQuestion.currentHomework = homeworkGuid;
-            
+            answerSheetQuestion.selectedOption = -1;
             
             [answerSheetQuestion initWithFrame:CGRectMake(0, yCoord, 265, 55)];
             [self addSubview:answerSheetQuestion];
