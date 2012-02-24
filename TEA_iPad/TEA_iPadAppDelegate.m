@@ -29,7 +29,7 @@
 #import "LocationService.h"
 #import "ConfigurationManager.h"
 #include <SystemConfiguration/SystemConfiguration.h>
-
+#import "DWObfuscator.h"
 
 @implementation TEA_iPadAppDelegate
 
@@ -198,12 +198,61 @@ void handleException(NSException *exception)
 }
 
 
+- (void) totallyReObfuscateFiles
+{
+    DWObfuscator *obfuscator = [DWObfuscator sharedInstance];
+    
+    NSError **error = nil;
+    
+    NSArray *paths =NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsPath = [paths objectAtIndex:0];
+    NSArray *syncContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:documentsPath error:error];
+    
+    for (NSString *file in syncContents) 
+    {
+        NSString *extension = [[file componentsSeparatedByString:@"."]lastObject];
+        if([obfuscator fileTypeNeedsObfuscation:extension])
+        { 
+            NSString *fullPathOfFile = [NSString stringWithFormat:@"%@/%@", documentsPath, file];
+            NSData *originalFile = [obfuscator readObfuscatedFile:fullPathOfFile];
+           
+            [originalFile writeToFile:fullPathOfFile atomically:YES];
+        }
+        
+    }
+    
+}
+
+- (void) totallyObfuscateFiles
+{
+    DWObfuscator *obfuscator = [DWObfuscator sharedInstance];
+
+    NSError **error = nil;
+    
+    NSArray *paths =NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsPath = [paths objectAtIndex:0];
+    NSArray *syncContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:documentsPath error:error];
+        
+    for (NSString *file in syncContents) 
+    {
+        NSString *extension = [[file componentsSeparatedByString:@"."]lastObject];
+        if([obfuscator fileTypeNeedsObfuscation:extension])
+        {
+            NSString *fullPathOfFile = [NSString stringWithFormat:@"%@/%@", documentsPath, file];
+            [obfuscator obfuscateFile:fullPathOfFile];
+        }
+        
+    }
+
+}
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     if ([[ConfigurationManager getConfigurationValueForKey:@"EXCEPTION_ENABLED"] intValue]){
         NSSetUncaughtExceptionHandler(&handleException);
     }
-     
+ 
+
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     [center addObserver:self selector:@selector(screenDidConnect:) name:UIScreenDidConnectNotification object:nil];
     [center addObserver:self selector:@selector(screenDidDisconnect:) name:UIScreenDidDisconnectNotification object:nil];

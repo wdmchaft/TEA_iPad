@@ -22,6 +22,7 @@
 #import "HWView.h"
 #import "ConfigurationManager.h"
 
+
 @implementation SessionLibraryItemView
 @synthesize name, path, type, sessionView, quizImagePath, previewPath, correctAnswer, answer, guid, quizOptCount;
 
@@ -48,6 +49,7 @@
             [previewWebView setDelegate:nil];
         }
         
+        
         UIImage *image = [UIImage imageWithContentsOfFile:[self getFullPathForFile:previewPath]];
         
         previewImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
@@ -68,6 +70,11 @@
         if([extension isEqualToString:@"pdf"] || [extension isEqualToString:@"PDF"])
         {
             [self savePreviewForPDFPage];
+        }
+        else if ([type isEqualToString:@"video"])
+        {
+            // get last frame of video
+            [self savePreviewForVideo];
         }
         else
         {
@@ -163,6 +170,48 @@
     
 }
 
+
+-(void) savePreviewForVideo
+{
+    MPMoviePlayerController *movie = [[MPMoviePlayerController alloc]
+                                      initWithContentURL:[NSURL fileURLWithPath:[self getFullPathForFile:self.path]]];
+    
+    UIImage *singleFrameImage = [movie thumbnailImageAtTime:[movie duration] 
+                                                 timeOption:MPMovieTimeOptionExact];
+
+    
+    
+    NSData *imageData = UIImagePNGRepresentation(singleFrameImage);
+    if(imageData != nil)
+    {
+        NSArray *paths =NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString *documentsPath = [paths objectAtIndex:0];
+        NSString *fileName = [[LocalDatabase stringWithUUID] stringByAppendingString:@".png"];
+        NSString *filePath = [documentsPath stringByAppendingPathComponent:fileName];
+        
+        [imageData writeToFile:filePath atomically:NO];
+        
+        
+        [[LocalDatabase sharedInstance] executeQuery:[NSString stringWithFormat:@"update library set previewPath='%@' where path='%@'", fileName, path]];
+        
+        self.previewPath = fileName;
+        
+        
+        
+        previewImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 103, 113)];
+        [previewImage setImage:singleFrameImage];
+        [self addSubview:previewImage];
+        [previewImage.layer setCornerRadius:10];
+        [previewImage.layer setMasksToBounds:YES];
+        [previewImage release];
+        
+        [self bringSubviewToFront:borderImage];
+    }
+    
+    [movie release];
+}
+
+
 - (void) webViewDidFinishLoad:(UIWebView *)webView
 {
  
@@ -252,7 +301,7 @@
     
     /* Add preview image */
     
-    if (!([type isEqualToString:@"video"] || [type isEqualToString:@"audio"] || [type isEqualToString:@"homework"])) 
+    if (!([type isEqualToString:@"audio"] || [type isEqualToString:@"homework"])) 
     {
         [self getFilePreview];
         

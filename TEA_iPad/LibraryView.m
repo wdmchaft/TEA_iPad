@@ -15,8 +15,11 @@
 #import "DWDrawingViewController.h"
 #import "Notebook.h"
 #import "TEA_iPadAppDelegate.h"
+#import "NotebookSync.h"
+#import "DWSearchBar.h"
 
 @implementation LibraryView
+@synthesize searchTextField;
 @synthesize contentProgress;
 @synthesize sessionNameScrollView;
 @synthesize monthsScrollView;
@@ -27,13 +30,14 @@
 @synthesize compactMode;
 @synthesize notebook;
 @synthesize lectureViews;
-
+@synthesize notebookWorkspace;
 @synthesize selectedLecture;
 @synthesize selectedMonth;
 @synthesize selectedDate;
 @synthesize logonGlow;
 @synthesize guestEnterButton;
 @synthesize syncView;
+@synthesize notebookSyncService;
 @synthesize homeworkService;
 @synthesize numericPadPopover;
 
@@ -65,7 +69,7 @@
         
         [self initSessionNames];
         
-        
+        searchTextField.text = @"";
         
     }
     
@@ -79,8 +83,10 @@
         [self setNotebookHidden:YES];
         [self setNotebookViewHidden:YES];
         [backgroundView setImage:[UIImage imageNamed:@"LibraryBG.jpg"]];
+        
     }
     
+    [searchTextField setHidden:hidden];
     [sessionNameScrollView setHidden:hidden];
     [sessionNameScrollView setHidden:hidden];
     [monthsScrollView setHidden:hidden];
@@ -167,6 +173,55 @@
     
     monthsScrollView.contentSize = CGSizeMake(243 * counter, 37);
     [self.selectedMonth setSelected:YES];
+}
+
+
+- (void) initSessionNamesWithFilter:(NSDictionary*) filterObject
+{
+    
+    NSString *sessionNameFilter = [filterObject valueForKey:@"libraryFilter"];
+    NSString *sql = [NSString stringWithFormat: @"select * from session where name like '%%%@%%'", sessionNameFilter];
+
+    // Clean up 
+    for(SessionView *sessionV in contentsScrollView.subviews)
+    {
+        //[sessionV release];
+        [sessionV removeFromSuperview];
+    }
+    
+    
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql];
+    
+    int counter = 0;
+    CGRect sessionViewRect = CGRectMake(0, 0, 0, 0);
+    
+    for(NSDictionary *resultDict in result)
+    {
+        sessionViewRect = CGRectMake(0, sessionViewRect.origin.y + sessionViewRect.size.height + 20, contentsScrollView.frame.size.width, 300);
+        SessionView *sessionView = [[SessionView alloc] initWithFrame:sessionViewRect];
+        sessionView.libraryViewController = self;
+        sessionView.sessionName = [resultDict valueForKey:@"name"];
+        sessionView.sessionGuid = [resultDict valueForKey:@"session_guid"];
+        
+        [contentsScrollView addSubview:sessionView];
+        [sessionView initSessionView];
+        [sessionView release];
+        counter++;
+        sessionViewRect = sessionView.frame;
+    }
+    
+    
+    
+   // remove old date marks
+    for(UIView *view in self.dateView.subviews)
+    {
+        if(view.tag == 100)
+        {
+            [view removeFromSuperview];
+        }
+    }
+       
+    contentsScrollView.contentSize = CGSizeMake(contentsScrollView.frame.size.width, sessionViewRect.size.height + sessionViewRect.origin.y + 50);
 }
 
 - (void) initSessionNames
@@ -264,6 +319,9 @@
     }
     
     contentsScrollView.contentSize = CGSizeMake(contentsScrollView.frame.size.width, sessionViewRect.size.height + sessionViewRect.origin.y + 50);
+    
+    
+    searchTextField.text = @"";
 }
 
 - (void) initLectureNames
@@ -314,6 +372,7 @@
     
     [numericPadPopover release];
     [syncView release];
+    [notebookSyncService release];
     [homeworkService release];
     [lectureViews release];
     [guestEnterButton release];
@@ -325,6 +384,7 @@
     [dateView release];
     [backgroundView release];
     [logonGlow release];
+    [searchTextField release];
     [super dealloc];
 }
 
@@ -358,8 +418,61 @@
     return YES;
 }
 
+- (void) searchingLibraryForText:(NSString*) aText
+{
+    if(!aText || [aText length] <=0)
+    {
+        [self refreshDate:[NSDate date]];
+    }
+    else
+    {
+        NSArray *words = [aText componentsSeparatedByString:@" "];
+        
+        aText = @"";
+        
+        for (int i=0; i < [words count]; i++) 
+        {
+            NSString *word = [words objectAtIndex:i];
+            
+            if ([word length] > 0) 
+            {
+                NSString *firstLetter = [word substringToIndex:1];
+                
+                firstLetter = [firstLetter stringByReplacingOccurrencesOfString:@"ç" withString:@"Ç"];
+                firstLetter = [firstLetter stringByReplacingOccurrencesOfString:@"ş" withString:@"Ş"];
+                firstLetter = [firstLetter stringByReplacingOccurrencesOfString:@"i" withString:@"İ"];
+                
+                word = [word stringByReplacingCharactersInRange:NSMakeRange(0, 1) withString:firstLetter];
+                
+                aText = [aText stringByAppendingString:word];
+                if(i < [words count] - 1)
+                {
+                    aText = [aText stringByAppendingString:@" "];
+                }
+            }
+        }
+        
+        for (int i=0; i < [words count]; i++) 
+        {
+            
+        }
+        
+        
+        NSMutableDictionary *parameters = [[NSMutableDictionary alloc] init];
+        [parameters setValue:aText forKey:@"libraryFilter"];
+        [self initSessionNamesWithFilter:parameters];
+    }
+}
+
 - (void)viewDidLoad
 {
+    // Setup search field
+    DWSearchBarDelegate *searchBarDelegate = [[DWSearchBarDelegate alloc] init];
+    searchTextField.delegate = searchBarDelegate;
+    
+    searchTextField.target = self;
+    searchTextField.selector = @selector(searchingLibraryForText:);
+    
     [super viewDidLoad];
     
     
@@ -394,7 +507,7 @@
         [self.view addSubview:guestEnterButton];
         [guestEnterButton release];
 #endif        
-        notebookWorkspace = [[NotebookWorkspace alloc] initWithFrame:CGRectMake(136, 34, 855, 706)];
+        self.notebookWorkspace = [[NotebookWorkspace alloc] initWithFrame:CGRectMake(136, 34, 855, 706)];
         [notebookWorkspace  setHidden:YES];
         [self.view addSubview:notebookWorkspace ];
         [notebookWorkspace setBackgroundColor:[UIColor clearColor]];
@@ -420,6 +533,13 @@
     
     blackScreen = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
     [blackScreen setBackgroundColor:[UIColor blackColor]];
+    
+    self.notebookSyncService = [[NotebookSync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
+    self.notebookSyncService.libraryView = self;
+    [notebookSyncService setHidden:YES];
+    [self.view addSubview:notebookSyncService];
+    [notebookSyncService requestForNotebookSync];
+    [notebookSyncService release];
     
     self.homeworkService = [[Homework alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
     [homeworkService setHidden:YES];
@@ -472,6 +592,7 @@
     [self setDateView:nil];
     [self setBackgroundView:nil];
     [self setLogonGlow:nil];
+    [self setSearchTextField:nil];
     [super viewDidUnload];
 }
 
@@ -540,5 +661,15 @@
 {
     
 }
+
+- (IBAction)searchButtonClicked:(id)sender {
+   
+}
+
+
+/*
+ 
+ */
+
 
 @end

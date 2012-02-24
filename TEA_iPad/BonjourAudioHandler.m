@@ -31,7 +31,7 @@
     NSData *audioData = (NSData*) [aMessage.userData objectForKey:@"audio"];
     
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *audioName = [[LocalDatabase stringWithUUID] stringByAppendingString:@".mov"]; 
+    NSString *audioName = [[aMessage.userData objectForKey:@"guid"] stringByAppendingString:@".mov"]; 
     NSString *audioPath = [NSString stringWithFormat:@"%@/%@",  [paths objectAtIndex:0], audioName];
     
     LibraryAudioItem *audioItem = [[LibraryAudioItem alloc] init];

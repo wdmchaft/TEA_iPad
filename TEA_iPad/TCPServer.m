@@ -148,7 +148,6 @@ static void TCPServerAcceptCallBack(CFSocketRef socket, CFSocketCallBackType typ
 }
 
 - (BOOL)start:(NSError **)error {
-
     CFSocketContext socketCtxt = {0, self, NULL, NULL, NULL};	
 
 	// Start by trying to do everything with IPv6.  This will work for both IPv4 and IPv6 clients 

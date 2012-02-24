@@ -31,7 +31,7 @@
     NSData *videoData = (NSData*) [aMessage.userData objectForKey:@"video"];
     
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *videoName = [[LocalDatabase stringWithUUID] stringByAppendingString:@".mov"]; 
+    NSString *videoName = [[aMessage.userData objectForKey:@"guid"] stringByAppendingString:@".mov"]; 
     NSString *videoPath = [NSString stringWithFormat:@"%@/%@",  [paths objectAtIndex:0], videoName];
     
     LibraryVideoItem *videoItem = [[LibraryVideoItem alloc] init];

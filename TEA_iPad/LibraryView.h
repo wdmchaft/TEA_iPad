@@ -13,9 +13,10 @@
 #import "NumericPad.h"
 #import "Sync.h"
 #import "Homework.h"
+#import "NotebookSync.h"
 
-@class DWDrawingViewController, LectureView, MonthView;
-@interface LibraryView : UIViewController <UIAccelerometerDelegate> {
+@class DWDrawingViewController, LectureView, MonthView, DWSearchBar;
+@interface LibraryView : UIViewController <UIAccelerometerDelegate, UITextFieldDelegate> {
     
     UIPopoverController *numericPadPopover;
     
@@ -47,6 +48,7 @@
     UIView *blackScreen;
     Sync *syncView;
     Homework *homeworkService;
+    NotebookSync *notebookSyncService;
     
     BOOL screenClosed;
 }
@@ -59,8 +61,10 @@
 @property (nonatomic, retain) IBOutlet UIScrollView *contentsScrollView;
 @property (nonatomic, retain) IBOutlet DateView *dateView;
 @property (nonatomic, assign) BOOL compactMode;
+@property (nonatomic, assign) NotebookWorkspace *notebookWorkspace;;
 @property (nonatomic, retain) Sync *syncView;
 @property (nonatomic, retain) Homework *homeworkService;
+@property (nonatomic, retain) NotebookSync *notebookSyncService;
 @property (nonatomic, assign) Notebook *notebook;
 @property (nonatomic, assign) NSMutableArray *lectureViews;
 
@@ -71,6 +75,8 @@
 
 
 @property (nonatomic, retain) IBOutlet UIImageView *backgroundView;
+@property (retain, nonatomic) IBOutlet DWSearchBar *searchTextField;
+
 - (void) receivedContentBytes:(NSDictionary*) userInfo ;
 - (void) initLectureNames;
 - (void) initSessionNames;
@@ -79,6 +85,7 @@
 - (IBAction) libraryButtonClicked:(id) sender;
 - (IBAction) notebookButtonClicked:(id) sender;
 - (IBAction) calendarButtonClicked:(id) sender;
+- (IBAction)searchButtonClicked:(id)sender;
 
 - (void) setLibraryViewHidden:(BOOL) hidden;
 - (void) setNotebookViewHidden:(BOOL) hidden;
