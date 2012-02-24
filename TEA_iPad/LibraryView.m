@@ -535,10 +535,10 @@
     [blackScreen setBackgroundColor:[UIColor blackColor]];
     
     self.notebookSyncService = [[NotebookSync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-    self.notebookSyncService.libraryView = self;
+  /*  self.notebookSyncService.libraryView = self;
     [notebookSyncService setHidden:YES];
     [self.view addSubview:notebookSyncService];
-    [notebookSyncService requestForNotebookSync];
+    [notebookSyncService requestForNotebookSync];*/
     [notebookSyncService release];
     
     self.homeworkService = [[Homework alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
