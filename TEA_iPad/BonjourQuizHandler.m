@@ -27,7 +27,7 @@
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
         
-    Quiz *quiz = [[[Quiz alloc] initWithNibName:@"Quiz" bundle:nil] autorelease];
+    Quiz *quiz = [[Quiz alloc] initWithNibName:@"Quiz" bundle:nil];
     quiz.guid = [aMessage.userData valueForKey:@"guid"];
     quiz.solveTime = [[aMessage.userData valueForKey:@"solveTime"] intValue];
     quiz.optionCount = [[aMessage.userData valueForKey:@"optionCount"] intValue];
@@ -53,6 +53,7 @@
         [quiz saveQuizItem];
     }
     
+    [quiz release];
     [pool release];
 }
 

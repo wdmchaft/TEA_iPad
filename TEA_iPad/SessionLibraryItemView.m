@@ -175,8 +175,9 @@
 {
     MPMoviePlayerController *movie = [[MPMoviePlayerController alloc]
                                       initWithContentURL:[NSURL fileURLWithPath:[self getFullPathForFile:self.path]]];
-    
-    UIImage *singleFrameImage = [movie thumbnailImageAtTime:[movie duration] 
+    [movie prepareToPlay];
+
+    UIImage *singleFrameImage = [movie thumbnailImageAtTime:0 
                                                  timeOption:MPMovieTimeOptionExact];
 
     
