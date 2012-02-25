@@ -52,4 +52,5 @@ enum kState {
 - (NSString *) getFullPathForFile:(NSString *) file;
 - (void) initLibraryItemView;
 - (void) savePreviewForPDFPage;
+- (void) savePreviewForVideo;
 @end

@@ -32,7 +32,7 @@
 
     
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *documentName = [NSString stringWithFormat:@"%@.%@", [LocalDatabase stringWithUUID], [aMessage.userData objectForKey:@"extension"]];
+    NSString *documentName = [NSString stringWithFormat:@"%@.%@", [aMessage.userData objectForKey:@"guid"], [aMessage.userData objectForKey:@"extension"]];
     NSString *documentPath = [NSString stringWithFormat:@"%@/%@",  [paths objectAtIndex:0], documentName];
 
     [documentData writeToFile:documentPath atomically:YES];

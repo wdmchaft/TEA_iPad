@@ -163,7 +163,6 @@
 - (void) timeIsOver
 {
 
-    
     if(!displayMode)
     {
         currentAnswer = -1;
@@ -312,8 +311,8 @@
 {
     // Save quiz item 
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *quizName = [[LocalDatabase stringWithUUID] stringByAppendingString:@".qz"]; 
-    NSString *quizImageName = [[LocalDatabase stringWithUUID] stringByAppendingString:@".png"]; 
+    NSString *quizName = [self.guid stringByAppendingString:@".qz"]; 
+    NSString *quizImageName = [self.guid stringByAppendingString:@".png"]; 
     NSString *quizPath = [NSString stringWithFormat:@"%@/%@",  [paths objectAtIndex:0], quizName];
     NSString *quizImagePath = [NSString stringWithFormat:@"%@/%@",  [paths objectAtIndex:0], quizImageName];
     

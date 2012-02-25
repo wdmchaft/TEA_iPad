@@ -31,8 +31,10 @@
     NSData *videoData = (NSData*) [aMessage.userData objectForKey:@"video"];
     
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *videoName = [[LocalDatabase stringWithUUID] stringByAppendingString:@".mov"]; 
+    NSString *videoName = [[aMessage.userData objectForKey:@"guid"] stringByAppendingString:@".mov"]; 
     NSString *videoPath = [NSString stringWithFormat:@"%@/%@",  [paths objectAtIndex:0], videoName];
+    
+    [videoData writeToFile:videoPath atomically:YES];
     
     LibraryVideoItem *videoItem = [[LibraryVideoItem alloc] init];
     videoItem.path = videoName;
@@ -40,7 +42,7 @@
     videoItem.guid = [aMessage.userData objectForKey:@"guid"];
     [videoItem saveLibraryItem];
     
-    [videoData writeToFile:videoPath atomically:YES];
+    
     [videoItem release];    
     
     [pool release];

@@ -43,6 +43,15 @@
                 
         [((LibraryView*) appDelegate.viewController) performSelectorOnMainThread:@selector(refreshDate:) withObject:[NSDate date] waitUntilDone:YES];
     }
+    else
+    {
+        NSString *updateSQL = [NSString stringWithFormat: @"update library set quizAnswer = '%d' where guid = '%@'", self.quizAnswer, self.guid];
+        
+        [[LocalDatabase sharedInstance] executeQuery:updateSQL];
+        
+        [((LibraryView*) appDelegate.viewController) performSelectorOnMainThread:@selector(refreshDate:) withObject:[NSDate date] waitUntilDone:YES];
+
+    }
  
 }
 

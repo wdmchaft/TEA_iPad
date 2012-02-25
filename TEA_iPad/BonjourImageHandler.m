@@ -31,7 +31,7 @@
     NSData *imageData = (NSData*) [aMessage.userData objectForKey:@"image"];
     
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *imageName = [[LocalDatabase stringWithUUID] stringByAppendingString:@".png"]; 
+    NSString *imageName = [[aMessage.userData objectForKey:@"guid"] stringByAppendingString:@".png"]; 
     NSString *imagePath = [NSString stringWithFormat:@"%@/%@",  [paths objectAtIndex:0], imageName];
     
     LibraryImageItem *imageItem = [[[LibraryImageItem alloc] init] autorelease];
