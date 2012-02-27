@@ -216,6 +216,7 @@
     NSLog(@"[BONJOUR] tea service resolved from host %@", hostName);
     NSLog(@"App State is %d", appDelegate.state);
     NSLog(@"HostNames are %@, %@", appDelegate.connectedHost, hostName);
+   
     if(appDelegate.state == kAppStateLogon) 
     {
         if([hostName isEqualToString:appDelegate.connectedHost])
@@ -323,6 +324,8 @@
     {
         [clients removeObject:tClient];
     }
+    
+    [services removeObject:netService];
     
     [clientsToRemove release];
 }
