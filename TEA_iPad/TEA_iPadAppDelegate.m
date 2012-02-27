@@ -98,26 +98,20 @@ void MyReachabilityCallback(
     [bonjourBrowser.netServiceBrowser stop];
     [bonjourBrowser.services removeAllObjects];
 
+    //[bonjourBrowser release];
+    //bonjourBrowser = nil;
+    
+    //CFRunLoopStop([[NSRunLoop currentRunLoop] getCFRunLoop]);
     
     self.state = kAppStateIdle;
     
     NSLog(@"Bonjur service stoped...");
 }
 
-- (void) restartBonjourBrowser
-{
-     
-    [self stopBonjourBrowser];
-    
-    [self performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
-
-    NSLog(@"Bonjour service restarted...");
-}
-
-
-
 - (void) startBonjourBrowser
 {
+    NSLog(@"bonjour browser started!!!! ");
+    
     NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
     
     if(!bonjourBrowser)
@@ -129,6 +123,20 @@ void MyReachabilityCallback(
     
     NSLog(@"Bonjur service started...");
 }
+
+- (void) restartBonjourBrowser
+{
+     
+    [self stopBonjourBrowser];
+    
+    [bonjourBrowser startBrowse];
+    
+    //[self performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
+    //[self startBonjourBrowser];
+    NSLog(@"Bonjour service restarted...");
+}
+
+
 
 - (void) reachabilityChanged: (NSNotification* )note
 {

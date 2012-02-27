@@ -165,7 +165,8 @@
 - (void) sendBonjourMessage:(BonjourMessage*) aMessage
 {
     
-    [NSThread detachNewThreadSelector:@selector(sendBonjourMessageWithNewThread:) toTarget:self withObject:aMessage];
+    //[NSThread detachNewThreadSelector:@selector(sendBonjourMessageWithNewThread:) toTarget:self withObject:aMessage];
+    [self sendBonjourMessageWithNewThread:aMessage];
 
 }
 
