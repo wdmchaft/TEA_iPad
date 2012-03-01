@@ -85,6 +85,7 @@
     
     NSString *deviceUDID = [appDelegate getDeviceUniqueIdentifier];
     NSString *deviceName = [appDelegate getDeviceName];
+    deviceName = [deviceName stringByReplacingOccurrencesOfString:@"'" withString:@""];
     NSString *bssid = [self getBSSID];
     NSString *sql = [NSString stringWithFormat:@"INSERT INTO `location` (`device_name`, `device_id`,`lat`,`lon`,`acp_range`,`3g_range`,`acp_address`,`reset`) VALUES ('%@', '%@', '%f', '%f', 160, 80, '%@', 0);", deviceName, deviceUDID, aLocation.coordinate.latitude, aLocation.coordinate.longitude, bssid];
     [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:sql];
