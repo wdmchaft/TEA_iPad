@@ -22,6 +22,7 @@
 #import "HWView.h"
 #import "ConfigurationManager.h"
 
+#import "DeviceLog.h"
 
 @implementation SessionLibraryItemView
 @synthesize name, path, type, sessionView, quizImagePath, previewPath, correctAnswer, answer, guid, quizOptCount;
@@ -476,11 +477,9 @@
 
 - (void) logDeviceModule:(NSString*)itemType
 {
+    /******************************************************************
+    
     TEA_iPadAppDelegate *logAppDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-    
-    
-    NSString *selectSQL = [NSString stringWithFormat:@"select lecture_name from lecture, library, session where library.guid = '%@' and library.session_guid = session.session_guid and session.lecture_guid = lecture.lecture_guid", guid ];
-    NSString *lectureName = [[[[LocalDatabase sharedInstance] executeQuery:selectSQL] objectAtIndex:0] objectForKey:@"lecture_name"];
     
     NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
     [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
@@ -490,8 +489,20 @@
     NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
     
     NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, lecture, content_type, time) values ('%@','%@','%@', '%@','%@','%@','%@')", [logAppDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"openedLibraryItems",lectureName, itemType, dateString];
-    
+     
     [[LocalDatabase sharedInstance] executeQuery:insertSQL];
+
+     
+     /******************************************************************/
+    
+   
+    
+    NSString *selectSQL = [NSString stringWithFormat:@"select lecture_name from lecture, library, session where library.guid = '%@' and library.session_guid = session.session_guid and session.lecture_guid = lecture.lecture_guid", guid ];
+    NSString *lectureName = [[[[LocalDatabase sharedInstance] executeQuery:selectSQL] objectAtIndex:0] objectForKey:@"lecture_name"];
+    
+    
+    [DeviceLog deviceLog:@"openedLibraryItems" withLecture:lectureName withContentType:itemType];
+    
 }
 
 -(void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
