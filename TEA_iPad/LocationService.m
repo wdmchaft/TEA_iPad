@@ -141,7 +141,7 @@
 
 - (void) startService
 {
-    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    /*TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
     locationServiceMessageView = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
     [appDelegate.viewController.view addSubview:locationServiceMessageView];
@@ -185,7 +185,7 @@
     
     //[self startLocationTracking];
     [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(checkLocation) userInfo:nil repeats:YES];
-    
+    */
 }
 
 

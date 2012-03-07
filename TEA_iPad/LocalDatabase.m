@@ -99,6 +99,10 @@ static NSMutableArray *sharedInstances;
             NSString *homeworkTableCreate = @"CREATE TABLE homework (guid TEXT, lecture_id TEXT, name TEXT, type TEXT, date TEXT, file TEXT, delivered TEXT, total_time TEXT);";
             [self executeQuery:homeworkTableCreate];
         }
+        else {
+            NSString *homeworkTableCreate = @"ALTER TABLE homework ADD deleted CHAR(25) NULL;";
+            [self executeQuery:homeworkTableCreate];
+        }
         
         
         // Check homework asnwers table
@@ -124,6 +128,17 @@ static NSMutableArray *sharedInstances;
             [self executeQuery:deviceLogTableCreate];
         }
         
+        
+        
+        //Check Calendar table
+        NSString *calendarTableCheck = @"SELECT name FROM sqlite_master WHERE name='calendar'";
+        NSArray *calendarTableResult = [self executeQuery:calendarTableCheck];
+        
+        if (calendarTableResult || [calendarTableResult count]<=0) 
+        {
+            NSString *calendarTableCreate = @"CREATE TABLE calendar (id TEXT, type TEXT, title TEXT, body TEXT, image_name TEXT, image_url TEXT, date_time TEXT, valid_date_time TEXT, alarm_date_time TEXT, repeated TEXT, completed TEXT, homework_ref_id TEXT, alarm_state TEXT, deleted TEXT);";
+            [self executeQuery:calendarTableCreate];
+        }
         
         // NSLog(@"DB OPENED");
 	}
