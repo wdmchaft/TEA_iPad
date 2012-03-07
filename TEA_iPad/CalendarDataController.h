@@ -44,9 +44,11 @@ enum calendarAlarmState
 //    int selectedRow;
     
     NSDictionary *currentEntry;
+    NSString *remoteProtocolURL;
     
 }
 
+@property (nonatomic, retain) NSString *remoteProtocolURL;
 
 @property (nonatomic, retain) NSDictionary *currentEntry;
 

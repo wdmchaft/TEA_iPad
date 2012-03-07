@@ -30,6 +30,7 @@
 #import <ifaddrs.h>
 #import <netdb.h>
 #import "ZipWriteStream.h"
+#import "DWDatabase.h"
 
 @implementation Sync
 
@@ -87,6 +88,13 @@
             if(!lastSyncTime)
             {
                 lastSyncTime = @"1900-01-01";
+                
+                
+                //*****************************************************************
+                NSString *updateReceivedNotificationsTable = [NSString stringWithFormat:@"update receivedNotifications set is_read = 0 where student_device_id = '%@'", appDelegate.getDeviceUniqueIdentifier];
+                [DWDatabase getResultFromURL:[NSURL URLWithString:[ConfigurationManager getConfigurationValueForKey:@"ProtocolRemoteURL"]] withSQL:updateReceivedNotificationsTable];
+                //*****************************************************************
+                           
             }
             
             NSString *systemMessges = [self getSystemMessages];
