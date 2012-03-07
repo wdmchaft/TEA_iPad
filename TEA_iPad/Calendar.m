@@ -9,6 +9,9 @@
 
 #import "Calendar.h"
 #import "CalendarView.h"
+#import "LocalDatabase.h"
+#import <QuartzCore/QuartzCore.h>
+
 
 @implementation Calendar
 @synthesize currentDate, currentDayLabel;
@@ -71,6 +74,8 @@
     
     // Place buttons to CalendarViews
     
+    NSArray *calendarDateWithEntry = [[LocalDatabase sharedInstance] executeQuery:@"select valid_date_time from calendar" returnSimpleArray:YES];
+    
     for (int i=0; i < numberOfDaysInMonth; i++) 
     {
         CGRect coordinates;
@@ -79,18 +84,40 @@
         
         coordinates = CGRectMake(x, y, hUnit-2, vUnit-2);
         UIButton *button = [[UIButton alloc] initWithFrame:coordinates];
-        button.titleLabel.numberOfLines = 2;
-        button.titleLabel.textAlignment = UITextAlignmentCenter;
+//        button.titleLabel.numberOfLines = 2;
+        button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
         
-        self.titlePoint = @"";//'";
-        [button setTitle:[NSString stringWithFormat:@"%d\n%@", i+1, titlePoint] forState:UIControlStateNormal];
-        [button setBackgroundColor:backGroundColor];
+        UILabel *buttonLabel = [[UILabel alloc] initWithFrame:CGRectMake(button.bounds.origin.x+16, button.bounds.origin.y+16, 2, 2)];
+
+        
+        NSString *day;
+        if (i<9) {
+            day = [NSString stringWithFormat:@"0%d", i+1];
+        }
+        else
+            day = [NSString stringWithFormat:@"%d", i+1];
+        
+        NSString *containsObject = [NSString stringWithFormat:@"%d-%@-%@ 00:00", year, months, day];
+        if ([calendarDateWithEntry containsObject:containsObject]) {
+            self.titlePoint = @"_";
+            [buttonLabel setBackgroundColor:[UIColor grayColor]];
+            
+        }
+        else{
+            self.titlePoint = @" ";//'";
+            [buttonLabel setBackgroundColor:[UIColor whiteColor]];
+        }
+        [button addSubview:buttonLabel];
+        
+        [button setTitle:[NSString stringWithFormat:@" %d", i+1] forState:UIControlStateNormal];
+ //       [button setBackgroundColor:[UIColor clearColor]];
         [button setTitleColor:textColor forState:UIControlStateNormal];
         [button addTarget:self action:@selector(calendarDayClicked:) forControlEvents:UIControlEventTouchUpInside];
         [button setTag:i+1];
         
         [self addSubview:button];
         [button release];
+        [buttonLabel release];
     }
     
     // Place dayLabels to CalendarView

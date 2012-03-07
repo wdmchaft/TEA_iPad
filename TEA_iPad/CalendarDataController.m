@@ -15,16 +15,25 @@
 #import "DWDatabase.h"
 #import <QuartzCore/QuartzCore.h>
 #import "ActivityIndicator.h"
+#import "ConfigurationManager.h"
+
+
+enum calendarEntryType {
+    cEntryTypeSystem   = 0,
+    cEntryTypeUser     = 1,
+    cEntryTypeHomework = 2
+    };
+
 
 @implementation CalendarDataController
 @synthesize calendarView, calendarData, weeklyView, dailyView, addEntry, newEntryPopover;
-@synthesize containerVeiw, deleteEntry, editEntry, bgImageView, currentEntry;
+@synthesize containerVeiw, deleteEntry, editEntry, bgImageView, currentEntry, remoteProtocolURL;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        // Custom initialization
+        self.remoteProtocolURL = [ConfigurationManager getConfigurationValueForKey:@"ProtocolRemoteURL"];
     }
     return self;
 }
@@ -132,7 +141,9 @@
         [[UIApplication sharedApplication] setApplicationIconBadgeNumber:count];
         [appDelegate.notificationArray removeObjectAtIndex:0];
         NSString *updateString = [NSString stringWithFormat:@"update receivedNotifications set is_read = 1 where guid = '%@' and student_device_id = '%@'", msgGuid, [appDelegate getDeviceUniqueIdentifier]];
-        [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:updateString];
+        
+        
+        [DWDatabase getResultFromURL:[NSURL URLWithString:remoteProtocolURL] withSQL:updateString];
     
         
     }
@@ -150,10 +161,17 @@
     
 //    NSString *sqlString = [NSString stringWithFormat:@"select substr(valid_date_time, 1, 10) as date, count(*) as count, title ||'...  and ' || (count(*) - 1) || ' more' as title from calendar where valid_date_time > '%@' group by substr(valid_date_time, 1, 10)", [stringOfDate substringWithRange:NSMakeRange(0, 10)]];
     
-    NSString *sqlString = [NSString stringWithFormat:@"select substr(valid_date_time, 1, 10) as date, count(*) as count, title ||'...  and ' || (count(*) - 1) || ' more' as title from calendar where (completed = 0 and valid_date_time <  '%@') or  valid_date_time > '%@' group by substr(valid_date_time, 1, 10);", [stringOfDate substringWithRange:NSMakeRange(0, 10)],[stringOfDate substringWithRange:NSMakeRange(0, 10)]];
+    NSString *sqlString = [NSString stringWithFormat:@"select substr(valid_date_time, 1, 10) as date, count(*) as count, title ||'...  and ' || (count(*) - 1) || ' more' as title from calendar where (completed = 0 and valid_date_time < '%@' and type = %d) or  valid_date_time >= '%@' group by substr(valid_date_time, 1, 10);", [stringOfDate substringWithRange:NSMakeRange(0, 10)], cEntryTypeHomework, [stringOfDate substringWithRange:NSMakeRange(0, 10)]];
     
     NSMutableArray *weeklyDisplayArray = [[LocalDatabase sharedInstance] executeQuery:sqlString];
     
+        
+    NSString *updateSQL = [NSString stringWithFormat:@"update calendar set completed = 1 where completed = 0 and valid_date_time < '%@' and type = %d", [stringOfDate substringWithRange:NSMakeRange(0, 10)], cEntryTypeSystem];
+    [[LocalDatabase sharedInstance] executeQuery:updateSQL];
+    [[CalendarDataClass sharedInstance] reloadEntity];
+    
+    updateSQL = [NSString stringWithFormat:@"update notification set completed = 1 where completed = 0 and valid_date < '%@' and type = %d", [stringOfDate substringWithRange:NSMakeRange(0, 10)], cEntryTypeSystem];
+    [DWDatabase getResultFromURL:[NSURL URLWithString:remoteProtocolURL] withSQL:updateSQL];
     
     weeklyView.dbResult = weeklyDisplayArray;
     [weeklyView.tableView reloadData];

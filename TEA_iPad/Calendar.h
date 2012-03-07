@@ -63,7 +63,7 @@
 
 
 
-
+- (void) drawCalendarForDate:(NSDate*) date;
 - (void) markDate:(NSDate*) date;
 - (void) markToday:(NSDate *) date;
 - (void) markToday;

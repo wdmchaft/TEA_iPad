@@ -358,19 +358,21 @@ void handleException(NSException *exception)
     NSLog(@"local notification");
 }
 
+
+
+
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    [self.viewController calendarButtonClicked:nil];
+}
+
+
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo 
 {
-    
-    
-    NSUserDefaults *lastReceivedNotificationTime = [NSUserDefaults standardUserDefaults];
-    NSLog(@"lastReceivedNotificationTime - %@", [lastReceivedNotificationTime stringForKey:@"lastNotificationTime"]);
-    
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Bildiri" message:@"Yeni Bildiriniz Var. Takvime Tıklayın.." delegate:self cancelButtonTitle:@"Tamam" otherButtonTitles:nil];
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString("Info", NULL) message:NSLocalizedString(@"New Notification", NULL) delegate:self cancelButtonTitle:@"Tamam" otherButtonTitles:nil];
     [alert show];
     [alert release];
-    
-
-    [lastReceivedNotificationTime setObject:[[[[userInfo objectForKey:@"aps"] valueForKey:@"alert"] componentsSeparatedByString:@"="]lastObject] forKey:@"lastNotificationTime"];
 
 }
 

@@ -45,7 +45,7 @@
         dayLabelView = [[DayComponent alloc] initWithFrame:CGRectMake(4, 21, 142, 128)];
         dayLabelView.fontSize = 100;
         dayLabelView.textColor = [UIColor grayColor];
-        dayLabelView.fontType = @"Helvetica";
+        dayLabelView.fontType = @"HelveticaLight";
         
         
         NSDate *date = [NSDate date];
