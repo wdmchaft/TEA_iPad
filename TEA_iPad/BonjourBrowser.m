@@ -146,8 +146,7 @@
         [clients addObject:client];
     }
     
-    
-    [client release];
+
     [pService getInputStream:&input outputStream:&output];
     
     NSArray *components = [[pService description] componentsSeparatedByString:@"."];
@@ -198,6 +197,7 @@
     
     [client  sendBonjourMessage:message];
     [message release];
+    [client release];
 }
 
 
@@ -286,6 +286,22 @@
     }
 }
 
+- (void) stopBrowse
+{
+    
+    
+    @synchronized([self bonjourServers])
+    {
+        [[self bonjourServers] removeAllObjects];
+    }
+    
+    [self.netServiceBrowser stop];
+    [self.services removeAllObjects];
+    [clients removeAllObjects];
+    
+    
+    NSLog(@"Bonjour service stoped...");
+}
 
 
 // Service was removed
@@ -309,25 +325,29 @@
         [appDelegate.currentQuizWindow finishQuiz];
     }
     
-    
-    NSMutableArray *clientsToRemove = [[NSMutableArray alloc] init];
-    for(BonjourClient *tClient in clients)
+    @synchronized(clients)
     {
-        if ([tClient.hostName isEqualToString:hostName]) 
+        NSMutableArray *clientsToRemove = [[NSMutableArray alloc] init];
+        for(BonjourClient *tClient in clients)
         {
-            [clientsToRemove addObject:tClient];
-            NSLog(@"[BONJOUR] tea service removed by host %@", tClient.hostName);
+            if ([tClient.hostName isEqualToString:hostName]) 
+            {
+                [clientsToRemove addObject:tClient];
+                NSLog(@"[BONJOUR] tea service removed by host %@", tClient.hostName);
+            }
         }
+        
+        for(BonjourClient *tClient in clientsToRemove)
+        {
+            [clients removeObject:tClient];
+        }
+        
+        [services removeObject:netService];
+        
+        [clientsToRemove release];
     }
     
-    for(BonjourClient *tClient in clientsToRemove)
-    {
-        [clients removeObject:tClient];
-    }
     
-    [services removeObject:netService];
-    
-    [clientsToRemove release];
 }
 
 

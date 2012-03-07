@@ -94,7 +94,7 @@ void MyReachabilityCallback(
 - (void) stopBonjourBrowser
 {
 
-      
+/*      
     @synchronized([bonjourBrowser bonjourServers])
     {
         [[bonjourBrowser bonjourServers] removeAllObjects];
@@ -102,11 +102,13 @@ void MyReachabilityCallback(
 
     [bonjourBrowser.netServiceBrowser stop];
     [bonjourBrowser.services removeAllObjects];
-
+    
     //[bonjourBrowser release];
     //bonjourBrowser = nil;
     
     //CFRunLoopStop([[NSRunLoop currentRunLoop] getCFRunLoop]);
+    */
+    [bonjourBrowser stopBrowse];
     
     self.state = kAppStateIdle;
     
@@ -133,7 +135,7 @@ void MyReachabilityCallback(
 {
      
     [self stopBonjourBrowser];
-    
+    sleep(2);
     [bonjourBrowser startBrowse];
     
     //[self performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
