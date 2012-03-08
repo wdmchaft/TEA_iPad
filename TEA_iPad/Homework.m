@@ -127,7 +127,7 @@
         
         [[LocalDatabase sharedInstance] executeQuery:insertSql];
     }
-    
+    [homeworkAnswerData release];
 }
 
 

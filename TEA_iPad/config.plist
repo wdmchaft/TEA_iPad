@@ -50,5 +50,7 @@
 	<string>http://www.dualware.com/Service/EU/email.php</string>
 	<key>NOTEBOOK_SYNC_UPLOAD_URL</key>
 	<string>http://172.16.46.100:8080/syncNotebookUpload.jsp</string>
+	<key>ProtocolRemoteURL</key>
+	<string>http://www.dualware.com/Service/EU/protocol.php</string>
 </dict>
 </plist>

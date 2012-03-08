@@ -28,7 +28,7 @@
 //@property (nonatomic, retain) NSMutableArray *clients;
 
 - (NSMutableArray*) bonjourServers;
-
+- (void) stopBrowse;
 - (void) restartBrowse;
 - (void) startBrowse;
 - (void) sendBonjourMessage:(BonjourMessage*) aMessage toClient:(BonjourClient*) aClient;

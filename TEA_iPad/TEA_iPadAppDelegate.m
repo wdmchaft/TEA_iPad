@@ -29,7 +29,13 @@
 #import "LocationService.h"
 #import "ConfigurationManager.h"
 #include <SystemConfiguration/SystemConfiguration.h>
+
 #import "DWObfuscator.h"
+#include "CalendarDataClass.h"
+
+#import "DeviceLog.h"
+#import "DWDatabase.h"
+
 
 @implementation TEA_iPadAppDelegate
 
@@ -38,7 +44,7 @@
 
 @synthesize window=_window, bonjourBrowser, session, state, connectedHost, guestEnterNumber;
 @synthesize currentQuizWindow;
-@synthesize viewController=_viewController, bonjourBrowserThread, selectedItemView;
+@synthesize viewController=_viewController, bonjourBrowserThread, selectedItemView, notificationArray;
 
 void PrintReachabilityFlags(
                             const char *                hostname, 
@@ -88,7 +94,7 @@ void MyReachabilityCallback(
 - (void) stopBonjourBrowser
 {
 
-      
+/*      
     @synchronized([bonjourBrowser bonjourServers])
     {
         [[bonjourBrowser bonjourServers] removeAllObjects];
@@ -96,11 +102,13 @@ void MyReachabilityCallback(
 
     [bonjourBrowser.netServiceBrowser stop];
     [bonjourBrowser.services removeAllObjects];
-
+    
     //[bonjourBrowser release];
     //bonjourBrowser = nil;
     
     //CFRunLoopStop([[NSRunLoop currentRunLoop] getCFRunLoop]);
+    */
+    [bonjourBrowser stopBrowse];
     
     self.state = kAppStateIdle;
     
@@ -127,7 +135,7 @@ void MyReachabilityCallback(
 {
      
     [self stopBonjourBrowser];
-    
+    sleep(2);
     [bonjourBrowser startBrowse];
     
     //[self performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
@@ -302,7 +310,70 @@ void handleException(NSException *exception)
     [locationService startService];
 
     
-   return YES;
+    self.notificationArray = [[NSMutableArray alloc] init];
+
+    
+    NSUserDefaults *userToken = [NSUserDefaults standardUserDefaults];
+
+//    if ([userToken stringForKey:@"token"]) 
+    {
+        NSLog(@"Registering for push notifications...");    
+        [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
+    }
+    
+    return YES;
+}
+
+- (void)application:(UIApplication *)app didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken { 
+    
+    NSString *str = [NSString stringWithFormat:@"Device Token=%@",deviceToken];
+    NSLog(@"%@", str);
+    
+    NSString *justToken = [NSString stringWithFormat:@"%@",deviceToken];
+    justToken = [justToken stringByReplacingOccurrencesOfString:@"<" withString:@""];
+    justToken = [justToken stringByReplacingOccurrencesOfString:@">" withString:@""];
+    
+    NSUserDefaults *userToken = [NSUserDefaults standardUserDefaults];
+    [userToken setValue:justToken forKey:@"token"];
+    
+    
+    NSString *deviceTokenSQL = [NSString stringWithFormat:@"select device_token from DeviceTokens where device_id = '%@'", [self getDeviceUniqueIdentifier]];
+    NSArray *array = [[DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:deviceTokenSQL]retain];
+    if (!array || ![array count]>0) {
+        NSString *insertDeviceTokenSQL = [NSString stringWithFormat:@"insert into DeviceTokens (device_id, device_token) values ('%@', '%@');", [self getDeviceUniqueIdentifier], justToken];
+       [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:insertDeviceTokenSQL];
+    }
+    [array release];
+}
+
+- (void)application:(UIApplication *)app didFailToRegisterForRemoteNotificationsWithError:(NSError *)err { 
+    
+    NSString *str = [NSString stringWithFormat: @"Error: %@", err];
+    NSLog(@"%@", str);
+    
+}
+
+- (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification
+{
+    NSLog(@"local notification");
+}
+
+
+
+
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    [self.viewController calendarButtonClicked:nil];
+}
+
+
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo 
+{
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Info", NULL) message:NSLocalizedString(@"New Notification", NULL) delegate:self cancelButtonTitle:@"Tamam" otherButtonTitles:nil];
+    [alert show];
+    [alert release];
+
 }
 
 - (void) setState:(int)aState
@@ -361,18 +432,7 @@ void handleException(NSException *exception)
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application
-{
-/*    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
-    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
-    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
-    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
-    
-    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, time) values ('%@','%@','%@','%@','%@')", [self getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"appMovedInactiveMode", dateString];
-    
-    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
- */
-    
+{    
     NSLog(@"App is not active");
  
     /*
@@ -395,7 +455,7 @@ void handleException(NSException *exception)
         [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
         
         
-//***********************************************
+/***********************************************
         
         NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
         [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
@@ -407,7 +467,10 @@ void handleException(NSException *exception)
         
         [[LocalDatabase sharedInstance] executeQuery:insertSQL];
         
-//***********************************************
+//***********************************************/
+        
+        [DeviceLog deviceLog:@"appMovedBackground" withLecture:nil withContentType:nil];
+        
     }
 }
 
@@ -424,36 +487,13 @@ void handleException(NSException *exception)
     [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
     
     
+    [DeviceLog deviceLog:@"appMovedForeground" withLecture:nil withContentType:nil];
     
-    //***********************************************
-    
-    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
-    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
-    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
-    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
-    
-    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-     NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, time) values ('%@','%@','%@','%@','%@')", [self getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"appMovedForeground", dateString];
-    
-    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
-    
-    //***********************************************
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
-    /*
-    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
-    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
-    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
-    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
-    
-    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, time) values ('%@','%@','%@','%@','%@')", [self getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"appMovedActiveMode", dateString];
-    
-    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
-    */
-    
+       
     NSLog(@"App did enter active mode");
     
     /*
@@ -463,15 +503,11 @@ void handleException(NSException *exception)
 
 - (void)applicationWillTerminate:(UIApplication *)application
 {
-    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
-    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
-    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
-    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
     
-    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, time) values ('%@','%@','%@','%@','%@')", [self getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"appTerminated", dateString];
+   
+    [DeviceLog deviceLog:@"appTerminated" withLecture:nil withContentType:nil];
     
-    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
+    
     NSLog(@"App will be terminated");
     exitingApp = YES;
     
@@ -520,6 +556,9 @@ void handleException(NSException *exception)
 
 - (void)dealloc
 {
+    
+    [notificationArray release];
+    
     if(bonjourBrowserThread)
     {
         [bonjourBrowserThread cancel];

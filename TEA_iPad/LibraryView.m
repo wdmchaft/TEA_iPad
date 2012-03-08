@@ -18,6 +18,10 @@
 #import "NotebookSync.h"
 #import "DWSearchBar.h"
 
+#import "DeviceLog.h"
+#import "CalendarDataController.h"
+
+
 @implementation LibraryView
 @synthesize searchTextField;
 @synthesize contentProgress;
@@ -40,6 +44,8 @@
 @synthesize notebookSyncService;
 @synthesize homeworkService;
 @synthesize numericPadPopover;
+
+@synthesize calendarController;
 
 - (void) refreshDate:(NSDate*)aDate
 {
@@ -76,6 +82,23 @@
     
 }
 
+
+- (void) setCalendarViewHidden:(BOOL) hidden
+{
+    if(!hidden)
+    {
+        [self setNotebookHidden:YES];
+        [self setNotebookViewHidden:YES];
+        [self setLibraryViewHidden:YES];
+        [backgroundView setImage:[UIImage imageNamed:@"LibraryEmpty.jpg"]];
+       
+    }
+    
+    [calendarController setHiddenComponents:hidden];
+}
+
+
+
 - (void) setLibraryViewHidden:(BOOL) hidden
 {
     if(!hidden)
@@ -83,16 +106,17 @@
         [self setNotebookHidden:YES];
         [self setNotebookViewHidden:YES];
         [backgroundView setImage:[UIImage imageNamed:@"LibraryBG.jpg"]];
-        
+        [calendarController setHiddenComponents:YES];
+
     }
     
     [searchTextField setHidden:hidden];
-    [sessionNameScrollView setHidden:hidden];
     [sessionNameScrollView setHidden:hidden];
     [monthsScrollView setHidden:hidden];
     [lectureNamesScrollView setHidden:hidden];
     [contentsScrollView setHidden:hidden];
     [dateView setHidden:hidden];
+    
     
 }
 
@@ -103,6 +127,7 @@
         [self setNotebookHidden:YES];
         [self setLibraryViewHidden:YES];
         [backgroundView setImage:[UIImage imageNamed:@"LibraryEmpty.jpg"]];
+        [calendarController setHiddenComponents:YES];
         
     }
     
@@ -500,8 +525,18 @@
         [self.view addSubview:notebookButton];
         [notebookButton release];
         
+        
+        calendarButton = [[UIButton alloc] initWithFrame:CGRectMake(9, 280, 81, 91)];
+//        [calendarButton setBackgroundColor:[UIColor grayColor]];
+        [calendarButton setImage:[UIImage imageNamed:@"CalendarIcon.png"] forState:UIControlStateNormal];
+        [calendarButton addTarget:self action:@selector(calendarButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+        [self.view addSubview:calendarButton];
+        [calendarButton release];
+        
+        
+        
 #ifdef HAS_GUEST_ENTER
-        guestEnterButton = [[UIButton alloc] initWithFrame:CGRectMake(19, 280, 62, 71)];
+        guestEnterButton = [[UIButton alloc] initWithFrame:CGRectMake(19, 400, 62, 71)];
         [guestEnterButton setImage:[UIImage imageNamed:@"LibraryGuestEnter.png"] forState:UIControlStateNormal];
         [guestEnterButton addTarget:self action:@selector(guestStudentEnterClicked:) forControlEvents:UIControlEventTouchUpInside];
         [self.view addSubview:guestEnterButton];
@@ -514,11 +549,23 @@
         
         self.notebook = [[Notebook alloc] initWithFrame:CGRectMake(195, 58, 789, 655)];
         [self.notebook  setHidden:YES];
-        [self.view addSubview:notebook ];
+        [self.view addSubview:notebook];
         [self.notebook setBackgroundColor:[UIColor clearColor]];
         
         
         [sessionNameScrollView setHidden:NO];
+        
+/*        UIView *viewCalendar = [[[UIView alloc] initWithFrame:CGRectMake(93, 0, 1024, 748)] autorelease];
+        [viewCalendar setBackgroundColor:[UIColor grayColor]];
+ */      
+        calendarController = [[CalendarDataController alloc] init];
+        [self.view addSubview:calendarController.containerVeiw];
+        [calendarController setHiddenComponents:YES];
+        
+        
+/*        [viewCalendar addSubview:calendarController.containerVeiw];
+        [self.view addSubview:viewCalendar];
+*/
         
         
         
@@ -606,7 +653,7 @@
 
 - (IBAction) libraryButtonClicked:(id) sender
 {
-    //*********************************************************    
+    /*********************************************************    
     TEA_iPadAppDelegate *logAppDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
     NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
@@ -618,17 +665,23 @@
     
     NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key,  time) values ('%@','%@','%@','%@','%@')", [logAppDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"openedLibrary", dateString];
     [[LocalDatabase sharedInstance] executeQuery:insertSQL];
+    //*********************************************************/
+    
+    
+    [DeviceLog deviceLog:@"openedLibrary" withLecture:nil withContentType:nil];
+    
     //********************************************************* 
     
     
     [self setNotebookViewHidden:YES];
     [self setLibraryViewHidden:NO];
+    [self setCalendarViewHidden:YES];
 }
 
 - (IBAction) notebookButtonClicked:(id) sender
 {
     
-//*********************************************************    
+/*********************************************************    
     TEA_iPadAppDelegate *logAppDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
     NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
@@ -639,12 +692,15 @@
     NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
     
     NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key,  time) values ('%@','%@','%@','%@','%@')", [logAppDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"openedNotebook", dateString];
-    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
-//*********************************************************    
+    [[LocalDatabase sharedInstance] executeQuery:insertSQL];*/
+//*********************************************************/    
 
+     [DeviceLog deviceLog:@"openedNotebook" withLecture:nil withContentType:nil];
+    
     
     [self setNotebookViewHidden:NO];
     [self setLibraryViewHidden:YES];
+    [self setCalendarViewHidden:YES];
 }
 
 - (IBAction) guestStudentEnterClicked:(id) sender
@@ -657,9 +713,39 @@
     
 }
 
+
+- (void) showIndicator
+{
+    activity = [[ActivityIndicator alloc] initWithFrame:CGRectMake(500, 300, 100, 100)];
+    [self.view addSubview:activity];
+    [activity.indicator startAnimating];
+    [activity release];
+}
+
+- (void) hideIndicator
+{
+    if(activity)
+    {
+        [activity.indicator stopAnimating];
+        [activity removeFromSuperview];
+        activity = nil;
+    }
+}
+
 - (IBAction) calendarButtonClicked:(id) sender
 {
     
+    
+    [self performSelectorInBackground:@selector(showIndicator) withObject:nil];
+   
+    NSLog(@"Calendar Button Clicked:");
+    [DeviceLog deviceLog:@"openedCalendar" withLecture:nil withContentType:nil];
+    
+    [self setNotebookViewHidden:YES];
+    [self setLibraryViewHidden:YES];
+    [self setCalendarViewHidden:NO];
+    
+    [self hideIndicator];
 }
 
 - (IBAction)searchButtonClicked:(id)sender {
