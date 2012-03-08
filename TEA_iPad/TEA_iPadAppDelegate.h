@@ -36,7 +36,14 @@ enum appState
     Quiz *currentQuizWindow;
 
     SessionLibraryItemView *selectedItemView;
+    
+    
+    NSMutableArray *notificationArray;
 }
+
+
+@property (nonatomic, retain) NSMutableArray *notificationArray;
+
 
 @property (nonatomic, retain) IBOutlet UIWindow *window;
 @property (nonatomic, retain) IBOutlet LibraryView *viewController;

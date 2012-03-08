@@ -62,7 +62,7 @@ CGContextRef createBitmapContext (int pixelsWide,
         return NULL;
     }
     CGColorSpaceRelease( colorSpace );
-    
+    free (bitmapData);
     return context;
 }
 

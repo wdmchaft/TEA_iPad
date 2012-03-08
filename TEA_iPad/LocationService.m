@@ -85,6 +85,7 @@
     
     NSString *deviceUDID = [appDelegate getDeviceUniqueIdentifier];
     NSString *deviceName = [appDelegate getDeviceName];
+    deviceName = [deviceName stringByReplacingOccurrencesOfString:@"'" withString:@""];
     NSString *bssid = [self getBSSID];
     NSString *sql = [NSString stringWithFormat:@"INSERT INTO `location` (`device_name`, `device_id`,`lat`,`lon`,`acp_range`,`3g_range`,`acp_address`,`reset`) VALUES ('%@', '%@', '%f', '%f', 160, 80, '%@', 0);", deviceName, deviceUDID, aLocation.coordinate.latitude, aLocation.coordinate.longitude, bssid];
     [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:sql];
@@ -140,6 +141,7 @@
 
 - (void) startService
 {
+    /*
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
     locationServiceMessageView = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
@@ -184,7 +186,7 @@
     
     //[self startLocationTracking];
     [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(checkLocation) userInfo:nil repeats:YES];
-    
+    */
 }
 
 
@@ -210,7 +212,7 @@
     didUpdateToLocation:(CLLocation *)newLocation
            fromLocation:(CLLocation *)oldLocation
 {
-        NSLog(@"%f, %f", [newLocation verticalAccuracy], [newLocation horizontalAccuracy]);
+       // NSLog(@"%f, %f", [newLocation verticalAccuracy], [newLocation horizontalAccuracy]);
     
 //*************************************>>>>>>>>>>>>>>>>>>>>>>>>>> 
     
@@ -218,7 +220,7 @@
         locationInfoMessage = [locationInfoMessage stringByAppendingFormat:@"Yatay Hassasiyet : %f, ", newLocation.verticalAccuracy];
         locationInfoMessage = [locationInfoMessage stringByAppendingFormat:@"Dikey Hassasiyet :  %f", newLocation.horizontalAccuracy];
         
-    NSLog(@"message %@", locationInfoMessage);
+    //NSLog(@"message %@", locationInfoMessage);
     
         [locationServiceMessageView setMessageLocationLabel:locationInfoMessage];
 

@@ -14,15 +14,20 @@
 #import "Sync.h"
 #import "Homework.h"
 #import "NotebookSync.h"
+#import "ActivityIndicator.h"
+
+#import "CalendarDataController.h"
 
 @class DWDrawingViewController, LectureView, MonthView, DWSearchBar;
 @interface LibraryView : UIViewController <UIAccelerometerDelegate, UITextFieldDelegate> {
+
+
     
     UIPopoverController *numericPadPopover;
     
     UIButton *libraryButton;
     UIButton *notebookButton;
-    UIButton *calendarButton;
+    //UIButton *calendarButton;
     UIButton *guestEnterButton;
     
     UIScrollView *sessionNameScrollView;
@@ -51,7 +56,17 @@
     NotebookSync *notebookSyncService;
     
     BOOL screenClosed;
+    
+    
+    //CalendarDataController *calendarController;
+    ActivityIndicator *activity;
 }
+
+//Calendar
+//@property (nonatomic, assign) CalendarDataController *calendarController;
+- (void) setCalendarViewHidden:(BOOL) hidden;
+
+
 @property (nonatomic, retain) UIButton *guestEnterButton;
 @property (nonatomic, retain) IBOutlet UIProgressView *contentProgress;
 @property (nonatomic, retain) UIPopoverController *numericPadPopover;

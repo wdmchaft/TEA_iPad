@@ -31,7 +31,6 @@
 #include <SystemConfiguration/SystemConfiguration.h>
 
 
-
 @implementation TEA_iPadAppDelegate
 
 
@@ -39,7 +38,7 @@
 
 @synthesize window=_window, bonjourBrowser, session, state, connectedHost, guestEnterNumber;
 @synthesize currentQuizWindow;
-@synthesize viewController=_viewController, bonjourBrowserThread, selectedItemView;
+@synthesize viewController=_viewController, bonjourBrowserThread, selectedItemView, notificationArray;
 
 void PrintReachabilityFlags(
                             const char *                hostname, 
@@ -89,7 +88,7 @@ void MyReachabilityCallback(
 - (void) stopBonjourBrowser
 {
 
-      
+/*      
     @synchronized([bonjourBrowser bonjourServers])
     {
         [[bonjourBrowser bonjourServers] removeAllObjects];
@@ -97,11 +96,13 @@ void MyReachabilityCallback(
 
     [bonjourBrowser.netServiceBrowser stop];
     [bonjourBrowser.services removeAllObjects];
-
+    
     //[bonjourBrowser release];
     //bonjourBrowser = nil;
     
     //CFRunLoopStop([[NSRunLoop currentRunLoop] getCFRunLoop]);
+    */
+    [bonjourBrowser stopBrowse];
     
     self.state = kAppStateIdle;
     
@@ -128,7 +129,7 @@ void MyReachabilityCallback(
 {
      
     [self stopBonjourBrowser];
-    
+    sleep(2);
     [bonjourBrowser startBrowse];
     
     //[self performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
@@ -248,9 +249,10 @@ void handleException(NSException *exception)
     blackScreen = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
     [locationService startService];
 
-    
+
     
    return YES;
+
 }
 
 - (void) setState:(int)aState
@@ -309,18 +311,7 @@ void handleException(NSException *exception)
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application
-{
-/*    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
-    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
-    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
-    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
-    
-    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, time) values ('%@','%@','%@','%@','%@')", [self getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"appMovedInactiveMode", dateString];
-    
-    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
- */
-    
+{    
     NSLog(@"App is not active");
  
     /*
@@ -343,7 +334,7 @@ void handleException(NSException *exception)
         [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
         
         
-//***********************************************
+/***********************************************
         
         NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
         [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
@@ -355,7 +346,9 @@ void handleException(NSException *exception)
         
         [[LocalDatabase sharedInstance] executeQuery:insertSQL];
         
-//***********************************************
+//***********************************************/
+        
+        
     }
 }
 
@@ -373,35 +366,11 @@ void handleException(NSException *exception)
     
     
     
-    //***********************************************
-    
-    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
-    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
-    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
-    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
-    
-    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-     NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, time) values ('%@','%@','%@','%@','%@')", [self getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"appMovedForeground", dateString];
-    
-    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
-    
-    //***********************************************
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
-    /*
-    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
-    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
-    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
-    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
-    
-    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, time) values ('%@','%@','%@','%@','%@')", [self getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"appMovedActiveMode", dateString];
-    
-    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
-    */
-    
+       
     NSLog(@"App did enter active mode");
     
     /*
@@ -411,15 +380,10 @@ void handleException(NSException *exception)
 
 - (void)applicationWillTerminate:(UIApplication *)application
 {
-    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
-    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
-    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
-    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
     
-    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, time) values ('%@','%@','%@','%@','%@')", [self getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"appTerminated", dateString];
+   
     
-    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
+    
     NSLog(@"App will be terminated");
     exitingApp = YES;
     
@@ -468,6 +432,9 @@ void handleException(NSException *exception)
 
 - (void)dealloc
 {
+    
+    [notificationArray release];
+    
     if(bonjourBrowserThread)
     {
         [bonjourBrowserThread cancel];
