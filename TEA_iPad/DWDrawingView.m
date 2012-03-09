@@ -204,7 +204,15 @@
        currentTool == ovalTool)
     {
         
-        self.contextImage = [[currentTool drawingItem] drawIntoImage:contextImage withRect:self.frame];
+        UIImage *drawnImage = [[currentTool drawingItem] drawIntoImage:contextImage withRect:self.frame];
+        
+        if(contextImage)
+        {
+            [contextImage release];
+            contextImage = nil;
+        }
+        self.contextImage =  drawnImage;  
+
         [drawingViewController.target performSelector:drawingViewController.pageEdited];
     }
     
