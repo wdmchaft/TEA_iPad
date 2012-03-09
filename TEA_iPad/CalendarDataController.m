@@ -185,6 +185,7 @@ enum calendarEntryType {
     
     [containerVeiw setHidden:hidden];
     if (!hidden) {
+        dailyView.selectedDayEvents = nil;
         [self checkUnreadNotification];
     }
 }
@@ -451,6 +452,7 @@ enum calendarEntryType {
     [array release];    
     [[CalendarDataClass sharedInstance] reloadEntity];
     [self displayWeeklyEvents];
+    [self displayDailyEvents];
     
    // [activity.indicator stopAnimating];
 }

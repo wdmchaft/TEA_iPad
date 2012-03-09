@@ -14,6 +14,7 @@
 #import "TEA_iPadAppDelegate.h"
 #import "LocalDatabase.h"
 #import "DWDatabase.h"
+#import "ConfigurationManager.h"
 
 @implementation HWView
 
@@ -386,9 +387,13 @@
                 
                 [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:insertSQL];
             }
-
+            
+            NSString *updateRemoteNotificationTable = [NSString stringWithFormat:@"update notification set completed = 1 where file_url = '%@'", zipFileName];
+            
+            [DWDatabase getResultFromURL:[NSURL URLWithString:[ConfigurationManager getConfigurationValueForKey:@"ProtocolRemoteURL"]] withSQL:updateRemoteNotificationTable];
         
-        
+            NSString *updateCalendarTable = [NSString stringWithFormat:@"update calendar set completed = 1 where image_url = '%@'", zipFileName];
+            [[LocalDatabase sharedInstance] executeQuery:updateCalendarTable];
         }
         
         [self removeFromSuperview];

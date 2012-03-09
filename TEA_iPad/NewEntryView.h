@@ -69,4 +69,10 @@
 
 - (IBAction)deleteEntryFromLists:(id)sender;
 @property (retain, nonatomic) IBOutlet UIButton *deleteButton;
+
+
+@property (retain, nonatomic) IBOutlet UILabel *slashLabel1;
+@property (retain, nonatomic) IBOutlet UILabel *slashLabel2;
+@property (retain, nonatomic) IBOutlet UILabel *starLabel;
+
 @end
