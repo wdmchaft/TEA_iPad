@@ -203,14 +203,16 @@
        currentTool == eraserTool ||
        currentTool == ovalTool)
     {
+        
         UIImage *drawnImage = [[currentTool drawingItem] drawIntoImage:contextImage withRect:self.frame];
-
+        
         if(contextImage)
         {
             [contextImage release];
             contextImage = nil;
         }
         self.contextImage =  drawnImage;  
+
         [drawingViewController.target performSelector:drawingViewController.pageEdited];
     }
     

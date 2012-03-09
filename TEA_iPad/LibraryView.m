@@ -476,6 +476,8 @@
                 firstLetter = [firstLetter stringByReplacingOccurrencesOfString:@"ç" withString:@"Ç"];
                 firstLetter = [firstLetter stringByReplacingOccurrencesOfString:@"ş" withString:@"Ş"];
                 firstLetter = [firstLetter stringByReplacingOccurrencesOfString:@"i" withString:@"İ"];
+                firstLetter = [firstLetter stringByReplacingOccurrencesOfString:@"ö" withString:@"Ö"];
+                firstLetter = [firstLetter stringByReplacingOccurrencesOfString:@"ü" withString:@"Ü"];
                 
                 word = [word stringByReplacingCharactersInRange:NSMakeRange(0, 1) withString:firstLetter];
                 
