@@ -275,12 +275,12 @@ int viewScrollSize = 0;
 
     
     
-    result = [initDate compare:alarmDate]; // comparing two dates
+/*    result = [initDate compare:alarmDate]; // comparing two dates
     if(result==NSOrderedAscending || result==NSOrderedSame)
          NSLog(@"Alarm Date is valid...");
     else if(result==NSOrderedDescending)
         return NO;
-    
+ */   
     
     return YES;
 }
@@ -377,6 +377,8 @@ int viewScrollSize = 0;
         
         NSLog(@"add button clicked");
         [popup dismissPopoverAnimated:YES];
+        
+        [self.controller.calendarView.calendarComponent drawCalendarForDate:[NSDate date]];
     }
     else
     {

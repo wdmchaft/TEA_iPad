@@ -37,3 +37,5 @@
 "Delete Entry" = "Are you sure you want to delete the entry?";
 "System Entry" = "System entries cannot be deleted";
 "OK" = "OK";
+"New Notification" = "You have new notification(s).";
+"Info" = "Announcement";

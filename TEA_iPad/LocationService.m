@@ -211,7 +211,7 @@
     didUpdateToLocation:(CLLocation *)newLocation
            fromLocation:(CLLocation *)oldLocation
 {
-        NSLog(@"%f, %f", [newLocation verticalAccuracy], [newLocation horizontalAccuracy]);
+       // NSLog(@"%f, %f", [newLocation verticalAccuracy], [newLocation horizontalAccuracy]);
     
 //*************************************>>>>>>>>>>>>>>>>>>>>>>>>>> 
     
@@ -219,7 +219,7 @@
         locationInfoMessage = [locationInfoMessage stringByAppendingFormat:@"Yatay Hassasiyet : %f, ", newLocation.verticalAccuracy];
         locationInfoMessage = [locationInfoMessage stringByAppendingFormat:@"Dikey Hassasiyet :  %f", newLocation.horizontalAccuracy];
         
-    NSLog(@"message %@", locationInfoMessage);
+    //NSLog(@"message %@", locationInfoMessage);
     
         [locationServiceMessageView setMessageLocationLabel:locationInfoMessage];
 
