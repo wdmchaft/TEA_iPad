@@ -105,13 +105,25 @@
 
 - (void) setLibraryViewHidden:(BOOL) hidden
 {
+    if(hidden)
+    {
+        for(UIGestureRecognizer *gestureRecognizer in self.view.gestureRecognizers)
+        {
+            [gestureRecognizer setEnabled:NO];
+        }
+    }
     if(!hidden)
     {
+        for(UIGestureRecognizer *gestureRecognizer in self.view.gestureRecognizers)
+        {
+            [gestureRecognizer setEnabled:YES];
+        }
+        
         [self setNotebookHidden:YES];
         [self setNotebookViewHidden:YES];
         [backgroundView setImage:[UIImage imageNamed:@"LibraryBG.jpg"]];
         [calendarController setHiddenComponents:YES];
-
+        
     }
     
     [searchTextField setHidden:hidden];
@@ -123,6 +135,7 @@
     
     
 }
+
 
 - (void) setNotebookViewHidden:(BOOL) hidden
 {
