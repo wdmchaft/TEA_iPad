@@ -15,6 +15,9 @@
 
 @implementation NewEntryView
 @synthesize deleteButton;
+@synthesize slashLabel1;
+@synthesize slashLabel2;
+@synthesize starLabel;
 
 @synthesize calendarAlarmDayTextField;
 @synthesize calendarAlarmMonthTextField;
@@ -111,6 +114,17 @@ int viewScrollSize = 0;
     calendarBody.delegate = self;
     calendarImageURL.delegate = self;
     
+/*    
+    [calendarAlarmMinuteTextField setHidden:YES];
+    [calendarAlarmHourTextField setHidden:YES];
+    [calendarAlarmDayTextField setHidden:YES];
+    [calendarAlarmMonthTextField setHidden:YES];
+    [calendarAlarmYearTextField setHidden:YES];
+    [starLabel setHidden:YES];
+    [slashLabel1 setHidden:YES];
+    [slashLabel2 setHidden:YES];
+ */  
+    
 }
 
 - (void)viewDidUnload
@@ -138,6 +152,9 @@ int viewScrollSize = 0;
     [self setCalendarCompleatedState:nil];
     [self setCalendarCompletedLabel:nil];
     [self setDeleteButton:nil];
+    [self setSlashLabel1:nil];
+    [self setSlashLabel2:nil];
+    [self setStarLabel:nil];
     [super viewDidUnload];
     // Release any retained subviews of the main view.
     // e.g. self.myOutlet = nil;
@@ -172,6 +189,9 @@ int viewScrollSize = 0;
     [calendarCompleatedState release];
     [calendarCompletedLabel release];
     [deleteButton release];
+    [slashLabel1 release];
+    [slashLabel2 release];
+    [starLabel release];
     [super dealloc];
 }
 

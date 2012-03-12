@@ -15,7 +15,7 @@
 
 @implementation WeeklyView
 
-@synthesize tableView, dbResult, selectedDailyView, controller, calendar;
+@synthesize tableView, dbResult, selectedDailyView, controller, calendar, uncompletedTask;
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -120,9 +120,23 @@
     NSInteger thisMonth = [componentsToday month];
     
     
+    NSString *uncompeteSQL = [NSString stringWithFormat:@"select count(*) as uncomplete from calendar where substr(valid_date_time, 1, 10) = '%@' and completed = 0", [[dbResult objectAtIndex:indexPath.row] objectForKey:@"date"]];
+    
+    
+    NSArray *uncompleteArray = [[LocalDatabase sharedInstance] executeQuery:uncompeteSQL];
+    if (uncompleteArray && [uncompleteArray count]>0) {
+        uncompletedTask = [[[uncompleteArray objectAtIndex:0] valueForKey:@"uncomplete"] intValue];
+    }
+    else{
+        uncompletedTask = 0;
+    }
     
     if (year<=thisYear && month<=thisMonth) {
-        if ((day <= today && month==thisMonth) || (month<thisMonth))
+        if (uncompletedTask == 0) {
+            tableViewCell.textLabel.textColor = [UIColor blackColor];
+            tableViewCell.contentView.backgroundColor = [UIColor colorWithRed:153.0/255.f green:204.0/255.f blue:51.0/255.f alpha:1.0];
+        }
+        else if ((day <= today && month==thisMonth) || (month<thisMonth))
         { 
             tableViewCell.textLabel.textColor = [UIColor whiteColor];
             tableViewCell.contentView.backgroundColor = [UIColor colorWithRed:204.0/255.f green:51.0/255.f blue:0.0/255.f alpha:1.0];

@@ -34,7 +34,13 @@ enum calendarAlarmColorState
     
     UIPopoverController *newEntryPopover;
     
+    int uncompletedTask;
+    
+    
 }
+
+
+@property (assign, nonatomic) int uncompletedTask;
 
 @property (retain, nonatomic) UIPopoverController *newEntryPopover;
 
