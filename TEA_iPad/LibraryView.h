@@ -15,7 +15,7 @@
 #import "Homework.h"
 #import "NotebookSync.h"
 #import "ActivityIndicator.h"
-
+#import "ContentViewerInterface.h"
 #import "CalendarDataController.h"
 
 @class DWDrawingViewController, LectureView, MonthView, DWSearchBar;
@@ -56,17 +56,27 @@
     NotebookSync *notebookSyncService;
     
     BOOL screenClosed;
-    
-    
+
     CalendarDataController *calendarController;
     ActivityIndicator *activity;
+    
+    
+    NSMutableArray *sessionList;
+    NSMutableArray *sessionLibraryItems;
+    int currentSessionListIndex;
+    int currentContentsIndex;
+    BOOL displayingSessionContent;
+    id<ContentViewerInterface> currentContentView;
 }
 
 //Calendar
 @property (nonatomic, assign) CalendarDataController *calendarController;
 - (void) setCalendarViewHidden:(BOOL) hidden;
 
-
+@property (nonatomic, assign) int currentSessionListIndex;
+@property (nonatomic, assign) BOOL displayingSessionContent;
+@property (nonatomic, assign) id<ContentViewerInterface> currentContentView;
+@property (nonatomic, assign) int currentContentsIndex;
 @property (nonatomic, retain) UIButton *guestEnterButton;
 @property (nonatomic, retain) IBOutlet UIProgressView *contentProgress;
 @property (nonatomic, retain) UIPopoverController *numericPadPopover;
@@ -88,6 +98,7 @@
 @property (nonatomic, assign) int selectedDate;
 @property (nonatomic, retain) IBOutlet UIImageView *logonGlow;
 
+@property (nonatomic, retain) NSMutableArray *sessionLibraryItems;
 
 @property (nonatomic, retain) IBOutlet UIImageView *backgroundView;
 @property (retain, nonatomic) IBOutlet DWSearchBar *searchTextField;

@@ -15,7 +15,7 @@
 #import "LocalDatabase.h"
 #import "DWDatabase.h"
 
-@implementation HWView
+@implementation HWView 
 
 @synthesize answerSheetView, parser, questionImageURL, currentQuestion, timer, zipFileName, titleOfHomework, homeworkGuid, delivered, questionTimer;
 
@@ -30,6 +30,39 @@
     
     return timers;
     
+}
+
+- (void) closeContentView
+{
+    
+    if (delivered == 0) 
+    {
+        
+        int total_timers;
+        if ([self.timer currentMinute] != 0) {
+            total_timers = [self.timer currentMinute]*60 + [self.timer currentSecond];
+        }
+        else
+            total_timers = [self.timer currentSecond];
+        
+        NSString *updateHomework = [NSString stringWithFormat:@"update homework set total_time = '%d' where guid = '%@'", total_timers, homeworkGuid];    
+        
+        [[LocalDatabase sharedInstance] executeQuery:updateHomework];
+        
+        
+        // save last question time
+        if(previousQuestionNumber != -1)
+        {
+            [self updateTimeForQuestion:previousQuestionNumber];
+        }
+        
+        
+    }
+    
+    
+    [self removeFromSuperview];
+    
+    ((TEA_iPadAppDelegate*) [[UIApplication sharedApplication]delegate]).viewController.displayingSessionContent = NO;
 }
 
 - (void) updateTimeForQuestion:(int) questionIndex
@@ -319,33 +352,7 @@
 
 - (IBAction)closeButtonClicked:(id)sender
 {
-   
-    if (delivered == 0) 
-    {
-        
-        int total_timers;
-        if ([self.timer currentMinute] != 0) {
-            total_timers = [self.timer currentMinute]*60 + [self.timer currentSecond];
-        }
-        else
-            total_timers = [self.timer currentSecond];
-        
-        NSString *updateHomework = [NSString stringWithFormat:@"update homework set total_time = '%d' where guid = '%@'", total_timers, homeworkGuid];    
-        
-        [[LocalDatabase sharedInstance] executeQuery:updateHomework];
-        
-        
-        // save last question time
-        if(previousQuestionNumber != -1)
-        {
-            [self updateTimeForQuestion:previousQuestionNumber];
-        }
-        
-      
-    }
-    
-    
-    [self removeFromSuperview];
+    [self closeContentView];
 }
 
 
