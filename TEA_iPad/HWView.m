@@ -14,8 +14,9 @@
 #import "TEA_iPadAppDelegate.h"
 #import "LocalDatabase.h"
 #import "DWDatabase.h"
+#import "ConfigurationManager.h"
 
-@implementation HWView
+@implementation HWView 
 
 @synthesize answerSheetView, parser, questionImageURL, currentQuestion, timer, zipFileName, titleOfHomework, homeworkGuid, delivered, questionTimer;
 
@@ -30,6 +31,39 @@
     
     return timers;
     
+}
+
+- (void) closeContentView
+{
+    
+    if (delivered == 0) 
+    {
+        
+        int total_timers;
+        if ([self.timer currentMinute] != 0) {
+            total_timers = [self.timer currentMinute]*60 + [self.timer currentSecond];
+        }
+        else
+            total_timers = [self.timer currentSecond];
+        
+        NSString *updateHomework = [NSString stringWithFormat:@"update homework set total_time = '%d' where guid = '%@'", total_timers, homeworkGuid];    
+        
+        [[LocalDatabase sharedInstance] executeQuery:updateHomework];
+        
+        
+        // save last question time
+        if(previousQuestionNumber != -1)
+        {
+            [self updateTimeForQuestion:previousQuestionNumber];
+        }
+        
+        
+    }
+    
+    
+    [self removeFromSuperview];
+    
+    ((TEA_iPadAppDelegate*) [[UIApplication sharedApplication]delegate]).viewController.displayingSessionContent = NO;
 }
 
 - (void) updateTimeForQuestion:(int) questionIndex
@@ -319,33 +353,7 @@
 
 - (IBAction)closeButtonClicked:(id)sender
 {
-   
-    if (delivered == 0) 
-    {
-        
-        int total_timers;
-        if ([self.timer currentMinute] != 0) {
-            total_timers = [self.timer currentMinute]*60 + [self.timer currentSecond];
-        }
-        else
-            total_timers = [self.timer currentSecond];
-        
-        NSString *updateHomework = [NSString stringWithFormat:@"update homework set total_time = '%d' where guid = '%@'", total_timers, homeworkGuid];    
-        
-        [[LocalDatabase sharedInstance] executeQuery:updateHomework];
-        
-        
-        // save last question time
-        if(previousQuestionNumber != -1)
-        {
-            [self updateTimeForQuestion:previousQuestionNumber];
-        }
-        
-      
-    }
-    
-    
-    [self removeFromSuperview];
+    [self closeContentView];
 }
 
 
@@ -386,9 +394,13 @@
                 
                 [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:insertSQL];
             }
-
+            
+            NSString *updateRemoteNotificationTable = [NSString stringWithFormat:@"update notification set completed = 1 where file_url = '%@'", zipFileName];
+            
+            [DWDatabase getResultFromURL:[NSURL URLWithString:[ConfigurationManager getConfigurationValueForKey:@"ProtocolRemoteURL"]] withSQL:updateRemoteNotificationTable];
         
-        
+            NSString *updateCalendarTable = [NSString stringWithFormat:@"update calendar set completed = 1 where image_url = '%@'", zipFileName];
+            [[LocalDatabase sharedInstance] executeQuery:updateCalendarTable];
         }
         
         [self removeFromSuperview];

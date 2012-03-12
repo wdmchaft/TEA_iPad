@@ -12,7 +12,7 @@
 #import "LibraryView.h"
 
 @implementation SessionView
-@synthesize sessionName, sessionGuid, libraryViewController;
+@synthesize sessionName, sessionGuid, libraryViewController, index;
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -27,7 +27,9 @@
 {
 
     
+    
     NSArray *result = [[LocalDatabase sharedInstance] executeQuery: [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@'", sessionGuid]];
+    
     
     int counter = 0;
     int x,y;
@@ -54,13 +56,15 @@
         SessionLibraryItemView *sessionItemView = [[SessionLibraryItemView alloc] initWithFrame:sessionItemViewRect];
         sessionItemView.sessionView = self;
         sessionItemView.guid = [resultDict valueForKey:@"guid"];
-        
+        sessionItemView.index = [libraryViewController.sessionLibraryItems count];
         sessionItemView.name = [resultDict valueForKey:@"name"];
         sessionItemView.path = [resultDict valueForKey:@"path"];
         sessionItemView.type = [resultDict valueForKey:@"type"];
         sessionItemView.quizImagePath = [resultDict valueForKey:@"quizImagePath"];
         sessionItemView.previewPath = [resultDict valueForKey:@"previewPath"];
         sessionItemView.correctAnswer = [[resultDict valueForKey:@"quizCorrectAnswer"] intValue];
+        
+        [libraryViewController.sessionLibraryItems addObject:sessionItemView];
         
         int quizAnswer = -1;
         

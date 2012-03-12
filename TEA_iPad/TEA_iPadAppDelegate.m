@@ -370,7 +370,11 @@ void handleException(NSException *exception)
 
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo 
 {
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Info", NULL) message:NSLocalizedString(@"New Notification", NULL) delegate:self cancelButtonTitle:@"Tamam" otherButtonTitles:nil];
+    
+    
+    NSString *alertTitle = [NSString stringWithFormat:@"%@\n%@", NSLocalizedString(@"New Notification", NULL), [[userInfo objectForKey:@"aps"] valueForKey:@"alert"]];
+    
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Info", NULL) message:alertTitle delegate:self cancelButtonTitle:NSLocalizedString(@"OK", NULL) otherButtonTitles:nil];
     [alert show];
     [alert release];
 

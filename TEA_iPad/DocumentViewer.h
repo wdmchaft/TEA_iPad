@@ -7,9 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ContentViewerInterface.h"
 
 @class LibraryDocumentItem;
-@interface DocumentViewer : UIView {
+@interface DocumentViewer : UIView <ContentViewerInterface> {
     
     UIWebView *webView;
     LibraryDocumentItem *libraryItem;

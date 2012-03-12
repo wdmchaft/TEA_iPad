@@ -2,55 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>BonjourServiceName</key>
-	<string>teaservice</string>
-	<key>ContentNetworkMountPath</key>
-	<string>/DSSContent/DSSContent</string>
-	<key>ContentLocalPath</key>
-	<string>/Volumes/DSSContent</string>
-	<key>ProtocolUrl</key>
-	<string>http://172.16.46.116/~dualware/protocol_dk.php</string>
-	<key>StudentPictureBaseURL</key>
-	<string>http://192.168.2.25/ulumis/ogrenci_fotograf/</string>
-	<key>TEAContentPath</key>
-	<string>/Library/TEA</string>
-	<key>TEAProtocolUrl</key>
-	<string>http://172.16.46.116/~dualware/protocol.php</string>
-	<key>VitaminAPIBaseURL</key>
-	<string>http://beta-api.sebittest.com/</string>
-	<key>VitaminAPILoginURL</key>
-	<string>https://beta-api.sebittest.com/Login/login</string>
-	<key>VitaminAPITRedirectURL</key>
-	<string>http://beta-api.sebittest.com/Login/redirect</string>
-	<key>VitaminAPITXIDURL</key>
-	<string>http://beta-api.sebittest.com/Login/txid</string>
-	<key>ContentNetworkName</key>
-	<string>smb://atasehir/DSSContent</string>
-	<key>ContentNetworkUsername</key>
-	<string>administrator</string>
-	<key>ContentNetworkPassword</key>
-	<string>Passw0rd</string>
-	<key>ContentRouteMode</key>
+	<key>ConfigFileURL</key>
 	<string>local</string>
-	<key>ContentLocalMountPath</key>
-	<string>/DSSContent/DSSContent</string>
-	<key>SYNC_URL</key>
-	<string>http://192.168.2.50:8080</string>
-	<key>HOMEWORK_URL</key>
-	<string>http://192.168.2.50:8080</string>
-	<key>SYNC_ENABLED</key>
-	<true/>
-	<key>HOMEWORK_ENABLED</key>
-	<true/>
-	<key>uploadURL</key>
-	<string>http://192.168.2.50:8080/upload.jsp</string>
-	<key>EXCEPTION_ENABLED</key>
-	<true/>
-	<key>EXCEPTION_POST_URL</key>
-	<string>http://www.dualware.com/Service/EU/email.php</string>
-	<key>NOTEBOOK_SYNC_UPLOAD_URL</key>
-	<string>http://172.16.46.100:8080/syncNotebookUpload.jsp</string>
-	<key>ProtocolRemoteURL</key>
-	<string>http://www.dualware.com/Service/EU/protocol.php</string>
+	<key>ConfigurationMode</key>
+	<string>dev</string>
 </dict>
 </plist>

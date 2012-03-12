@@ -9,8 +9,9 @@
 #import <UIKit/UIKit.h>
 #import "Timer.h"
 #import <MediaPlayer/MediaPlayer.h>
+#import "ContentViewerInterface.h"
 
-@interface ImageViewer : UIView {
+@interface ImageViewer : UIView <ContentViewerInterface> {
     
     UIImageView *imageViewer;
 }
