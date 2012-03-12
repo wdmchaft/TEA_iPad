@@ -32,7 +32,7 @@
     DWRotate *rotate;
     DWFlip *flip;
 
-    
+    void *bitmapData;
 }
 
 @property (retain) NSMutableArray *points;
