@@ -44,8 +44,12 @@
 @synthesize notebookSyncService;
 @synthesize homeworkService;
 @synthesize numericPadPopover;
-
+@synthesize sessionLibraryItems;
 @synthesize calendarController;
+@synthesize currentContentsIndex;
+@synthesize currentSessionListIndex;
+@synthesize displayingSessionContent;
+@synthesize currentContentView;
 
 - (void) refreshDate:(NSDate*)aDate
 {
@@ -101,13 +105,25 @@
 
 - (void) setLibraryViewHidden:(BOOL) hidden
 {
+    if(hidden)
+    {
+        for(UIGestureRecognizer *gestureRecognizer in self.view.gestureRecognizers)
+        {
+            [gestureRecognizer setEnabled:NO];
+        }
+    }
     if(!hidden)
     {
+        for(UIGestureRecognizer *gestureRecognizer in self.view.gestureRecognizers)
+        {
+            [gestureRecognizer setEnabled:YES];
+        }
+        
         [self setNotebookHidden:YES];
         [self setNotebookViewHidden:YES];
         [backgroundView setImage:[UIImage imageNamed:@"LibraryBG.jpg"]];
         [calendarController setHiddenComponents:YES];
-
+        
     }
     
     [searchTextField setHidden:hidden];
@@ -119,6 +135,7 @@
     
     
 }
+
 
 - (void) setNotebookViewHidden:(BOOL) hidden
 {
@@ -214,13 +231,25 @@
         [sessionV removeFromSuperview];
     }
     
+    if(sessionList)
+    {
+        [sessionList release];
+        sessionList = nil;
+    }
     
-    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql];
+    if(sessionLibraryItems)
+    {
+        [sessionLibraryItems release];
+        sessionLibraryItems = nil;
+    }
+    
+    sessionList = [[[LocalDatabase sharedInstance] executeQuery:sql] retain];
+    sessionLibraryItems = [[NSMutableArray alloc] init];
     
     int counter = 0;
     CGRect sessionViewRect = CGRectMake(0, 0, 0, 0);
     
-    for(NSDictionary *resultDict in result)
+    for(NSDictionary *resultDict in sessionList)
     {
         sessionViewRect = CGRectMake(0, sessionViewRect.origin.y + sessionViewRect.size.height + 20, contentsScrollView.frame.size.width, 300);
         SessionView *sessionView = [[SessionView alloc] initWithFrame:sessionViewRect];
@@ -287,18 +316,32 @@
     }
     
     
-    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql];
+    if(sessionList)
+    {
+        [sessionList release];
+        sessionList = nil;
+    }
+    
+    if(sessionLibraryItems)
+    {
+        [sessionLibraryItems release];
+        sessionLibraryItems = nil;
+    }
+    
+    sessionList = [[[LocalDatabase sharedInstance] executeQuery:sql] retain];
+    sessionLibraryItems = [[NSMutableArray alloc] init];
     
     int counter = 0;
     CGRect sessionViewRect = CGRectMake(0, 0, 0, 0);
     
-    for(NSDictionary *resultDict in result)
+    for(NSDictionary *resultDict in sessionList)
     {
         sessionViewRect = CGRectMake(0, sessionViewRect.origin.y + sessionViewRect.size.height + 20, contentsScrollView.frame.size.width, 300);
         SessionView *sessionView = [[SessionView alloc] initWithFrame:sessionViewRect];
         sessionView.libraryViewController = self;
         sessionView.sessionName = [resultDict valueForKey:@"name"];
         sessionView.sessionGuid = [resultDict valueForKey:@"session_guid"];
+        sessionView.index = counter;
         
         [contentsScrollView addSubview:sessionView];
         [sessionView initSessionView];
@@ -392,6 +435,19 @@
 
 - (void)dealloc
 {
+    
+    if(sessionList)
+    {
+        [sessionList release];
+        sessionList = nil;
+    }
+    
+    if(sessionLibraryItems)
+    {
+        [sessionLibraryItems release];
+        sessionLibraryItems = nil;
+    }
+    
     if(notebookWorkspace)
         [notebookWorkspace release];
     
@@ -466,6 +522,8 @@
                 firstLetter = [firstLetter stringByReplacingOccurrencesOfString:@"ç" withString:@"Ç"];
                 firstLetter = [firstLetter stringByReplacingOccurrencesOfString:@"ş" withString:@"Ş"];
                 firstLetter = [firstLetter stringByReplacingOccurrencesOfString:@"i" withString:@"İ"];
+                firstLetter = [firstLetter stringByReplacingOccurrencesOfString:@"ö" withString:@"Ö"];
+                firstLetter = [firstLetter stringByReplacingOccurrencesOfString:@"ü" withString:@"Ü"];
                 
                 word = [word stringByReplacingCharactersInRange:NSMakeRange(0, 1) withString:firstLetter];
                 
@@ -488,6 +546,41 @@
         [self initSessionNamesWithFilter:parameters];
     }
 }
+
+- (void)handleSwipe:(UISwipeGestureRecognizer *)gestureRecognizer
+{
+    if(displayingSessionContent)
+    {
+        if(gestureRecognizer.direction == UISwipeGestureRecognizerDirectionRight)
+        {
+            // Get previous item
+            if(currentContentsIndex > 0)
+            {
+                [currentContentView closeContentViewWithDirection:kContentViewOpenDirectionToRight];
+                
+                SessionLibraryItemView *currentLibraryItem = [sessionLibraryItems objectAtIndex:currentContentsIndex - 1];
+                currentLibraryItem.direction = kContentViewOpenDirectionToRight;
+                [currentLibraryItem touchesEnded:nil withEvent:nil];
+            }
+
+        }
+        else if(gestureRecognizer.direction == UISwipeGestureRecognizerDirectionLeft)
+        {
+            // Get next item
+            
+            if(currentContentsIndex < [sessionLibraryItems count] - 1)
+            {
+                [currentContentView closeContentViewWithDirection:kContentViewOpenDirectionToLeft];
+                
+                SessionLibraryItemView *currentLibraryItem = [sessionLibraryItems objectAtIndex:currentContentsIndex + 1];
+                currentLibraryItem.direction = kContentViewOpenDirectionToLeft;
+                [currentLibraryItem touchesEnded:nil withEvent:nil];
+            }
+        }
+    }
+    
+}
+
 
 - (void)viewDidLoad
 {
@@ -597,6 +690,21 @@
     
     [self refreshDate:[NSDate date]];
 
+    
+    // Add swipe gesture for library view
+    UISwipeGestureRecognizer *rightSwipe = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipe:)];
+    [rightSwipe setDirection:(UISwipeGestureRecognizerDirectionRight)];
+    
+    
+    UISwipeGestureRecognizer *leftSwipe = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipe:)];
+    [leftSwipe setDirection:(UISwipeGestureRecognizerDirectionLeft)];
+    
+    [self.view addGestureRecognizer:rightSwipe];
+    [self.view addGestureRecognizer:leftSwipe];
+
+    [leftSwipe release];
+    [rightSwipe release];
+    
 }
 
 - (void) selectLecture:(LectureView *) lecture

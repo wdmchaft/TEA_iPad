@@ -7,9 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ContentViewerInterface.h"
 
-
-@interface QuizViewer : UIViewController {
+@interface QuizViewer : UIViewController <ContentViewerInterface> {
     
     UIButton *answerA;
     UIButton *answerB;

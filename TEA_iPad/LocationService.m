@@ -52,27 +52,54 @@
     NSString *sql = [NSString stringWithFormat:@"select * from location where device_id='%@'", deviceUDID];
     NSArray *rows = [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:sql];
     
+    [allowedLocations removeAllObjects];
     
-    
-    allowedLocation = nil;
-    if([rows count] == 1)
+    //if(locationCountList && [locationCountList count] > 0)
     {
-        float lat = [[[rows objectAtIndex:0] valueForKey:@"lat"] floatValue];
-        float lon = [[[rows objectAtIndex:0] valueForKey:@"lon"] floatValue];
-        allowedLocation = [[CLLocation alloc] initWithLatitude:lat longitude:lon];
-        allowedACPRange = [[[rows objectAtIndex:0] valueForKey:@"acp_range"] intValue];
-        allowed3GRange = [[[rows objectAtIndex:0] valueForKey:@"3g_range"] intValue];
-        //    originalRange = allowedRange;
-        NSString *userBSSID = [[[rows objectAtIndex:0] valueForKey:@"acp_address"] retain];
-        [allowedBSSIDs addObject:userBSSID];
-        returnValue = YES;
+        //int locationCount = [[[locationCountList objectAtIndex:0] valueForKey:@"locaiton_count"] intValue];
+        //allowedLocation = nil;
+        
+        if([rows count] > 0)
+        {
+            for(int i=0; i < [rows count]; i++)
+            {
+                float lat = [[[rows objectAtIndex:i] valueForKey:@"lat"] floatValue];
+                float lon = [[[rows objectAtIndex:i] valueForKey:@"lon"] floatValue];
+            
+                int allowedACPRange = [[[rows objectAtIndex:i] valueForKey:@"acp_range"] intValue];
+                int allowed3GRange = [[[rows objectAtIndex:i] valueForKey:@"3g_range"] intValue];
+                //    originalRange = allowedRange;
+                NSString *userBSSID = [[[rows objectAtIndex:0] valueForKey:@"acp_address"] retain];
+                [allowedBSSIDs addObject:userBSSID];
+                returnValue = YES;
+                
+                CLLocation *allowedLocation = [[CLLocation alloc] initWithLatitude:lat longitude:lon];
+                
+                NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] init];
+                [dictionary setValue:allowedLocation forKey:@"location"];
+                [dictionary setValue:[NSNumber numberWithInt:allowedACPRange] forKey:@"allowedACPRange"];
+                [dictionary setValue:[NSNumber numberWithInt:allowed3GRange] forKey:@"allowed3GRange"];
+                
+                
+                [allowedLocations addObject:dictionary];
+                [dictionary release];
+                [allowedLocation release];
+            }
+                        
+        }
+        else
+        {
+            [locationServiceMessageView setMessage:@"Eşleştirme kaydı bulunamadı..."];
+            returnValue = NO;
+        }
+
     }
-    else
+    /*else
     {
-        [locationServiceMessageView setMessage:@"Eşleştirme kaydı bulunamadı..."];
+        [locationServiceMessageView setMessage:@"[-113] Eşleştirme kaydı bulunamadı..."];
         returnValue = NO;
-    }
-    
+    }*/
+        
     return returnValue;
 }
 
@@ -112,6 +139,24 @@
     }
     else
     {
+        if(allowedLocationCount == -1)
+        {
+            TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+            
+            NSString *deviceUDID = [appDelegate getDeviceUniqueIdentifier];
+            NSString *sql = [NSString stringWithFormat:@"select * from location_count where device_id='%@'", deviceUDID];
+            NSArray *locationCountList = [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:sql];
+            
+            if(locationCountList && [locationCountList count] > 0)
+            {
+                allowedLocationCount = [[[locationCountList objectAtIndex:0] valueForKey:@"location_count"] intValue];
+            }
+            else
+            {
+                allowedLocationCount = 1;
+            }
+        }
+        
         if(!usingLocation)
         {
             [self startLocationTracking];
@@ -143,6 +188,10 @@
 {
     /*TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
+    allowedLocationCount = -1;
+    
+    allowedLocations = [[NSMutableArray alloc] init];
+    
     locationServiceMessageView = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
     [appDelegate.viewController.view addSubview:locationServiceMessageView];
     [locationServiceMessageView setHidden:NO];
@@ -159,7 +208,7 @@
     [staticBSSIDs addObject:@"68:bc:c:ca:be:0"];
     [staticBSSIDs addObject:@"24:b6:57:43:35:b0"];
 //    [staticBSSIDs addObject:@"c0:c1:c0:58:e5:2d"];   
-    [staticBSSIDs addObject:@"0"]; 
+    //[staticBSSIDs addObject:@"0"]; 
     
     locationManager = [[CLLocationManager alloc] init];
     locationManager.delegate = self;
@@ -191,6 +240,7 @@
 
 - (void)dealloc 
 {
+    [allowedLocations release];
     [allowedBSSIDs release];
     [super dealloc];
 }
@@ -239,29 +289,28 @@
         }
 
         
-        if(!allowedLocation)
+        if([allowedLocations count] < allowedLocationCount)
         {
             if ([newLocation verticalAccuracy] <= 260 && [newLocation horizontalAccuracy] <= 260) 
             {
                 runningOperation = YES;
                 
+                [self generateAllowedConnectionRecordWithLocation: newLocation];
+                
                 if(![self getAllowedLocation])
                 {
-                    [self generateAllowedConnectionRecordWithLocation: newLocation];
+                    /*[self generateAllowedConnectionRecordWithLocation: newLocation];
                     
                     if(![self getAllowedLocation])
                     {
                         [locationServiceMessageView setMessage:@"Uygulama eşleştirme kaydınız oluşturulamadı. Lütfen sistem yöneticinize haber veriniz! "];
-                        
-                        //*************************************>>>>>>>>>>>>>>>>>>>>>>>>>>
-                        
-                        //[locationServiceMessageView setMessage:@""];
-                        
-                        //*************************************<<<<<<<<<<<<<<<<<<<<<<<<<<
-                        
                         [locationServiceMessageView setHidden:NO];
                         [locationManager stopUpdatingLocation];
-                    }
+                    }*/
+                    
+                    [locationServiceMessageView setMessage:@"Uygulama eşleştirme kaydınız oluşturulamadı. Lütfen sistem yöneticinize haber veriniz! "];
+                    [locationServiceMessageView setHidden:NO];
+                    [locationManager stopUpdatingLocation];
                 }
                 
                 runningOperation = NO;
@@ -273,29 +322,36 @@
             }
         }
         
-        
-        if([allowedBSSIDs containsObject:[self getBSSID]]) //extend range, trust access point
+        BOOL foundAllowedLocation = NO;
+        CLLocationDistance distanceInMeters;
+    
+        for(NSDictionary *locationDictionary in allowedLocations)
         {
-            allowedRange = allowedACPRange;
-        }
-        else
-        {
-            allowedRange = allowed3GRange;
-        }
-        
-        CLLocationDistance distanceInMeters = [newLocation distanceFromLocation:allowedLocation];
-        
-        if ( distanceInMeters > allowedRange ) 
-        {
-            /*
-            NSString *message = [NSString stringWithFormat: @"Uygulama kullanım dışı bırakıldı. \n(Uzaklık:%f)\n", distanceInMeters];
-            message = [message stringByAppendingFormat:@"Geçerli bölge : %f, %f\n", newLocation.coordinate.latitude, newLocation.coordinate.longitude];
-            message = [message stringByAppendingFormat:@"Lokasyon Güncelleme Sayısı : %d\n", locationCount];
-            message = [message stringByAppendingFormat:@"Yatay Hassasiyet : %f\n", newLocation.verticalAccuracy];
-            message = [message stringByAppendingFormat:@"Dikey Hassasiyet :  %f", newLocation.horizontalAccuracy];
+            if([allowedBSSIDs containsObject:[self getBSSID]]) //extend range, trust access point
+            {
+                allowedRange = [[locationDictionary valueForKey:@"allowedACPRange"] intValue]; 
+            }
+            else
+            {
+                allowedRange = [[locationDictionary valueForKey:@"allowed3GRange"] intValue] ;
+            }
             
-             */
-            
+            distanceInMeters = [newLocation distanceFromLocation:[locationDictionary objectForKey:@"location"]];
+
+            if ( distanceInMeters > allowedRange ) 
+            {
+                
+            }
+            else
+            {
+                foundAllowedLocation = YES;
+                [locationServiceMessageView setHidden:YES];
+            } 
+        }
+    
+    
+        if ( !foundAllowedLocation ) 
+        {
             locationInfoMessage = [NSString stringWithFormat: @"Uygulama kullanım dışı bırakıldı. (Uzaklık:%f metre)", distanceInMeters];
             
             [locationServiceMessageView setMessage:locationInfoMessage];
@@ -303,17 +359,21 @@
         }
         else
         {
- /*           
-            NSString *message = [NSString stringWithFormat: @"Uygulama kullanılabilir durumda. \n(Uzaklık:%f)\n", distanceInMeters];
-            message = [message stringByAppendingFormat:@"Geçerli bölge : %f, %f\n", newLocation.coordinate.latitude, newLocation.coordinate.longitude];
-            message = [message stringByAppendingFormat:@"Lokasyon Güncelleme Sayısı : %d\n", locationCount];
-            message = [message stringByAppendingFormat:@"Yatay Hassasiyet : %f\n", newLocation.verticalAccuracy];
-            message = [message stringByAppendingFormat:@"Dikey Hassasiyet :  %f", newLocation.horizontalAccuracy];
-            
-            [locationServiceMessageView setMessage:message];
-  */
+            /*           
+             NSString *message = [NSString stringWithFormat: @"Uygulama kullanılabilir durumda. \n(Uzaklık:%f)\n", distanceInMeters];
+             message = [message stringByAppendingFormat:@"Geçerli bölge : %f, %f\n", newLocation.coordinate.latitude, newLocation.coordinate.longitude];
+             message = [message stringByAppendingFormat:@"Lokasyon Güncelleme Sayısı : %d\n", locationCount];
+             message = [message stringByAppendingFormat:@"Yatay Hassasiyet : %f\n", newLocation.verticalAccuracy];
+             message = [message stringByAppendingFormat:@"Dikey Hassasiyet :  %f", newLocation.horizontalAccuracy];
+             
+             [locationServiceMessageView setMessage:message];
+             */
             [locationServiceMessageView setHidden:YES];
-        }    
+        } 
+    
+    
+
+           
 }
 
 

@@ -22,8 +22,12 @@
     CalendarDataController *controller;
     
     Calendar *calendar;
+    int uncompletedTask;
     
 }
+
+
+@property (nonatomic, assign) int uncompletedTask;
 
 @property (nonatomic, assign) Calendar *calendar;
 

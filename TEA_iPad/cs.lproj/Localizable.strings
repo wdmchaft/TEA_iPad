@@ -7,19 +7,21 @@
 */
 
 
-"Object Delete Message"="Are you sure you want to delete the object?";
-"Delete"="Delete";
-"Yes"="Yes";
-"No"="No";
-"Cancel"="Cancel";
-"Caution"="Caution";
-"Send"="Send";
-"Answer Send Message"="You choosed option '%c'. Are you sure to send this answer?";
-"Move To Notebook"="Move to notebook";
-"Rename"="Rename";
-"Close"="Close";
-"Finish"="Finish";
-"FinishHomeworkWarning" = "When homework is 'Finished', it can not be edited anymore. Are you sure to 'finish' homework?";
+"Object Delete Message"="Opravdu chcete tento objekt odstranit?"; 
+"Delete"="Odstranit"; 
+"Yes"="Ano"; 
+"No"="Ne"; 
+"Cancel"="Storno";
+"Caution"="Výstraha"; 
+"Send"="Odeslat";
+"Answer Send Message"="Vybrali jste možnost „%c“. Opravdu chcete odeslat tuto odpověď?"; "Move To Notebook"="Přesunout do zápisníku"; 
+"Rename"="Přejmenovat"; 
+"Close"="Zavřít"; 
+"Finish"="Dokončit";
+"FinishHomeworkWarning" = "Když je domácí úkol „Dokončen“, již jej nelze upravovat. Opravdu chcete domácí úkol „dokončit“?";
+
+// Bunlar da lokalize edilecek...
+
 "AddCalendar" = "Add Entry";
 "DeleteCalendar" = "Delete Entry";
 "EditCalendar" = "Edit Entry";

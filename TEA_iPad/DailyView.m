@@ -10,10 +10,16 @@
 #import "CalendarDataClass.h"
 #import "CalendarDataController.h"
 #import <QuartzCore/QuartzCore.h>
+#import "LibraryView.h"
+#import "TEA_iPadAppDelegate.h"
+#import "HWView.h"
+#import "LocalDatabase.h"
+#import "CustomCalendarCell.h"
+
 
 @implementation DailyView
 
-@synthesize tableView, selectedDayEvents, dbResult, selectedRow, controller;
+@synthesize tableView, selectedDayEvents, dbResult, selectedRow, controller, newEntryPopover, uncompletedTask;
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -89,11 +95,13 @@
 {
     
     static NSString *CellIdentifier = @"Cell";
-    UITableViewCell *tableViewCell = [ptableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    CustomCalendarCell *tableViewCell = [ptableView dequeueReusableCellWithIdentifier:CellIdentifier];
     
     if (tableViewCell == nil) {
-        tableViewCell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier] autorelease];
+        tableViewCell = [[[CustomCalendarCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier] autorelease];
     }
+
+    
     
     NSDateFormatter *df = [[[NSDateFormatter alloc] init] autorelease];
     [df setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
@@ -105,70 +113,127 @@
     NSString *strFromVldt = [df stringFromDate:validDate];
     NSString *strName = [[dbResult objectAtIndex:indexPath.row] objectForKey:@"title"];
     
+    if ([strName length] > 60) {
+        strName =[NSString stringWithFormat:@"%@ ...", [strName substringToIndex:59]];
+    }
+    
     tableViewCell.textLabel.font = [UIFont fontWithName:@"Helvetica" size:14];
     tableViewCell.textLabel.textAlignment = UITextAlignmentLeft;
     tableViewCell.textLabel.numberOfLines=2;
     tableViewCell.textLabel.text = [NSString stringWithFormat:@"%@\r%@", strFromVldt, strName];
-//    tableViewCell.textLabel.textColor = [UIColor darkGrayColor];
     tableViewCell.textLabel.backgroundColor = [UIColor clearColor];
-
+    
+    NSDateComponents *componentsValidDate = [[NSCalendar currentCalendar] components:NSDayCalendarUnit | NSMonthCalendarUnit | NSYearCalendarUnit | NSWeekdayCalendarUnit | NSWeekCalendarUnit | NSWeekOfMonthCalendarUnit fromDate:validDate];
+    
+    NSInteger year = [componentsValidDate year];
+    NSInteger day = [componentsValidDate day];
+    NSInteger month = [componentsValidDate month];
+    
+    NSDateComponents *componentsToday = [[NSCalendar currentCalendar] components:NSDayCalendarUnit | NSMonthCalendarUnit | NSYearCalendarUnit | NSWeekdayCalendarUnit | NSWeekCalendarUnit | NSWeekOfMonthCalendarUnit fromDate:[NSDate date]];
+    
+    NSInteger thisYear = [componentsToday year];
+    NSInteger today = [componentsToday day];
+    NSInteger thisMonth = [componentsToday month];
+    
     
     if ([[[dbResult objectAtIndex:indexPath.row] valueForKey:@"completed"] intValue] == 0) {
-        tableViewCell.textLabel.textColor = [UIColor whiteColor];
-        tableViewCell.contentView.backgroundColor = [UIColor colorWithRed:204.0/255.f green:51.0/255.f blue:0.0/255.f alpha:1.0];
+        if (year<=thisYear && month<=thisMonth) {
+            if ((day <= today && month==thisMonth) || (month<thisMonth))
+            { 
+                tableViewCell.textLabel.textColor = [UIColor whiteColor];
+                tableViewCell.contentView.backgroundColor = [UIColor colorWithRed:204.0/255.f green:51.0/255.f blue:0.0/255.f alpha:1.0];
+            }
+            else if (day == today+1)
+            {
+                tableViewCell.textLabel.textColor = [UIColor whiteColor];
+                tableViewCell.contentView.backgroundColor = [UIColor colorWithRed:204.0/255.f green:102.0/255.f blue:0.0/255.f alpha:1.0];
+            }
+            else if (day == today+2)
+            {
+                tableViewCell.textLabel.textColor = [UIColor whiteColor];
+                tableViewCell.contentView.backgroundColor = [UIColor colorWithRed:204.0/255.f green:153.0/255.f blue:0.0/255.f alpha:1.0];
+            }
+            else if (day == today+3)
+            {
+                tableViewCell.textLabel.textColor = [UIColor darkGrayColor];
+                tableViewCell.contentView.backgroundColor = [UIColor colorWithRed:204.0/255.f green:204.0/255.f blue:0.0/255.f alpha:1.0];
+            }
+            else if (day > today+3)
+            {
+                tableViewCell.textLabel.textColor = [UIColor darkGrayColor];
+                tableViewCell.contentView.backgroundColor = [UIColor whiteColor];
+            }
+            
+        }
     }
     else if ([[[dbResult objectAtIndex:indexPath.row] valueForKey:@"completed"] intValue] == 1)
     {
         tableViewCell.textLabel.textColor = [UIColor blackColor];
         tableViewCell.contentView.backgroundColor = [UIColor colorWithRed:153.0/255.f green:204.0/255.f blue:51.0/255.f alpha:1.0];
     }
-/*    
-    UIButton *infoButton = [UIButton buttonWithType:UIButtonTypeInfoDark];
-    infoButton.frame = CGRectMake(self.frame.size.width-35, 5, 30, 30); // position in the parent view and set the size of the button
-    [infoButton setTitle:@"Info" forState:UIControlStateNormal];
-    [infoButton addTarget:self action:@selector(showInformation:) forControlEvents:UIControlEventTouchUpInside];
-    [infoButton setTag:indexPath.row];
-    [tableViewCell addSubview:infoButton];
-*/    
+     
+    
+    [tableViewCell.infoButton addTarget:self action:@selector(showInformation:) forControlEvents:UIControlEventTouchUpInside];
+    [tableViewCell.infoButton setTag:indexPath.row];    
+    
+    
+    if ([[[dbResult objectAtIndex:indexPath.row] valueForKey:@"type"] intValue] == 2)
+    {
+        [tableViewCell.infoButton setHidden:NO];
+        [tableViewCell.infoButton setFrame:CGRectMake(tableView.frame.size.width-35, 15, 25, 25)];
+    }
+    else{
+        
+        [tableViewCell.infoButton setHidden:YES];
+    }
+    
+    
     return tableViewCell;
 }
 
 
 
-/*
+
 - (IBAction)showInformation:(id)sender
 {
-    
-    self.controller.currentEntry = [dbResult objectAtIndex:[sender tag]];
-    
-    NewEntryView *newEntry = [[[NewEntryView alloc] initWithNibName:@"NewEntryView" bundle:nil] autorelease];
-    newEntry.controller = self.controller;
-    self.controller.newEntryPopover = [[[UIPopoverController alloc] initWithContentViewController:newEntry] autorelease];
-    newEntry.popup = self.controller.newEntryPopover;
-    self.controller.newEntryPopover.popoverContentSize = newEntry.view.frame.size;
-    [self.controller.newEntryPopover presentPopoverFromRect:((UIButton*)sender).frame inView:self.controller.dailyView.tableView permittedArrowDirections:UIPopoverArrowDirectionLeft animated:YES];
-    
-    [[newEntry addButton] setHidden:YES];
-    [[newEntry calendarAlarmDayTextField] setEnabled:NO]; 
-    [[newEntry calendarAlarmYearTextField] setEnabled:NO]; 
-    [[newEntry calendarAlarmHourTextField] setEnabled:NO]; 
-    [[newEntry calendarAlarmMonthTextField] setEnabled:NO]; 
-    [[newEntry calendarAlarmMinuteTextField] setEnabled:NO]; 
-    [[newEntry calendarDateDayTextField] setEnabled:NO]; 
-    [[newEntry calendarDateYearTextField] setEnabled:NO]; 
-    [[newEntry calendarDateHourTextField] setEnabled:NO]; 
-    [[newEntry calendarDateMinuteTextField] setEnabled:NO]; 
-    [[newEntry calendarDateMonthTextField] setEnabled:NO];
-    [[newEntry calendarTitle] setEnabled:NO]; 
-    [[newEntry calendarBody] setEditable:NO]; 
-    [[newEntry calendarImageURL] setEnabled:NO];
-    [[newEntry calendarCompleatedState] setEnabled:NO];
 
     
-    [self.controller fillEntryFields:newEntry];
+    NSLog(@"%@", [self.controller superclass]);
+   
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+
+    
+    //if session is not logon state
+    if (appDelegate.state != kAppStateLogon) {
+        
+        // Get homework name from db
+        
+        NSString *fileName = [[dbResult objectAtIndex:[sender tag]] valueForKey:@"image_url"];
+        
+        NSString *sql = [NSString stringWithFormat: @"select name from homework where file = '%@'", fileName];
+        
+        NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql];
+        
+        if (result && [result count]>0) {
+            NSString *homeworkName = [[result objectAtIndex:0] valueForKey:@"name"];
+            
+            NSString *homeworkGuidSQL = [NSString stringWithFormat:@"select guid from homework where file = '%@'", fileName];
+            NSString *homeworkGuid = [[[LocalDatabase sharedInstance] executeQuery:homeworkGuidSQL returnSimpleArray:YES] objectAtIndex:0];
+            
+            
+            HWView *homeworkView = [[HWView alloc] initWithFrame:CGRectMake(0, 0, 1024, 748) andZipFileName:fileName andHomeworkId:homeworkGuid];
+            [homeworkView.titleOfHomework setText:homeworkName]; 
+            
+            [appDelegate.viewController.view addSubview:homeworkView];
+            [homeworkView release];
+        }
+        
+        
+    }
+    
 }
 
-*/
+
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
@@ -215,20 +280,6 @@
 {
     self.selectedRow = indexPath.row;
 
-    
-/*    
-    if ([[dataDict valueForKey:@"type"] intValue] == 1) {
-        [self.controller.deleteEntry setHidden:NO];
-        [self.controller.editEntry setHidden:NO];
-        self.controller.currentEntry = dataDict;
-    }
-    else if ([[dataDict valueForKey:@"type"] intValue] == 0){
-        [self.controller.deleteEntry setHidden:YES];
-        [self.controller.editEntry setHidden:YES];
-    }
- 
-*/
-        
     NewEntryView *newEntry = [[[NewEntryView alloc] initWithNibName:@"NewEntryView" bundle:nil] autorelease];
     newEntry.controller = self.controller;
     self.controller.newEntryPopover = [[[UIPopoverController alloc] initWithContentViewController:newEntry] autorelease];
@@ -240,7 +291,7 @@
     
     newEntry.currentDictionary = [dbResult objectAtIndex:indexPath.row];
     
-    if ([[newEntry.currentDictionary objectForKey:@"type"] intValue] == 0) 
+    if ([[newEntry.currentDictionary objectForKey:@"type"] intValue] != 1) 
     {
         [[newEntry addButton] setHidden:YES];
         [[newEntry calendarAlarmDayTextField] setEnabled:NO]; 

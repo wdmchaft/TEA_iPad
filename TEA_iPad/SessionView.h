@@ -14,13 +14,14 @@
     NSString *sessionGuid;
     NSString *sessionName; 
     UILabel *sessionNameLabel;
-    
+    int index;
     LibraryView *libraryViewController;
 }
 
 @property (nonatomic, retain) NSString *sessionGuid; 
 @property (nonatomic, retain) NSString *sessionName; 
 @property (nonatomic, assign) LibraryView *libraryViewController; 
+@property (nonatomic, assign) int index; 
 
 - (void) initSessionView;
 

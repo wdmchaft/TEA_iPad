@@ -28,11 +28,46 @@ static NSMutableDictionary *settingsDictionary;
     [super dealloc];
 }
 
++ (void) getSettings
+{
+    NSMutableDictionary *tmpDict = [[NSMutableDictionary alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"config" ofType:@"plist"]];
+    
+    NSString *configFileURL = [tmpDict valueForKey:@"ConfigFileURL"];
+    if([configFileURL isEqualToString:@"local"])
+    {
+        if([[tmpDict valueForKey:@"ConfigurationMode"] isEqualToString:@"dev"])
+        {
+            settingsDictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"config_dev" ofType:@"plist"]];
+        }
+        else
+        {
+            settingsDictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"config_prod" ofType:@"plist"]];
+        }
+    }
+    else
+    {
+        NSURL *configUrl = nil;
+        if([[tmpDict valueForKey:@"ConfigurationMode"] isEqualToString:@"dev"])
+        {
+            configUrl = [NSURL URLWithString:[NSString stringWithFormat:@"%@/config_dev.plist", configFileURL]];
+        }
+        else
+        {
+            configUrl = [NSURL URLWithString:[NSString stringWithFormat:@"%@/config_prod.plist", configFileURL]];
+        }
+        
+        settingsDictionary = [[NSMutableDictionary alloc] initWithContentsOfURL:configUrl];
+    }
+    
+    [tmpDict release];
+    
+}
+
 + (id) getConfigurationValueForKey:(NSString*)key
 {
     if(!settingsDictionary)
     {
-        settingsDictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"config" ofType:@"plist"]];
+        [ConfigurationManager getSettings];
     }
     return [settingsDictionary objectForKey:key];
 }
@@ -42,7 +77,7 @@ static NSMutableDictionary *settingsDictionary;
 {
     if(!settingsDictionary)
     {
-        settingsDictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"config" ofType:@"plist"]];
+        [ConfigurationManager getSettings];
     }
     [settingsDictionary setValue:aValue forKey:aKey];
     
