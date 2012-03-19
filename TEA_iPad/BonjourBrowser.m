@@ -212,12 +212,9 @@
     
     NSArray *components = [[pService description] componentsSeparatedByString:@"."];
     NSString *hostName = [components lastObject];
-    
-    NSLog(@"[BONJOUR] tea service resolved from host %@", hostName);
-    NSLog(@"App State is %d", appDelegate.state);
-    NSLog(@"HostNames are %@, %@", appDelegate.connectedHost, hostName);
+
    
-    if(appDelegate.state == kAppStateLogon) 
+   /* if(appDelegate.state == kAppStateLogon) 
     {
         if([hostName isEqualToString:appDelegate.connectedHost])
         {
@@ -283,7 +280,9 @@
         
         
         [self initClient:pService];
-    }
+    }*/
+    
+    [self initClient:pService];
 }
 
 - (void) stopBrowse
@@ -359,6 +358,8 @@
     NSArray *components = [[netService description] componentsSeparatedByString:@"."];
     NSString *hostName = [components lastObject];
     
+    NSLog(@"Service found on %@", hostName);
+  
     if(appDelegate.state == kAppStateLogon) 
     {
         if([hostName isEqualToString:appDelegate.connectedHost])
@@ -366,7 +367,7 @@
             NSLog(@"[BONJOUR] tea service found on %@", hostName);
             
             [netService setDelegate:self];
-            [netService resolveWithTimeout:20.0];
+            [netService resolveWithTimeout:0];
             
             [services addObject:netService];
         }
@@ -380,7 +381,7 @@
         NSLog(@"[BONJOUR] tea service found on %@", hostName);
         
         [netService setDelegate:self];
-        [netService resolveWithTimeout:20.0];
+        [netService resolveWithTimeout:0];
         
         [services addObject:netService];
     } 

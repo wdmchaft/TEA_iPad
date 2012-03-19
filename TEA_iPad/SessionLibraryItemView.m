@@ -24,7 +24,8 @@
 
 
 @implementation SessionLibraryItemView
-@synthesize name, path, type, sessionView, quizImagePath, previewPath, correctAnswer, answer, guid, quizOptCount;
+@synthesize name, path, type, sessionView, quizImagePath, previewPath, correctAnswer, answer, guid, quizOptCount, direction;
+@synthesize index;
 
 - (NSString *) getFileNameOfPath:(NSString *) pathString
 {
@@ -49,6 +50,7 @@
 
 - (UIImage *) getFilePreview;
 {
+ 
     if(previewPath && [previewPath length] > 0)
     {
         if(previewWebView)
@@ -104,7 +106,7 @@
 
         }
     }
-    
+
     return nil;
 }
 
@@ -306,6 +308,7 @@
 
 - (void) initLibraryItemView
 {
+    direction = kContentViewOpenDirectionToLeft;
     
     
     /* Add preview image */
@@ -335,7 +338,19 @@
     }
     else if ([type isEqualToString:@"quiz"]) 
     {
-        [borderImage setImage:[UIImage imageNamed:@"LibraryItemQuestion.png"]];
+        if(answer == -1)
+        {
+            [borderImage setImage:[UIImage imageNamed:@"LibraryItemQuestionEmpty.png"]];
+        }
+        else if(answer == correctAnswer)
+        {
+            [borderImage setImage:[UIImage imageNamed:@"LibraryItemQuestionCorrect.png"]];
+        }
+        else if(answer != correctAnswer)
+        {
+            [borderImage setImage:[UIImage imageNamed:@"LibraryItemQuestionWrong.png"]];
+        }
+        
     }
     else if ([type isEqualToString:@"image"]) 
     {
@@ -495,8 +510,11 @@
         {
             MediaPlayer *player = [[MediaPlayer alloc] initWithFrame:CGSizeMake(500, 500) andVideoPath:[self getFullPathForFile:self.path]];
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-                        
+            
+            sessionView.libraryViewController.currentContentView = player;
+            
             [appDelegate.viewController.view addSubview:player];
+           // [player loadContentView:player withDirection:direction];
             [player release];
         }
         else if([type isEqualToString:@"audio"])
@@ -504,7 +522,12 @@
             MediaPlayer *player = [[MediaPlayer alloc] initWithFrame:CGSizeMake(500, 500) andVideoPath:[self getFullPathForFile:self.path]];
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
             
+            
+            sessionView.libraryViewController.currentContentView = player;
+            
             [appDelegate.viewController.view addSubview:player];
+            [player loadContentView:player withDirection:direction];
+            
             [player release];
         }
         else if([type isEqualToString:@"quiz"])
@@ -513,11 +536,17 @@
             
             QuizViewer *quiz = [[QuizViewer alloc] initWithNibName:@"QuizViewer" bundle:nil];
             [appDelegate.viewController.view addSubview:quiz.view];
+            
+            [quiz loadContentView:quiz.view withDirection:direction];
+            
             //[quiz.quizImage setImage:[UIImage imageWithContentsOfFile:self.quizImagePath]];
             [quiz.quizImage loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:[self getFullPathForFile:self.quizImagePath]]]];
             quiz.correctAnswer = self.correctAnswer;
             quiz.optionCount = self.quizOptCount;
             quiz.answer = self.answer;
+            
+            sessionView.libraryViewController.currentContentView = quiz;
+            
             [quiz setupView];
 
             
@@ -531,7 +560,10 @@
             DocumentViewer *documentViewer = [[DocumentViewer alloc] initWithLibraryItem:libraryDocumentItem];
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
             
+            sessionView.libraryViewController.currentContentView = documentViewer;
+            
             [appDelegate.viewController.view addSubview:documentViewer];
+            [documentViewer loadContentView:documentViewer withDirection:direction];
             [libraryDocumentItem release];
             [documentViewer release];
             
@@ -546,7 +578,10 @@
             DocumentViewer *documentViewer = [[DocumentViewer alloc] initWithLibraryItem:libraryDocumentItem];
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
             
+            sessionView.libraryViewController.currentContentView = documentViewer;
+            
             [appDelegate.viewController.view addSubview:documentViewer];
+            [documentViewer loadContentView:documentViewer withDirection:direction];
             [libraryDocumentItem release];
             [documentViewer release];
             
@@ -568,23 +603,11 @@
                 
                 HWView *homeworkView = [[HWView alloc] initWithFrame:CGRectMake(0, 0, 1024, 748) andZipFileName:self.path andHomeworkId:self.guid];
                 [homeworkView.titleOfHomework setText:homeworkName]; 
-                
+                                
                 [appDelegate.viewController.view addSubview:homeworkView];
                 [homeworkView release];
                 
             }
-
-           /* LibraryDocumentItem *libraryDocumentItem = [[LibraryDocumentItem alloc] init];
-            libraryDocumentItem.path = [self getFullPathForFile:self.path];
-            libraryDocumentItem.name = name;
-            
-            DocumentViewer *documentViewer = [[DocumentViewer alloc] initWithLibraryItem:libraryDocumentItem];
-            TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-            
-            [appDelegate.viewController.view addSubview:documentViewer];
-            [libraryDocumentItem release];
-            [documentViewer release];*/
-            
         }
     }
     else
@@ -592,6 +615,14 @@
         [self changeState:kStateNormalMode];
         [self updateNameOfLibraryItem];
     }
+    
+    if(![type isEqualToString:@"homework"])
+    {
+        sessionView.libraryViewController.currentSessionListIndex = sessionView.index;
+        sessionView.libraryViewController.currentContentsIndex = self.index;
+        sessionView.libraryViewController.displayingSessionContent = YES;
+    }
+    
     
 }
 

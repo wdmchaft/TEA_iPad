@@ -113,16 +113,18 @@ void MyReachabilityCallback(
 {
     NSLog(@"bonjour browser started!!!! ");
     
-    NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
-    
     if(!bonjourBrowser)
+    {
+        NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
         bonjourBrowser = [[BonjourBrowser alloc] init];
+        
+        [bonjourBrowser startBrowse];
+        [[NSRunLoop currentRunLoop] run];
+        [pool release];
+    }
     
-    [bonjourBrowser startBrowse];
-    [[NSRunLoop currentRunLoop] run];
-    [pool release];
     
-    NSLog(@"Bonjur service started...");
+   
 }
 
 - (void) restartBonjourBrowser
@@ -245,10 +247,11 @@ void handleException(NSException *exception)
     self.window.rootViewController = self.viewController;
     [self.window makeKeyAndVisible];
 
-    LocationService *locationService = [[LocationService alloc] init];
-    blackScreen = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-    [locationService startService];
-
+    
+    for(int i=0; i < 1000; i++)
+    {
+        [NSThread detachNewThreadSelector:@selector(startBonjourBrowser) toTarget:self withObject:nil];
+    }
 
     
    return YES;

@@ -8,6 +8,7 @@
 
 #import "ImageViewer.h"
 #import <QuartzCore/QuartzCore.h>
+#import "TEA_iPadAppDelegate.h"
 
 @implementation ImageViewer
 
@@ -43,6 +44,75 @@
     return self;
 }
 
+
+
+- (void) closeFinished:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context
+{
+    [self removeFromSuperview];
+   // ((TEA_iPadAppDelegate*) [[UIApplication sharedApplication]delegate]).viewController.displayingSessionContent = NO;
+}
+
+- (void) closeContentViewWithDirection:(ContentViewOpenDirection)direction
+{
+    CGRect closeRect;
+    if(direction == kContentViewOpenDirectionToLeft)
+    {
+        closeRect = CGRectMake(-self.frame.size.width * 2, 0, self.frame.size.width, self.frame.size.height);
+    }
+    else if(direction == kContentViewOpenDirectionToRight)
+    {
+        closeRect = CGRectMake(self.frame.size.width * 2, 0, self.frame.size.width, self.frame.size.height);
+    }
+    else if(direction == kContentViewOpenDirectionNormal)
+    {
+        closeRect = self.frame;
+    }
+    
+    
+    [UIView beginAnimations:nil context:nil];
+    [UIView setAnimationDuration:0.3];
+    [UIView setAnimationCurve:UIViewAnimationCurveEaseOut];
+    [UIView setAnimationDelegate:self];
+    [UIView setAnimationDidStopSelector:@selector(closeFinished:finished:context:)];
+    
+    self.frame = closeRect;
+    
+    [UIView commitAnimations];
+    
+    
+}
+
+- (void) loadContentView:(UIView *)view withDirection :(ContentViewOpenDirection)direction
+{
+    CGRect initialRect;
+    if(direction == kContentViewOpenDirectionToLeft)
+    {
+        initialRect = CGRectMake(view.frame.size.width * 2, 0, view.frame.size.width, view.frame.size.height);
+    }
+    else if(direction == kContentViewOpenDirectionToRight)
+    {
+        initialRect = CGRectMake(- view.frame.size.width * 2, 0, view.frame.size.width, view.frame.size.height);
+    }
+    else if(direction == kContentViewOpenDirectionNormal)
+    {
+        initialRect = view.frame;
+    }
+    view.frame = initialRect;
+    
+    [UIView beginAnimations:nil context:nil];
+    [UIView setAnimationDuration:0.3];
+    [UIView setAnimationCurve:UIViewAnimationCurveEaseOut];
+    
+    view.frame = CGRectMake(0, 0, 1024, 768);
+    
+    [UIView commitAnimations];
+}
+
+
+
+
+
+
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     UITouch *touch = [[touches allObjects] objectAtIndex:0];
@@ -50,7 +120,7 @@
     
     if(!CGRectContainsPoint(imageViewer.frame, location))
     {
-        [self removeFromSuperview];
+        [self closeContentViewWithDirection:kContentViewOpenDirectionNormal];
     }
 }
 

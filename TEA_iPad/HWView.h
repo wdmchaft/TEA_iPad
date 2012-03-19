@@ -11,13 +11,15 @@
 #import "HWParser.h"
 #import "Timer.h"
 
+
+
 enum kHomeworkDelivered {
     kHomeworkDeliveredFinished = -1,
     kHomeworkDeliveredNormal = 0,
     kHomeworkDeliveredSentToServer = 1
     };
 
-@interface HWView : UIView
+@interface HWView : UIView 
 {
     HWParser *parser;
     

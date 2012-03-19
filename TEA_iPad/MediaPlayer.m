@@ -8,6 +8,7 @@
 
 #import "MediaPlayer.h"
 #import <QuartzCore/QuartzCore.h>
+#import "TEA_iPadAppDelegate.h"
 
 @implementation MediaPlayer
 
@@ -15,6 +16,18 @@
 {
   //  [player stop];
     [self removeFromSuperview];
+}
+
+- (void) handleEnterFullScreen :(NSNotification*)notification 
+{
+    NSLog(@"Full screen entered");
+    ((TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate]).viewController.displayingSessionContent = NO;
+}
+
+- (void) handleExitFullScreen :(NSNotification*)notification 
+{
+    NSLog(@"Full screen exit");
+     ((TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate]).viewController.displayingSessionContent = YES;
 }
 
 - (id)initWithFrame:(CGSize)size andVideoPath:(NSString*) videoPath
@@ -43,6 +56,9 @@
         [player.view.layer setCornerRadius:3];
         [player.view.layer setMasksToBounds:YES];
         
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleEnterFullScreen:) name:MPMoviePlayerWillEnterFullscreenNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleExitFullScreen:) name:MPMoviePlayerWillExitFullscreenNotification object:nil];
+        
         [player play];
         
     }
@@ -50,25 +66,92 @@
     return self;
 }
 
+
+- (void) closeFinished:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context
+{
+    [player stop];
+    [self playbackStoped];
+    
+    //((TEA_iPadAppDelegate*) [[UIApplication sharedApplication]delegate]).viewController.displayingSessionContent = NO;
+}
+
+- (void) closeContentViewWithDirection:(ContentViewOpenDirection)direction
+{
+    CGRect closeRect;
+    if(direction == kContentViewOpenDirectionToLeft)
+    {
+        closeRect = CGRectMake(-self.frame.size.width * 2, 0, self.frame.size.width, self.frame.size.height);
+    }
+    else if(direction == kContentViewOpenDirectionToRight)
+    {
+        closeRect = CGRectMake(self.frame.size.width * 2, 0, self.frame.size.width, self.frame.size.height);
+    }
+    else if(direction == kContentViewOpenDirectionNormal)
+    {
+        closeRect = self.frame;
+    }
+    
+    
+    [UIView beginAnimations:nil context:nil];
+    [UIView setAnimationDuration:0.3];
+    [UIView setAnimationCurve:UIViewAnimationCurveEaseOut];
+    [UIView setAnimationDelegate:self];
+    [UIView setAnimationDidStopSelector:@selector(closeFinished:finished:context:)];
+    
+    self.frame = closeRect;
+    
+    [UIView commitAnimations];
+    
+    
+}
+
+- (void) loadContentView:(UIView *)view withDirection :(ContentViewOpenDirection)direction
+{
+    CGRect initialRect;
+    if(direction == kContentViewOpenDirectionToLeft)
+    {
+        initialRect = CGRectMake(view.frame.size.width * 2, 0, view.frame.size.width, view.frame.size.height);
+    }
+    else if(direction == kContentViewOpenDirectionToRight)
+    {
+        initialRect = CGRectMake(- view.frame.size.width * 2, 0, view.frame.size.width, view.frame.size.height);
+    }
+    else if(direction == kContentViewOpenDirectionNormal)
+    {
+        initialRect = view.frame;
+    }
+    view.frame = initialRect;
+    
+    [UIView beginAnimations:nil context:nil];
+    [UIView setAnimationDuration:0.3];
+    [UIView setAnimationCurve:UIViewAnimationCurveEaseOut];
+    
+    view.frame = CGRectMake(0, 0, 1024, 768);
+    
+    [UIView commitAnimations];
+}
+
+
+
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    
     UITouch *touch = [[touches allObjects] objectAtIndex:0];
     CGPoint location = [touch locationInView:self];
     
     if(!CGRectContainsPoint(player.view.frame, location))
     {
-        [player stop];
-        [self playbackStoped];
+        [self closeContentViewWithDirection:kContentViewOpenDirectionNormal];
     }
 }
 
 - (void)dealloc
 {
     NSLog(@"player released");
-    [player release];
+  [player release];
     player = nil;
     
-    [player stop];
+    [player stop];  
     
     [super dealloc];
 }

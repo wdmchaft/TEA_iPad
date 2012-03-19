@@ -26,6 +26,9 @@
 
 - (void) handleMessage:(BonjourMessage *)aMessage
 {
+    
+    NSLog(@"**** image received");
+    
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
     NSData *imageData = (NSData*) [aMessage.userData objectForKey:@"image"];

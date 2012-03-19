@@ -8,6 +8,7 @@
 
 #import "QuizViewer.h"
 #import <QuartzCore/QuartzCore.h>
+#import "TEA_iPadAppDelegate.h"
 
 @implementation QuizViewer
 @synthesize answerA;
@@ -113,21 +114,74 @@
     return viewImage;
 }
 
+- (void) closeFinished:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context
+{
+    [self.view removeFromSuperview];
+   // ((TEA_iPadAppDelegate*) [[UIApplication sharedApplication]delegate]).viewController.displayingSessionContent = NO;
+}
 
+- (void) closeContentViewWithDirection:(ContentViewOpenDirection)direction
+{
+    CGRect closeRect;
+    if(direction == kContentViewOpenDirectionToLeft)
+    {
+        closeRect = CGRectMake(-self.view.frame.size.width * 2, 0, self.view.frame.size.width, self.view.frame.size.height);
+    }
+    else if(direction == kContentViewOpenDirectionToRight)
+    {
+        closeRect = CGRectMake(self.view.frame.size.width * 2, 0, self.view.frame.size.width, self.view.frame.size.height);
+    }
+    else if(direction == kContentViewOpenDirectionNormal)
+    {
+        closeRect = self.view.frame;
+    }
+    
+
+    [UIView beginAnimations:nil context:nil];
+    [UIView setAnimationDuration:0.3];
+    [UIView setAnimationCurve:UIViewAnimationCurveEaseOut];    
+    [UIView setAnimationDelegate:self];
+    [UIView setAnimationDidStopSelector:@selector(closeFinished:finished:context:)];
+    
+    self.view.frame = closeRect;
+    
+    [UIView commitAnimations];
+
+    
+}
+
+- (void) loadContentView:(UIView *)view withDirection :(ContentViewOpenDirection)direction
+{
+    CGRect initialRect;
+    if(direction == kContentViewOpenDirectionToLeft)
+    {
+        initialRect = CGRectMake(view.frame.size.width * 2, 0, view.frame.size.width, view.frame.size.height);
+    }
+    else if(direction == kContentViewOpenDirectionToRight)
+    {
+        initialRect = CGRectMake(- view.frame.size.width * 2, 0, view.frame.size.width, view.frame.size.height);
+    }
+    else if(direction == kContentViewOpenDirectionNormal)
+    {
+        initialRect = view.frame;
+    }
+    view.frame = initialRect;
+    
+    [UIView beginAnimations:nil context:nil];
+    [UIView setAnimationDuration:0.3];
+    [UIView setAnimationCurve:UIViewAnimationCurveEaseOut];
+    
+    view.frame = CGRectMake(0, 0, 1024, 768);
+
+    [UIView commitAnimations];
+}
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) 
     {
-        [self.view setBackgroundColor:[UIColor clearColor]];
         
-        UIView *bg = [[UIView alloc] initWithFrame:self.view.frame];
-        [bg setBackgroundColor:[UIColor blackColor]];
-        [bg setAlpha:0.5];
-        [self.view insertSubview:bg atIndex:0];
-        
-        [bg release];
     }
     return self;
 }
@@ -146,7 +200,7 @@
 
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    [self.view removeFromSuperview];
+    [self closeContentViewWithDirection:kContentViewOpenDirectionNormal];
 }
 
 
@@ -166,6 +220,15 @@
     [super viewDidLoad];
     [quizImage setScalesPageToFit:YES];
     // Do any additional setup after loading the view from its nib.
+    
+    [self.view setBackgroundColor:[UIColor clearColor]];
+    
+    UIView *bg = [[UIView alloc] initWithFrame:self.view.frame];
+    [bg setBackgroundColor:[UIColor blackColor]];
+    [bg setAlpha:0.5];
+    [self.view insertSubview:bg atIndex:0];
+    
+    [bg release];
 }
 
 - (void)viewDidUnload

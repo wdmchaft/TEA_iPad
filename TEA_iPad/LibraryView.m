@@ -19,7 +19,7 @@
 #import "DWSearchBar.h"
 
 #import "DeviceLog.h"
-//#import "CalendarDataController.h"
+#import "CalendarDataController.h"
 
 
 @implementation LibraryView
@@ -44,8 +44,12 @@
 @synthesize notebookSyncService;
 @synthesize homeworkService;
 @synthesize numericPadPopover;
-
-//@synthesize calendarController;
+@synthesize sessionLibraryItems;
+@synthesize calendarController;
+@synthesize currentContentsIndex;
+@synthesize currentSessionListIndex;
+@synthesize displayingSessionContent;
+@synthesize currentContentView;
 
 - (void) refreshDate:(NSDate*)aDate
 {
@@ -75,16 +79,14 @@
         
         [self initSessionNames];
         
-
         searchTextField.text = @"";
-
         
     }
     
     
 }
 
-/*
+
 - (void) setCalendarViewHidden:(BOOL) hidden
 {
     if(!hidden)
@@ -98,18 +100,30 @@
     
     [calendarController setHiddenComponents:hidden];
 }
-*/
+
 
 
 - (void) setLibraryViewHidden:(BOOL) hidden
 {
+    if(hidden)
+    {
+        for(UIGestureRecognizer *gestureRecognizer in self.view.gestureRecognizers)
+        {
+            [gestureRecognizer setEnabled:NO];
+        }
+    }
     if(!hidden)
     {
+        for(UIGestureRecognizer *gestureRecognizer in self.view.gestureRecognizers)
+        {
+            [gestureRecognizer setEnabled:YES];
+        }
+        
         [self setNotebookHidden:YES];
         [self setNotebookViewHidden:YES];
         [backgroundView setImage:[UIImage imageNamed:@"LibraryBG.jpg"]];
-        //[calendarController setHiddenComponents:YES];
-
+        [calendarController setHiddenComponents:YES];
+        
     }
     
     [searchTextField setHidden:hidden];
@@ -122,6 +136,7 @@
     
 }
 
+
 - (void) setNotebookViewHidden:(BOOL) hidden
 {
     if(!hidden)
@@ -129,7 +144,7 @@
         [self setNotebookHidden:YES];
         [self setLibraryViewHidden:YES];
         [backgroundView setImage:[UIImage imageNamed:@"LibraryEmpty.jpg"]];
-        //[calendarController setHiddenComponents:YES];
+        [calendarController setHiddenComponents:YES];
         
     }
     
@@ -149,10 +164,6 @@
     {
         [backgroundView setImage:[UIImage imageNamed:@"NoteBookBGSquared.jpg"]]; 
     }
-    else if([notebook.type isEqualToString:@""] || [notebook.type isEqualToString:@"squared"])
-    {
-        [backgroundView setImage:[UIImage imageNamed:@"NoteBookBGSquared.jpg"]]; 
-    }
     else if([notebook.type isEqualToString:@"lined"])
     {
         [backgroundView setImage:[UIImage imageNamed:@"NoteBookBGLined.jpg"]]; 
@@ -161,11 +172,7 @@
     {
         [backgroundView setImage:[UIImage imageNamed:@"NoteBookBGBlank.jpg"]]; 
     }
-    else
-    {
-        [backgroundView setImage:[UIImage imageNamed:@"NoteBookBGSquared.jpg"]]; 
-    }
-
+    
     
     [notebook setHidden:hidden];
     
@@ -224,13 +231,25 @@
         [sessionV removeFromSuperview];
     }
     
+    if(sessionList)
+    {
+        [sessionList release];
+        sessionList = nil;
+    }
     
-    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql];
+    if(sessionLibraryItems)
+    {
+        [sessionLibraryItems release];
+        sessionLibraryItems = nil;
+    }
+    
+    sessionList = [[[LocalDatabase sharedInstance] executeQuery:sql] retain];
+    sessionLibraryItems = [[NSMutableArray alloc] init];
     
     int counter = 0;
     CGRect sessionViewRect = CGRectMake(0, 0, 0, 0);
     
-    for(NSDictionary *resultDict in result)
+    for(NSDictionary *resultDict in sessionList)
     {
         sessionViewRect = CGRectMake(0, sessionViewRect.origin.y + sessionViewRect.size.height + 20, contentsScrollView.frame.size.width, 300);
         SessionView *sessionView = [[SessionView alloc] initWithFrame:sessionViewRect];
@@ -297,18 +316,32 @@
     }
     
     
-    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql];
+    if(sessionList)
+    {
+        [sessionList release];
+        sessionList = nil;
+    }
+    
+    if(sessionLibraryItems)
+    {
+        [sessionLibraryItems release];
+        sessionLibraryItems = nil;
+    }
+    
+    sessionList = [[[LocalDatabase sharedInstance] executeQuery:sql] retain];
+    sessionLibraryItems = [[NSMutableArray alloc] init];
     
     int counter = 0;
     CGRect sessionViewRect = CGRectMake(0, 0, 0, 0);
     
-    for(NSDictionary *resultDict in result)
+    for(NSDictionary *resultDict in sessionList)
     {
         sessionViewRect = CGRectMake(0, sessionViewRect.origin.y + sessionViewRect.size.height + 20, contentsScrollView.frame.size.width, 300);
         SessionView *sessionView = [[SessionView alloc] initWithFrame:sessionViewRect];
         sessionView.libraryViewController = self;
         sessionView.sessionName = [resultDict valueForKey:@"name"];
         sessionView.sessionGuid = [resultDict valueForKey:@"session_guid"];
+        sessionView.index = counter;
         
         [contentsScrollView addSubview:sessionView];
         [sessionView initSessionView];
@@ -402,6 +435,19 @@
 
 - (void)dealloc
 {
+    
+    if(sessionList)
+    {
+        [sessionList release];
+        sessionList = nil;
+    }
+    
+    if(sessionLibraryItems)
+    {
+        [sessionLibraryItems release];
+        sessionLibraryItems = nil;
+    }
+    
     if(notebookWorkspace)
         [notebookWorkspace release];
     
@@ -501,6 +547,40 @@
     }
 }
 
+- (void)handleSwipe:(UISwipeGestureRecognizer *)gestureRecognizer
+{
+    if(displayingSessionContent)
+    {
+        if(gestureRecognizer.direction == UISwipeGestureRecognizerDirectionRight)
+        {
+            // Get previous item
+            if(currentContentsIndex > 0)
+            {
+                [currentContentView closeContentViewWithDirection:kContentViewOpenDirectionToRight];
+                
+                SessionLibraryItemView *currentLibraryItem = [sessionLibraryItems objectAtIndex:currentContentsIndex - 1];
+                currentLibraryItem.direction = kContentViewOpenDirectionToRight;
+                [currentLibraryItem touchesEnded:nil withEvent:nil];
+            }
+
+        }
+        else if(gestureRecognizer.direction == UISwipeGestureRecognizerDirectionLeft)
+        {
+            // Get next item
+            
+            if(currentContentsIndex < [sessionLibraryItems count] - 1)
+            {
+                [currentContentView closeContentViewWithDirection:kContentViewOpenDirectionToLeft];
+                
+                SessionLibraryItemView *currentLibraryItem = [sessionLibraryItems objectAtIndex:currentContentsIndex + 1];
+                currentLibraryItem.direction = kContentViewOpenDirectionToLeft;
+                [currentLibraryItem touchesEnded:nil withEvent:nil];
+            }
+        }
+    }
+    
+}
+
 
 - (void)viewDidLoad
 {
@@ -539,13 +619,13 @@
         [notebookButton release];
         
         
-      /*  calendarButton = [[UIButton alloc] initWithFrame:CGRectMake(9, 280, 81, 91)];
+        calendarButton = [[UIButton alloc] initWithFrame:CGRectMake(9, 280, 81, 91)];
 //        [calendarButton setBackgroundColor:[UIColor grayColor]];
         [calendarButton setImage:[UIImage imageNamed:@"CalendarIcon.png"] forState:UIControlStateNormal];
         [calendarButton addTarget:self action:@selector(calendarButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
         [self.view addSubview:calendarButton];
         [calendarButton release];
-    */    
+        
         
         
 #ifdef HAS_GUEST_ENTER
@@ -571,9 +651,9 @@
 /*        UIView *viewCalendar = [[[UIView alloc] initWithFrame:CGRectMake(93, 0, 1024, 748)] autorelease];
         [viewCalendar setBackgroundColor:[UIColor grayColor]];
  */      
-       // calendarController = [[CalendarDataController alloc] init];
-       // [self.view addSubview:calendarController.containerVeiw];
-       // [calendarController setHiddenComponents:YES];
+        calendarController = [[CalendarDataController alloc] init];
+        [self.view addSubview:calendarController.containerVeiw];
+        [calendarController setHiddenComponents:YES];
         
         
 /*        [viewCalendar addSubview:calendarController.containerVeiw];
@@ -595,10 +675,10 @@
     [blackScreen setBackgroundColor:[UIColor blackColor]];
     
     self.notebookSyncService = [[NotebookSync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-  /*  self.notebookSyncService.libraryView = self;
+    self.notebookSyncService.libraryView = self;
     [notebookSyncService setHidden:YES];
     [self.view addSubview:notebookSyncService];
-    [notebookSyncService requestForNotebookSync];*/
+    [notebookSyncService requestForNotebookSync];
     [notebookSyncService release];
     
     self.homeworkService = [[Homework alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
@@ -610,6 +690,21 @@
     
     [self refreshDate:[NSDate date]];
 
+    
+    // Add swipe gesture for library view
+    UISwipeGestureRecognizer *rightSwipe = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipe:)];
+    [rightSwipe setDirection:(UISwipeGestureRecognizerDirectionRight)];
+    
+    
+    UISwipeGestureRecognizer *leftSwipe = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipe:)];
+    [leftSwipe setDirection:(UISwipeGestureRecognizerDirectionLeft)];
+    
+    [self.view addGestureRecognizer:rightSwipe];
+    [self.view addGestureRecognizer:leftSwipe];
+
+    [leftSwipe release];
+    [rightSwipe release];
+    
 }
 
 - (void) selectLecture:(LectureView *) lecture
@@ -633,9 +728,7 @@
     CGFloat progress = (CGFloat)bytes / (CGFloat)totalBytes;
     contentProgress.progress = progress;
     [contentProgress setNeedsDisplay];
-    
-    NSLog(@"current progress is %f", progress); 
-    
+        
     if( fabsf(1.0 - progress) <= 0.1 )
     {
         [contentProgress setHidden:YES];
@@ -678,7 +771,7 @@
     
     NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key,  time) values ('%@','%@','%@','%@','%@')", [logAppDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"openedLibrary", dateString];
     [[LocalDatabase sharedInstance] executeQuery:insertSQL];
-    *********************************************************/
+    //*********************************************************/
     
     
     [DeviceLog deviceLog:@"openedLibrary" withLecture:nil withContentType:nil];
@@ -688,7 +781,7 @@
     
     [self setNotebookViewHidden:YES];
     [self setLibraryViewHidden:NO];
-    //[self setCalendarViewHidden:YES];
+    [self setCalendarViewHidden:YES];
 }
 
 - (IBAction) notebookButtonClicked:(id) sender
@@ -713,7 +806,7 @@
     
     [self setNotebookViewHidden:NO];
     [self setLibraryViewHidden:YES];
-    //[self setCalendarViewHidden:YES];
+    [self setCalendarViewHidden:YES];
 }
 
 - (IBAction) guestStudentEnterClicked:(id) sender
@@ -756,7 +849,7 @@
     
     [self setNotebookViewHidden:YES];
     [self setLibraryViewHidden:YES];
-    //[self setCalendarViewHidden:NO];
+    [self setCalendarViewHidden:NO];
     
     [self hideIndicator];
 }

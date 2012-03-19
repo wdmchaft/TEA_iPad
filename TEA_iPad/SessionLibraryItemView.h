@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-
+#import "ContentViewerInterface.h"
 
 enum kState {
     kStateEditMode = 1,
@@ -35,6 +35,8 @@ enum kState {
     UIWebView *previewWebView;
     
     int viewScrollSize;
+    int index;
+    ContentViewOpenDirection direction;
 }
 
 @property (nonatomic, retain) NSString *name;
@@ -43,11 +45,12 @@ enum kState {
 @property (nonatomic, retain) NSString *quizImagePath;
 @property (nonatomic, retain) NSString *previewPath;
 @property (nonatomic, assign) SessionView *sessionView;
-
+@property (nonatomic, assign) int index;
 @property (nonatomic, retain) NSString *guid;
 @property (nonatomic, assign) int correctAnswer;
 @property (nonatomic, assign) int answer;
 @property (nonatomic, assign) int quizOptCount;
+@property (nonatomic, assign) ContentViewOpenDirection direction;
 
 - (NSString *) getFullPathForFile:(NSString *) file;
 - (void) initLibraryItemView;

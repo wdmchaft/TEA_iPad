@@ -27,12 +27,10 @@
 
 
 
-CGContextRef createBitmapContext (int pixelsWide,
-                                  int pixelsHigh)
+- (CGContextRef) createBitmapContextBy:(int) pixelsWide And:(int) pixelsHigh
 {
     CGContextRef    context = NULL;
     CGColorSpaceRef colorSpace;
-    void *          bitmapData;
     int             bitmapByteCount;
     int             bitmapBytesPerRow;
     
@@ -40,6 +38,12 @@ CGContextRef createBitmapContext (int pixelsWide,
     bitmapByteCount     = (bitmapBytesPerRow * pixelsHigh);
     
     colorSpace = CGColorSpaceCreateDeviceRGB();
+    
+    if(bitmapData)
+    {
+        free(bitmapData);
+        bitmapData = nil;
+    }
     
     bitmapData = calloc( 1, bitmapByteCount );
     
@@ -63,7 +67,6 @@ CGContextRef createBitmapContext (int pixelsWide,
     }
     
     CGColorSpaceRelease( colorSpace );
-    free (bitmapData);
     
     return context;
 }
@@ -71,7 +74,7 @@ CGContextRef createBitmapContext (int pixelsWide,
 
 -(UIImage *)drawIntoImage:(UIImage *)pImage withRect:(CGRect)pRect
 {
-    CGContextRef bitmapContext = createBitmapContext(pRect.size.width, pRect.size.height);
+    CGContextRef bitmapContext = [self createBitmapContextBy:pRect.size.width And:pRect.size.height];
          
     CGContextDrawImage(bitmapContext, pRect, [pImage CGImage]);
 

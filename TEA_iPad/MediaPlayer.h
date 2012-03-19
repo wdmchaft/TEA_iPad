@@ -9,8 +9,9 @@
 #import <UIKit/UIKit.h>
 #import "Timer.h"
 #import <MediaPlayer/MediaPlayer.h>
+#import "ContentViewerInterface.h"
 
-@interface MediaPlayer : UIView {
+@interface MediaPlayer : UIView <ContentViewerInterface> {
     
     MPMoviePlayerController *player;
 }
