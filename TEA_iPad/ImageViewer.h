@@ -14,6 +14,7 @@
 @interface ImageViewer : UIView <ContentViewerInterface> {
     
     UIImageView *imageViewer;
+    BOOL contentSetFlag;
 }
 
 - (id)initWithFrame:(CGSize)size andImagePath:(NSString*) imagePath;

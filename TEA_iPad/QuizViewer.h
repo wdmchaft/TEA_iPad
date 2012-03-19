@@ -21,6 +21,7 @@
     int correctAnswer;
     UIWebView *quizImage;
     int optionCount;
+    BOOL contentSetFlag;
     
 }
 @property (nonatomic, retain) IBOutlet UIButton *answerA;
