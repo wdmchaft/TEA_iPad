@@ -14,6 +14,7 @@
 @interface MediaPlayer : UIView <ContentViewerInterface> {
     
     MPMoviePlayerController *player;
+    BOOL contentSetFlag;
 }
 
 - (id)initWithFrame:(CGSize)size andVideoPath:(NSString*) videoPath;

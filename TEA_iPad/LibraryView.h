@@ -66,6 +66,7 @@
     int currentSessionListIndex;
     int currentContentsIndex;
     BOOL displayingSessionContent;
+    BOOL refreshDateSkipped;
     id<ContentViewerInterface> currentContentView;
 }
 
@@ -106,7 +107,7 @@
 - (void) receivedContentBytes:(NSDictionary*) userInfo ;
 - (void) initLectureNames;
 - (void) initSessionNames;
-
+- (void) contentViewClosed:(id)contentView;
 
 - (IBAction) libraryButtonClicked:(id) sender;
 - (IBAction) notebookButtonClicked:(id) sender;
