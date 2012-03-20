@@ -268,12 +268,12 @@ void handleException(NSException *exception)
         NSSetUncaughtExceptionHandler(&handleException);
     }
  
-
+/*
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     [center addObserver:self selector:@selector(screenDidConnect:) name:UIScreenDidConnectNotification object:nil];
     [center addObserver:self selector:@selector(screenDidDisconnect:) name:UIScreenDidDisconnectNotification object:nil];
     [center addObserver:self selector:@selector(screenModeDidChange:) name:UIScreenModeDidChangeNotification object:nil];
-
+*/
     
     application.idleTimerDisabled = YES;
     guestEnterNumber = 0;
