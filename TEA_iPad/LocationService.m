@@ -139,6 +139,8 @@
     }
     else
     {
+        [self getAllowedLocation];
+        
         if(allowedLocationCount == -1)
         {
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
