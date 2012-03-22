@@ -429,6 +429,11 @@
 		case NSStreamEventEndEncountered:
 		{
             NSLog(@"[BONJOUR] Event end %d", (int) eventCode);
+            
+            TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate * )[[UIApplication sharedApplication] delegate];
+            
+            [appDelegate restartBonjourBrowser];
+            
 			break;
 		}
 	}

@@ -14,6 +14,7 @@
     
     UIWebView *webView;
     LibraryDocumentItem *libraryItem;
+    BOOL contentSetFlag;
 }
 
 @property (nonatomic, retain) IBOutlet UIWebView *webView;

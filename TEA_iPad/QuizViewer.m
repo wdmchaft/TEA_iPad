@@ -117,11 +117,24 @@
 - (void) closeFinished:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context
 {
     [self.view removeFromSuperview];
-   // ((TEA_iPadAppDelegate*) [[UIApplication sharedApplication]delegate]).viewController.displayingSessionContent = NO;
+
+    if(contentSetFlag)
+        ((TEA_iPadAppDelegate*) [[UIApplication sharedApplication]delegate]).viewController.displayingSessionContent = NO;
+
+    [((TEA_iPadAppDelegate*) [[UIApplication sharedApplication]delegate]).viewController contentViewClosed:self];
 }
+
 
 - (void) closeContentViewWithDirection:(ContentViewOpenDirection)direction
 {
+    [self closeContentViewWithDirection:direction dontSetDisplayingContent:YES];
+}
+
+
+- (void) closeContentViewWithDirection:(ContentViewOpenDirection)direction dontSetDisplayingContent:(BOOL)setFlag
+{
+    contentSetFlag = setFlag;
+
     CGRect closeRect;
     if(direction == kContentViewOpenDirectionToLeft)
     {
@@ -139,7 +152,7 @@
 
     [UIView beginAnimations:nil context:nil];
     [UIView setAnimationDuration:0.3];
-    [UIView setAnimationCurve:UIViewAnimationCurveEaseOut];    
+    [UIView setAnimationCurve:UIViewAnimationCurveEaseOut];
     [UIView setAnimationDelegate:self];
     [UIView setAnimationDidStopSelector:@selector(closeFinished:finished:context:)];
     
@@ -149,6 +162,7 @@
 
     
 }
+
 
 - (void) loadContentView:(UIView *)view withDirection :(ContentViewOpenDirection)direction
 {

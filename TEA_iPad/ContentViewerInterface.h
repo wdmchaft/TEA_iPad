@@ -17,7 +17,10 @@ typedef enum kContentViewOpenDirection {
 
 @protocol ContentViewerInterface <NSObject>
 
-- (void) closeContentViewWithDirection :(ContentViewOpenDirection)direction;;
+
+- (void) closeContentViewWithDirection :(ContentViewOpenDirection)direction;
+- (void) closeContentViewWithDirection :(ContentViewOpenDirection)direction dontSetDisplayingContent:(BOOL)setFlag;
+
 - (void) loadContentView:(UIView *)view withDirection :(ContentViewOpenDirection)direction;
 
 @end

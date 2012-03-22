@@ -254,7 +254,55 @@ void handleException(NSException *exception)
     }
 
     
-   return YES;
+    /*
+    NSUserDefaults *userToken = [NSUserDefaults standardUserDefaults];
+    [userToken setValue:justToken forKey:@"token"];
+    
+    
+    NSString *deviceTokenSQL = [NSString stringWithFormat:@"select device_token from DeviceTokens where device_id = '%@'", [self getDeviceUniqueIdentifier]];
+    NSArray *array = [[DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:deviceTokenSQL]retain];
+    if (!array || ![array count]>0) {
+        NSString *insertDeviceTokenSQL = [NSString stringWithFormat:@"insert into DeviceTokens (device_id, device_token) values ('%@', '%@');", [self getDeviceUniqueIdentifier], justToken];
+       [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:insertDeviceTokenSQL];
+    }
+    [array release];
+     */
+    
+    return YES;
+}
+
+- (void)application:(UIApplication *)app didFailToRegisterForRemoteNotificationsWithError:(NSError *)err { 
+    
+    NSString *str = [NSString stringWithFormat: @"Error: %@", err];
+    NSLog(@"%@", str);
+    
+}
+
+- (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification
+{
+    NSLog(@"local notification");
+}
+
+
+
+
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    [self.viewController calendarButtonClicked:nil];
+}
+
+
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo 
+{
+    
+    
+    NSString *alertTitle = [NSString stringWithFormat:@"%@\n%@", NSLocalizedString(@"New Notification", NULL), [[userInfo objectForKey:@"aps"] valueForKey:@"alert"]];
+    
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Info", NULL) message:alertTitle delegate:self cancelButtonTitle:NSLocalizedString(@"OK", NULL) otherButtonTitles:nil];
+    [alert show];
+    [alert release];
+
 
 }
 

@@ -27,11 +27,13 @@
 @synthesize name, path, type, sessionView, quizImagePath, previewPath, correctAnswer, answer, guid, quizOptCount, direction;
 @synthesize index;
 
+
 - (NSString *) getFileNameOfPath:(NSString *) pathString
 {
     NSString *returnValue = [[pathString componentsSeparatedByString:@"/"] lastObject];
     return returnValue;
 }
+
 
 - (NSString *) getFullPathForFile:(NSString *) file
 {
@@ -514,7 +516,8 @@
             sessionView.libraryViewController.currentContentView = player;
             
             [appDelegate.viewController.view addSubview:player];
-           // [player loadContentView:player withDirection:direction];
+            [player loadContentView:player withDirection:direction];
+
             [player release];
         }
         else if([type isEqualToString:@"audio"])
