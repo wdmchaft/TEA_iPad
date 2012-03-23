@@ -139,7 +139,7 @@
     }
     else
     {
-        [self getAllowedLocation];
+       // [self getAllowedLocation];
         
         if(allowedLocationCount == -1)
         {
@@ -235,7 +235,9 @@
     [locationServiceMessageView setHidden:YES];
     
     //[self startLocationTracking];
-    [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(checkLocation) userInfo:nil repeats:YES];
+    [self getAllowedLocation];
+    [self checkLocation];
+    [NSTimer scheduledTimerWithTimeInterval:300 target:self selector:@selector(checkLocation) userInfo:nil repeats:YES];
     
 }
 

@@ -446,10 +446,14 @@
 
 - (void) sendBonjourMessageToAllClients:(BonjourMessage*) aMessage 
 {
-    for(BonjourClient *client in clients)
+    @synchronized(clients)
     {
-        [self sendBonjourMessage:aMessage toClient:client];
+        for(BonjourClient *client in clients)
+        {
+            [self sendBonjourMessage:aMessage toClient:client];
+        }
     }
+    
 }
 
 @end
