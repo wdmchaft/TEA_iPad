@@ -11,8 +11,8 @@
 "Delete"="Odstranit"; 
 "Yes"="Ano"; 
 "No"="Ne"; 
-"Cancel"="Storno";
-"Caution"="Výstraha"; 
+"Cancel"="Zrušit";
+"Caution"="Upozorněni"; 
 "Send"="Odeslat";
 "Answer Send Message"="Vybrali jste možnost „%c“. Opravdu chcete odeslat tuto odpověď?"; "Move To Notebook"="Přesunout do zápisníku"; 
 "Rename"="Přejmenovat"; 
