@@ -181,7 +181,7 @@
     //    NSDictionary *iPadConfigDictionary = [ConfigurationManager getConfigurationValueForKey:@"iPadConfig"];
     
     NSString *syncFileBaseURL = [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]; //[iPadConfigDictionary valueForKey:@"syncFileDownloadURL"];
-    NSString *downloadURL = [NSString stringWithFormat: @"%@/%@", syncFileBaseURL, fileName];
+    NSString *downloadURL = [NSString stringWithFormat: @"%@/Backup/%@", syncFileBaseURL, fileName];
 	
     NSLog(@"[SYNC] downloadingFile : %@", downloadURL);
     
