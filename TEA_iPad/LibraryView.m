@@ -56,34 +56,40 @@
     
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
-    if(appDelegate.state != kAppStateSyncing)
+    if(displayingSessionContent)
     {
-        NSDateComponents *components = [[NSCalendar currentCalendar] components: NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit fromDate:[NSDate date]];
-        
-        int year = [components year];
-        int month = [components month];
-        int day = [components day];
-        
-        for(MonthView *monthView in [monthsScrollView subviews])
-        {
-            if(monthView.month == month && monthView.year == year)
-            {
-                [monthView touchesEnded:nil withEvent:nil];
-                self.selectedMonth = monthView;
-                break;
-            }
-        }
-        
-        self.selectedDate = day;
-        [self.dateView selectDate:day - 1];
-        
-        [self initSessionNames];
-        
-        searchTextField.text = @"";
-        
+        refreshDateSkipped = YES;
     }
-    
-    
+    else
+    {
+        if(appDelegate.state != kAppStateSyncing)
+        {
+            NSDateComponents *components = [[NSCalendar currentCalendar] components: NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit fromDate:[NSDate date]];
+            
+            int year = [components year];
+            int month = [components month];
+            int day = [components day];
+            
+            for(MonthView *monthView in [monthsScrollView subviews])
+            {
+                if(monthView.month == month && monthView.year == year)
+                {
+                    [monthView touchesEnded:nil withEvent:nil];
+                    self.selectedMonth = monthView;
+                    break;
+                }
+            }
+            
+            self.selectedDate = day;
+            [self.dateView selectDate:day - 1];
+            
+            [self initSessionNames];
+            
+            searchTextField.text = @"";
+            
+            refreshDateSkipped = NO;
+        }
+    }
 }
 
 
@@ -101,6 +107,13 @@
     [calendarController setHiddenComponents:hidden];
 }
 
+- (void) contentViewClosed:(id)contentView
+{
+    if(refreshDateSkipped)
+    {
+        [self refreshDate:[NSDate date]];
+    }
+}
 
 
 - (void) setLibraryViewHidden:(BOOL) hidden
@@ -549,35 +562,44 @@
 
 - (void)handleSwipe:(UISwipeGestureRecognizer *)gestureRecognizer
 {
-    if(displayingSessionContent)
+    NSLog(@"Displaying session content %d", displayingSessionContent);
+    
+    @synchronized(self)
     {
-        if(gestureRecognizer.direction == UISwipeGestureRecognizerDirectionRight)
+        if(displayingSessionContent)
         {
-            // Get previous item
-            if(currentContentsIndex > 0)
+            if(gestureRecognizer.direction == UISwipeGestureRecognizerDirectionRight)
             {
-                [currentContentView closeContentViewWithDirection:kContentViewOpenDirectionToRight];
+                // Get previous item
+                if(currentContentsIndex > 0)
+                {
+                    [currentContentView closeContentViewWithDirection:kContentViewOpenDirectionToRight dontSetDisplayingContent:NO];
+                    
+                    SessionLibraryItemView *currentLibraryItem = [sessionLibraryItems objectAtIndex:currentContentsIndex - 1];
+                    currentLibraryItem.direction = kContentViewOpenDirectionToRight;
+                    [currentLibraryItem touchesEnded:nil withEvent:nil];
+                }
                 
-                SessionLibraryItemView *currentLibraryItem = [sessionLibraryItems objectAtIndex:currentContentsIndex - 1];
-                currentLibraryItem.direction = kContentViewOpenDirectionToRight;
-                [currentLibraryItem touchesEnded:nil withEvent:nil];
             }
-
-        }
-        else if(gestureRecognizer.direction == UISwipeGestureRecognizerDirectionLeft)
-        {
-            // Get next item
+            else if(gestureRecognizer.direction == UISwipeGestureRecognizerDirectionLeft)
+            {
+                // Get next item
+                
+                if(currentContentsIndex < [sessionLibraryItems count] - 1)
+                {
+                    [currentContentView closeContentViewWithDirection:kContentViewOpenDirectionToLeft dontSetDisplayingContent:NO];
+                    
+                    SessionLibraryItemView *currentLibraryItem = [sessionLibraryItems objectAtIndex:currentContentsIndex + 1];
+                    currentLibraryItem.direction = kContentViewOpenDirectionToLeft;
+                    [currentLibraryItem touchesEnded:nil withEvent:nil];
+                }
+            }
             
-            if(currentContentsIndex < [sessionLibraryItems count] - 1)
-            {
-                [currentContentView closeContentViewWithDirection:kContentViewOpenDirectionToLeft];
-                
-                SessionLibraryItemView *currentLibraryItem = [sessionLibraryItems objectAtIndex:currentContentsIndex + 1];
-                currentLibraryItem.direction = kContentViewOpenDirectionToLeft;
-                [currentLibraryItem touchesEnded:nil withEvent:nil];
-            }
+            displayingSessionContent = YES;
+            NSLog(@"Displaying session content2 %d", displayingSessionContent);
         }
     }
+    
     
 }
 

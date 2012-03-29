@@ -38,9 +38,12 @@
     audioItem.path = audioName;
     audioItem.name = [aMessage.userData objectForKey:@"name"];
     audioItem.guid = [aMessage.userData objectForKey:@"guid"];
-    [audioItem saveLibraryItem];
     
-    [audioData writeToFile:audioPath atomically:YES];
+    if([audioData writeToFile:audioPath atomically:YES])
+    {
+       [audioItem saveLibraryItem];
+    }
+    
     [audioItem release];    
     
     [pool release];
