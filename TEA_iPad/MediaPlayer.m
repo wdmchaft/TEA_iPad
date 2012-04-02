@@ -69,6 +69,8 @@
 
 - (void) closeFinished:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context
 {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
     [player stop];
     [self playbackStoped];
     

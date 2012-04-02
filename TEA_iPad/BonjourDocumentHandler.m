@@ -35,17 +35,19 @@
     NSString *documentName = [NSString stringWithFormat:@"%@.%@", [aMessage.userData objectForKey:@"guid"], [aMessage.userData objectForKey:@"extension"]];
     NSString *documentPath = [NSString stringWithFormat:@"%@/%@",  [paths objectAtIndex:0], documentName];
 
-    [documentData writeToFile:documentPath atomically:YES];
+    if([documentData writeToFile:documentPath atomically:YES])
+    {
+        LibraryDocumentItem *documentItem = [[LibraryDocumentItem alloc] init];
+        [documentItem setName:[aMessage.userData objectForKey:@"name"]];
+        [documentItem setPath:documentName];
+        documentItem.guid = [aMessage.userData objectForKey:@"guid"];
+        [documentItem saveLibraryItem];
+
+        [documentItem release];
+
+    }
     
-    LibraryDocumentItem *documentItem = [[LibraryDocumentItem alloc] init];
-    [documentItem setName:[aMessage.userData objectForKey:@"name"]];
-    [documentItem setPath:documentName];
-    documentItem.guid = [aMessage.userData objectForKey:@"guid"];
-    [documentItem saveLibraryItem];
-    
-    
-    [documentItem release];
-    
+        
     [pool release];
     
         

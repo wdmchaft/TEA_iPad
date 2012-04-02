@@ -333,8 +333,12 @@
     
     // save image
     NSData *jpegImageData = UIImageJPEGRepresentation(image, 1.0);
-    [jpegImageData writeToFile:quizImagePath atomically:YES];
-    [quizItem saveLibraryItem];
+    
+    if([jpegImageData writeToFile:quizImagePath atomically:YES])
+    {
+        [quizItem saveLibraryItem];
+    }
+    
     [quizItem release];
 }
 
