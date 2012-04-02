@@ -5,9 +5,9 @@
 	<key>BonjourServiceName</key>
 	<string>teaservice</string>
 	<key>SYNC_URL</key>
-	<string>http://oguz-demirs-macbook-pro.local:8080</string>
+	<string>http://dragonmacmini.local:8080</string>
 	<key>HOMEWORK_URL</key>
-	<string>http://localhost:8080</string>
+	<string>http://dragonmacmini.local:8080</string>
 	<key>SYNC_ENABLED</key>
 	<true/>
 	<key>HOMEWORK_ENABLED</key>
