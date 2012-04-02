@@ -5,7 +5,7 @@
 	<key>BonjourServiceName</key>
 	<string>teaservice</string>
 	<key>SYNC_URL</key>
-	<string>http://192.168.2.50:8080</string>
+	<string>http://88.248.142.177:8080</string>
 	<key>HOMEWORK_URL</key>
 	<string>http://192.168.2.50:8080</string>
 	<key>SYNC_ENABLED</key>

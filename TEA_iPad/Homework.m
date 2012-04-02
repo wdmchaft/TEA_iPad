@@ -91,7 +91,7 @@
                 [[LocalDatabase sharedInstance] executeQuery:@"delete from device_log;"];
             }
             else
-                NSLog(@"HATA oluştu....");
+                NSLog(@"Device Log sending error.");
             
         }
         @catch (NSException *exception) 
@@ -209,7 +209,11 @@
                         NSLog(@"%@ guid'li ödevin gönderim işlemi tamamlandı. Sıradaki ödev kontrol ediliyor...", [[result objectAtIndex:i] valueForKey:@"guid"]);
                     }
                     else
-                        NSLog(@"HATA oluştu....");
+                    {
+                        NSLog(@"Homework sending error...");
+                        NSLog(@"%@", checkString);
+                    }
+                        
                     
                 }
                 @catch (NSException *exception) 
