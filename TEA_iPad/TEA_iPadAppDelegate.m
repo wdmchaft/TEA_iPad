@@ -212,6 +212,16 @@ void handleException(NSException *exception)
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
 
+#if !TARGET_IPHONE_SIMULATOR
+    NSString *filePath = @"/Applications/Cydia.app";
+    if ([[NSFileManager defaultManager] fileExistsAtPath:filePath])
+    {
+       UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Cihaz Kullanılamaz!" message:@"Cihazınız JailBreak edildiği için uygulama çalışmayacaktır." delegate:nil cancelButtonTitle:@"Tamam" otherButtonTitles:nil, nil];
+        [alertView show];
+
+    }
+#endif
+    
     if ([[ConfigurationManager getConfigurationValueForKey:@"EXCEPTION_ENABLED"] intValue]){
         NSSetUncaughtExceptionHandler(&handleException);
     }

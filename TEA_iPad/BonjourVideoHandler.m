@@ -34,20 +34,18 @@
     NSString *videoName = [[aMessage.userData objectForKey:@"guid"] stringByAppendingString:@".mov"]; 
     NSString *videoPath = [NSString stringWithFormat:@"%@/%@",  [paths objectAtIndex:0], videoName];
     
-    [videoData writeToFile:videoPath atomically:YES];
-    
-    LibraryVideoItem *videoItem = [[LibraryVideoItem alloc] init];
-    videoItem.path = videoName;
-    videoItem.name = [aMessage.userData objectForKey:@"name"];
-    videoItem.guid = [aMessage.userData objectForKey:@"guid"];
-    [videoItem saveLibraryItem];
-    
-    
-    [videoItem release];    
+    if([videoData writeToFile:videoPath atomically:YES])
+    {
+        LibraryVideoItem *videoItem = [[LibraryVideoItem alloc] init];
+        videoItem.path = videoName;
+        videoItem.name = [aMessage.userData objectForKey:@"name"];
+        videoItem.guid = [aMessage.userData objectForKey:@"guid"];
+        [videoItem saveLibraryItem];
+        
+        [videoItem release]; 
+    }
     
     [pool release];
-    
-        
 }
 
 @end
