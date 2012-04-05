@@ -350,7 +350,28 @@
     }
     else if ([type isEqualToString:@"homework"]) 
     {
-        [borderImage setImage:[UIImage imageNamed:@"LibraryItemQuiz.png"]];
+        NSString *sql = [NSString stringWithFormat:@"select delivered from homework where guid = '%@'", guid];
+        NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql];
+        if(result && [result count] == 1)
+        {
+            int delivered = [[[result objectAtIndex:0] valueForKey:@"delivered"] intValue];
+            
+            if(delivered)
+            {
+                [borderImage setImage:[UIImage imageNamed:@"LibraryItemQuizDelivered.png"]];
+            }
+            else {
+                [borderImage setImage:[UIImage imageNamed:@"LibraryItemQuizNotDelivered.png"]];
+            }
+        }
+        else 
+        {
+            [borderImage setImage:[UIImage imageNamed:@"LibraryItemQuizNotDelivered.png"]];
+        }
+        
+        
+        
+        
     }
     else if ([type isEqualToString:@"document"]) 
     {
