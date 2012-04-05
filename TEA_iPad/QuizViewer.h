@@ -23,6 +23,10 @@
     int optionCount;
     BOOL contentSetFlag;
     
+    
+    UIImageView *hideAnswerImageView;
+    UIButton *showAnswersButton;
+    
 }
 @property (nonatomic, retain) IBOutlet UIButton *answerA;
 @property (nonatomic, retain) IBOutlet UIButton *answerB;

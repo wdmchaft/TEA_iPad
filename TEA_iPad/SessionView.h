@@ -24,5 +24,6 @@
 @property (nonatomic, assign) int index; 
 
 - (void) initSessionView;
+- (void) insertContents:(NSString*) optionalKeyword;
 
 @end

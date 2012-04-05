@@ -225,7 +225,9 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
   //  const char *sqlStatement = [pQuery UTF8String];
     sqlite3_stmt *compiledStatement;
     
-    if(sqlite3_prepare_v2(database, [pQuery UTF8String], -1, &compiledStatement, NULL) == SQLITE_OK) 
+    int result = sqlite3_prepare_v2(database, [pQuery UTF8String], -1, &compiledStatement, NULL);
+    
+    if(result == SQLITE_OK) 
     {
         NSMutableArray *returnArray = [[NSMutableArray alloc] init];
         
@@ -258,7 +260,7 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
     }
     else 
     {
-        NSLog(@"query not performed");
+        NSLog(@"query not performed error code %d", result);
     }
     busy = NO;
     return nil;
@@ -276,7 +278,9 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
     const char *sqlStatement = [pQuery UTF8String];
     sqlite3_stmt *compiledStatement;
     
-    if(sqlite3_prepare_v2(database, sqlStatement, -1, &compiledStatement, NULL) == SQLITE_OK) 
+    int result = sqlite3_prepare_v2(database, [pQuery UTF8String], -1, &compiledStatement, NULL);
+    
+    if(result == SQLITE_OK) 
     {
         NSMutableArray *returnArray = [[NSMutableArray alloc] init];
         
@@ -308,7 +312,7 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
     }
     else 
     {
-        NSLog(@"query not performed");
+        NSLog(@"query not performed error code %d", result);
     }
     busy = NO;
     return nil;

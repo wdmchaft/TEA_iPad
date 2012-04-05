@@ -50,6 +50,7 @@
 @synthesize currentSessionListIndex;
 @synthesize displayingSessionContent;
 @synthesize currentContentView;
+@synthesize optionalKeyword;
 
 - (void) refreshDate:(NSDate*)aDate
 {
@@ -235,7 +236,16 @@
 {
     
     NSString *sessionNameFilter = [filterObject valueForKey:@"libraryFilter"];
-    NSString *sql = [NSString stringWithFormat: @"select * from session where name like '%%%@%%'", sessionNameFilter];
+    NSString *sql = @"";
+    
+    if([optionalKeyword isEqualToString:NSLocalizedString(@"SearchHomework", nil)])
+    {
+        sql = @"select session.* from library,session where type='homework' and library.session_guid = session.session_guid";
+    }
+    else 
+    {
+        sql = [NSString stringWithFormat: @"select * from session where name like '%%%@%%'", sessionNameFilter];
+    }
 
     // Clean up 
     for(SessionView *sessionV in contentsScrollView.subviews)
@@ -293,6 +303,8 @@
 
 - (void) initSessionNames
 {
+    
+    self.optionalKeyword = @"";
     
     NSDateComponents *comps = [[[NSDateComponents alloc] init] autorelease];
     [comps setDay:self.selectedDate];
@@ -448,6 +460,7 @@
 
 - (void)dealloc
 {
+    [optionalKeyword release];
     
     if(sessionList)
     {
@@ -520,9 +533,10 @@
     }
     else
     {
-        NSArray *words = [aText componentsSeparatedByString:@" "];
+        NSMutableArray *words = [NSMutableArray arrayWithArray:[aText componentsSeparatedByString:@" "]];
         
         aText = @"";
+        self.optionalKeyword = @"";
         
         for (int i=0; i < [words count]; i++) 
         {
@@ -540,21 +554,31 @@
                 
                 word = [word stringByReplacingCharactersInRange:NSMakeRange(0, 1) withString:firstLetter];
                 
-                aText = [aText stringByAppendingString:word];
-                if(i < [words count] - 1)
+                if([word isEqualToString:NSLocalizedString(@"SearchQuestion", nil)])
                 {
-                    aText = [aText stringByAppendingString:@" "];
+                    self.optionalKeyword = word;
                 }
+                else if([word isEqualToString:NSLocalizedString(@"SearchHomework", nil)])
+                {
+                    self.optionalKeyword = word;
+                }
+                else 
+                {
+                    aText = [aText stringByAppendingString:word];
+                    
+                    if(i < [words count] - 1)
+                    {
+                        aText = [aText stringByAppendingString:@" "];
+                    }
+                }
+                
+                
             }
         }
         
-        for (int i=0; i < [words count]; i++) 
-        {
-            
-        }
+
         
-        
-        NSMutableDictionary *parameters = [[NSMutableDictionary alloc] init];
+        NSMutableDictionary *parameters = [[[NSMutableDictionary alloc] init] autorelease];
         [parameters setValue:aText forKey:@"libraryFilter"];
         [self initSessionNamesWithFilter:parameters];
     }

@@ -23,12 +23,23 @@
     return self;
 }
 
-- (void) insertContents
+- (void) insertContents:(NSString*) optionalKeyword
 {
-
+    NSString *sql = @"";
+    if(optionalKeyword && [optionalKeyword isEqualToString:NSLocalizedString(@"SearchQuestion", nil)])
+    {
+        sql = [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@' and type='quiz'", sessionGuid];
+    }
+    else if(optionalKeyword && [optionalKeyword isEqualToString:NSLocalizedString(@"SearchHomework", nil)])
+    {
+        sql = [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@' and type='homework'", sessionGuid];
+    }
+    else 
+    {
+        sql = [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@'", sessionGuid];
+    }
     
-    
-    NSArray *result = [[LocalDatabase sharedInstance] executeQuery: [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@'", sessionGuid]];
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery: sql];
     
     
     int counter = 0;
@@ -67,11 +78,7 @@
         [libraryViewController.sessionLibraryItems addObject:sessionItemView];
         
         int quizAnswer = -1;
-        
-        if([sessionItemView.guid isEqualToString:@"C869E8DD-B152-499B-B849-A60C9BCAF25D"])
-        {
-            NSLog(@"h");
-        }
+
         
         if(![[resultDict valueForKey:@"quizAnswer"] isEqualToString:@""])
         {
@@ -115,7 +122,9 @@
     
     [self setBackgroundColor:[UIColor colorWithRed:109.0/255.0 green:36.0/255.0 blue:35.0/255.0 alpha:0.5]];
     
-    [self insertContents];
+    
+    
+    [self insertContents:self.libraryViewController.optionalKeyword];
 }
 
 

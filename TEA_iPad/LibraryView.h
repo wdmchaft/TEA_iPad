@@ -68,6 +68,7 @@
     BOOL displayingSessionContent;
     BOOL refreshDateSkipped;
     id<ContentViewerInterface> currentContentView;
+    NSString *optionalKeyword;
 }
 
 //Calendar
@@ -103,6 +104,8 @@
 
 @property (nonatomic, retain) IBOutlet UIImageView *backgroundView;
 @property (retain, nonatomic) IBOutlet DWSearchBar *searchTextField;
+@property (nonatomic, retain) NSString *optionalKeyword;
+
 
 - (void) receivedContentBytes:(NSDictionary*) userInfo ;
 - (void) initLectureNames;
