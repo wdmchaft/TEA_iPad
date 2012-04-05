@@ -162,30 +162,66 @@
     
 }
 
+
+- (IBAction)showAnswersButtonClicked:(id)sender
+{
+    NSLog(@"showAnswersButtonClicked");
+   
+    [hideAnswerImageView setHidden:YES];
+    [showAnswersButton removeFromSuperview];
+    
+    [UIView transitionWithView:hideAnswerImageView 
+                      duration:0.4 
+                       options:UIViewAnimationOptionTransitionCurlUp 
+                    animations:^ { hideAnswerImageView.alpha = 0.5; } 
+                    completion:^ (BOOL finish) { [hideAnswerImageView removeFromSuperview]; }];
+    
+
+}
+
 - (void) loadContentView:(UIView *)view withDirection :(ContentViewOpenDirection)direction
 {
-    CGRect initialRect;
-    if(direction == kContentViewOpenDirectionToLeft)
-    {
-        initialRect = CGRectMake(view.frame.size.width * 2, 0, view.frame.size.width, view.frame.size.height);
-    }
-    else if(direction == kContentViewOpenDirectionToRight)
-    {
-        initialRect = CGRectMake(- view.frame.size.width * 2, 0, view.frame.size.width, view.frame.size.height);
-    }
-    else if(direction == kContentViewOpenDirectionNormal)
-    {
-        initialRect = view.frame;
-    }
-    view.frame = initialRect;
     
-    [UIView beginAnimations:nil context:nil];
-    [UIView setAnimationDuration:0.3];
-    [UIView setAnimationCurve:UIViewAnimationCurveEaseOut];
+    TEA_iPadAppDelegate *appDelegete = (TEA_iPadAppDelegate*)[[UIApplication sharedApplication]delegate];
     
-    view.frame = CGRectMake(0, 0, 1024, 768);
-
-    [UIView commitAnimations];
+    if (appDelegete.state != kAppStateLogon)
+    {
+        hideAnswerImageView = [[UIImageView alloc] initWithFrame:CGRectMake(237, 555, 541, 94)];
+        [hideAnswerImageView setImage:[UIImage imageNamed:@"QuestionCover.png"]];
+        [hideAnswerImageView setContentMode:UIViewContentModeScaleAspectFit];
+        [view addSubview:hideAnswerImageView];
+        showAnswersButton = [[UIButton alloc] initWithFrame:CGRectMake(712, 596, 50, 50)];
+        [showAnswersButton setBackgroundColor:[UIColor clearColor]];
+        [showAnswersButton addTarget:self action:@selector(showAnswersButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+        [view addSubview:showAnswersButton];
+        
+    }
+    else 
+    {
+        CGRect initialRect;
+        if(direction == kContentViewOpenDirectionToLeft)
+        {
+            initialRect = CGRectMake(view.frame.size.width * 2, 0, view.frame.size.width, view.frame.size.height);
+        }
+        else if(direction == kContentViewOpenDirectionToRight)
+        {
+            initialRect = CGRectMake(- view.frame.size.width * 2, 0, view.frame.size.width, view.frame.size.height);
+        }
+        else if(direction == kContentViewOpenDirectionNormal)
+        {
+            initialRect = view.frame;
+        }
+        view.frame = initialRect;
+        
+        [UIView beginAnimations:nil context:nil];
+        [UIView setAnimationDuration:0.3];
+        [UIView setAnimationCurve:UIViewAnimationCurveEaseOut];
+        
+        view.frame = CGRectMake(0, 0, 1024, 768);
+        
+        [UIView commitAnimations];
+    }
+    
 }
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -207,6 +243,15 @@
 
 - (void)dealloc
 {
+    if (hideAnswerImageView) {
+        [hideAnswerImageView release]; 
+    }
+    
+    if (showAnswersButton) {
+        [showAnswersButton release];
+    }
+    
+    
     [answerA release];
     [answerB release];
     [answerC release];
