@@ -19,6 +19,7 @@
 @implementation HWView 
 
 @synthesize answerSheetView, parser, questionImageURL, currentQuestion, timer, zipFileName, titleOfHomework, homeworkGuid, delivered, questionTimer;
+@synthesize cloneExamAnswers;
 
 - (int) getCurrentQuestionTimer
 {
@@ -152,6 +153,29 @@
     return NO;
 }
 
+
+
+- (void) getCloneQuestionAnswers:(NSString*)lectureGuid withLectureID:(int)lectureID
+{
+    NSString *examAnswersURL = [NSString stringWithFormat: @"%@/examAnswer.jsp?exam_guid=%@&lecture_id=%d", [ConfigurationManager getConfigurationValueForKey:@"PUBLIC_HOMEWORK_URL"], lectureGuid, lectureID]; 
+    
+    NSURLResponse *response = nil;
+    NSError **error=nil; 
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:examAnswersURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    
+    NSData *examAnswerData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
+    
+    NSDictionary *examAnswersDictionary = [[CJSONDeserializer deserializer] deserializeAsDictionary:examAnswerData error:nil];
+    cloneExamAnswers = [[examAnswersDictionary objectForKey:@"rows"] retain];
+    
+    [examAnswerData release];
+//    NSLog(@"clone exam answers - %@", [cloneExamAnswers description]);
+    
+   
+}
+
+
 - (id)initWithFrame:(CGRect)frame andZipFileName:(NSString*) aZipFileName andHomeworkId:(NSString*) aHomeworkGUID
 {
     self = [super initWithFrame:frame];
@@ -185,10 +209,21 @@
 
         
         
+        
+        // Clone Question Answers Request
+        
+        /*
+        
+        sql = [NSString stringWithFormat:@"select lecture_id from homework where guid='%@'", homeworkGuid];
+        int lectureID = [[[[[LocalDatabase sharedInstance] executeQuery:sql] objectAtIndex:0] valueForKey:@"lecture_id"] intValue];
+        [self getCloneQuestionAnswers:homeworkGuid withLectureID:lectureID];
+        
+         */
+        
         //currentQuestion = [[[[parser.quiz objectForKey:@"questions"] objectAtIndex:0] objectForKey:@"number"] intValue];
         
 
-        [self removeFromSuperview];
+        //[self removeFromSuperview];
         
         
         backGroundView = [[UIView alloc] initWithFrame:frame];
@@ -419,17 +454,25 @@
 }
 
 - (void)dealloc {
+    
+    
+    if (cloneExamAnswers) {
+        [cloneExamAnswers release];
+    }
+    
+    [downloadData release];
+    
     [homeworkGuid release];
     [titleOfHomework release];
     [zipFileName release];
-    [timer release];
+//    [timer release];
     [parser release];
     [hwView release];
     [questionView release];
     [prevQuestion release];
     [nextQuestion release];
     [closeButton release];
-    [answerSheetView release];
+//    [answerSheetView release];
     [backGroundView release];
      
     [super dealloc];

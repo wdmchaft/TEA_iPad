@@ -34,9 +34,11 @@
     NSDictionary *dataDictionary;
     NSString *currentHomework;
     
+    NSString *correctAnswer;
+    
 }
 
-
+@property (nonatomic, retain) NSString *correctAnswer;
 @property (nonatomic, retain) UIImageView *markupImage;
 @property (nonatomic, retain) UIView *answerView;
 @property (nonatomic, assign) HWAnswerSheet *answerSheet;
@@ -53,5 +55,7 @@
 @property (nonatomic, retain) NSDictionary *dataDictionary;
 
 @property (nonatomic, retain) NSString *currentHomework;
+
+
 
 @end
