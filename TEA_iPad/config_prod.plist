@@ -8,6 +8,8 @@
 	<string>http://192.168.2.50:8080</string>
 	<key>HOMEWORK_URL</key>
 	<string>http://192.168.2.50:8080</string>
+	<key>PUBLIC_HOMEWORK_URL</key>
+	<string>http://88.248.142.177:8080</string>
 	<key>SYNC_ENABLED</key>
 	<true/>
 	<key>HOMEWORK_ENABLED</key>

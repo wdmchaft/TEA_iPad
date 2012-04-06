@@ -13,7 +13,208 @@
 #import "TEA_iPadAppDelegate.h"
 
 @implementation HWAnswerSheetQuestion
-@synthesize answerView, markupImage, isDark, isSelected, number, optionCounter, indexOfQuestion, totalNumberQuestion, answerSheet, coverView, dataDictionary, currentHomework, selectedOption;
+@synthesize answerView, markupImage, isDark, isSelected, number, optionCounter, indexOfQuestion, totalNumberQuestion, answerSheet, coverView, dataDictionary, currentHomework, selectedOption, correctAnswer;
+
+
+
+- (void) finishedExamAnswerSheet:(NSString*)givenAnswer
+{
+    
+/*    
+    NSString *sql = [NSString stringWithFormat:@"select answer from homework_answer where homework = '%@' and question = '%@'", currentHomework, [dataDictionary objectForKey:@"number"]];
+    
+    NSArray *resultArray = [[LocalDatabase sharedInstance] executeQuery:sql];
+    NSString *givenAnswer = nil;
+    if (resultArray && [resultArray count] > 0) {
+        givenAnswer = [[resultArray objectAtIndex:0] valueForKey:@"answer"];
+    }
+   
+*/    
+    
+    buttonArray = [[NSMutableArray alloc] init];
+    for (int i=0; i<5; i++) {
+        UIButton *button = [[UIButton alloc] initWithFrame:CGRectMake((i+1)*44, 6, 40, 40)];
+        [button setTitleColor:[UIColor colorWithRed:133.0 / 255.0 green:82.0 / 255.0 blue:82.0 / 255.0 alpha:1.0] forState:UIControlStateNormal];
+        
+        
+        if (!givenAnswer || [givenAnswer isEqualToString:@" "] || [givenAnswer isEqualToString:@""]) 
+        {
+            if (i==0){
+                if ([correctAnswer isEqualToString:@"A"]) 
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                else {
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                }
+                
+                [button setTitle:@"a" forState:UIControlStateNormal];
+            }
+            else if (i==1){
+                if ([correctAnswer isEqualToString:@"B"]) 
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                else {
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                }
+                [button setTitle:@"b" forState:UIControlStateNormal];
+            }
+            else if (i==2){
+                if ([correctAnswer isEqualToString:@"C"]) 
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                else {
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                }
+                [button setTitle:@"c" forState:UIControlStateNormal];
+            }
+            else if (i==3){
+                if ([correctAnswer isEqualToString:@"D"]) 
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                else {
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                }
+                [button setTitle:@"d" forState:UIControlStateNormal];
+            }
+            else if (i==4){
+                if ([correctAnswer isEqualToString:@"E"]) 
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                else {
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                }
+                [button setTitle:@"e" forState:UIControlStateNormal];
+            }
+        }
+        
+        else if ([correctAnswer isEqualToString:givenAnswer]) 
+        {
+            if (i==0){
+                if ([correctAnswer isEqualToString:@"A"])
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                else {
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
+                }
+                
+                [button setTitle:@"a" forState:UIControlStateNormal];
+            }
+            else if (i==1){
+                if ([correctAnswer isEqualToString:@"B"]) 
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                else
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
+                
+                [button setTitle:@"b" forState:UIControlStateNormal];
+            }
+            else if (i==2){
+                if ([correctAnswer isEqualToString:@"C"]) 
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                else
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
+                
+                [button setTitle:@"c" forState:UIControlStateNormal];
+            }
+            else if (i==3){
+                if ([correctAnswer isEqualToString:@"D"]) 
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                else
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
+                
+                [button setTitle:@"d" forState:UIControlStateNormal];
+            }
+            else if (i==4){
+                if ([correctAnswer isEqualToString:@"E"]) 
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                else
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
+                
+                [button setTitle:@"e" forState:UIControlStateNormal];
+            }
+        }
+        else if (![correctAnswer isEqualToString:givenAnswer])
+        {
+            if (i==0){
+                if ([correctAnswer isEqualToString:@"A"])
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                else if([givenAnswer isEqualToString:@"A"]){
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                }
+                else {
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
+                }
+                
+                [button setTitle:@"a" forState:UIControlStateNormal];
+            }
+            else if (i==1){
+                if ([correctAnswer isEqualToString:@"B"])
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                else if ([givenAnswer isEqualToString:@"B"]){
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                }
+                else {
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
+                }
+                
+                [button setTitle:@"b" forState:UIControlStateNormal];
+            }
+            else if (i==2){
+                if ([correctAnswer isEqualToString:@"C"])
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                else if ([givenAnswer isEqualToString:@"C"]){
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                }
+                else {
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
+                }
+                
+                [button setTitle:@"c" forState:UIControlStateNormal];
+            }
+            else if (i==3){
+                if ([correctAnswer isEqualToString:@"D"])
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                else if ([givenAnswer isEqualToString:@"D"]){
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                }
+                else {
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
+                }
+                
+                [button setTitle:@"d" forState:UIControlStateNormal];
+            }
+            else if (i==4){
+                if ([correctAnswer isEqualToString:@"E"])
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                else if ([givenAnswer isEqualToString:@"E"]){
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                }
+                else {
+                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
+                }
+                
+                [button setTitle:@"e" forState:UIControlStateNormal];
+            }
+        }
+        
+        
+        [button setTag:i+1];
+        [buttonArray addObject:button];
+        [self addSubview:[buttonArray objectAtIndex:i]];
+        [button release];
+
+    }
+    
+    if (optionCounter == 4) {
+        [[buttonArray objectAtIndex:optionCounter] setHidden:YES];
+    }
+}
+
+
+
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -30,81 +231,99 @@
         
         [self addSubview:markupImage];
         
-        
-        // Get answer for the question
-
-        
+        NSString *givenAnswer = nil;
         NSString *sql = [NSString stringWithFormat:@"select answer from homework_answer where homework = '%@' and question = '%@'", currentHomework, [dataDictionary objectForKey:@"number"]];
         
         NSArray *resultArray = [[LocalDatabase sharedInstance] executeQuery:sql];
-        NSString *givenAnswer = nil;
         if (resultArray && [resultArray count] > 0) {
             givenAnswer = [[resultArray objectAtIndex:0] valueForKey:@"answer"];
         }
         
-          
-        buttonArray = [[NSMutableArray alloc] init];
-        for (int i=0; i<5; i++) {
-            UIButton *button = [[UIButton alloc] initWithFrame:CGRectMake((i+1)*44, 6, 40, 40)];
-            
-            
-            [button setTitleColor:[UIColor colorWithRed:133.0 / 255.0 green:82.0 / 255.0 blue:82.0 / 255.0 alpha:1.0] forState:UIControlStateNormal];
-            
-            if (i==0){
-                if ([givenAnswer isEqualToString:@"A"]) 
-                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionSelectedBG.png"] forState:UIControlStateNormal];
-                else
-                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
-                    
-                [button setTitle:@"a" forState:UIControlStateNormal];
-            }
-            else if (i==1){
-                if ([givenAnswer isEqualToString:@"B"]) 
-                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionSelectedBG.png"] forState:UIControlStateNormal];
-                else
-                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
-                
-                [button setTitle:@"b" forState:UIControlStateNormal];
-            }
-            else if (i==2){
-                if ([givenAnswer isEqualToString:@"C"]) 
-                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionSelectedBG.png"] forState:UIControlStateNormal];
-                else
-                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
-                
-                [button setTitle:@"c" forState:UIControlStateNormal];
-            }
-            else if (i==3){
-                if ([givenAnswer isEqualToString:@"D"]) 
-                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionSelectedBG.png"] forState:UIControlStateNormal];
-                else
-                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
-                
-                [button setTitle:@"d" forState:UIControlStateNormal];
-            }
-            else if (i==4){
-                if ([givenAnswer isEqualToString:@"E"]) 
-                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionSelectedBG.png"] forState:UIControlStateNormal];
-                else
-                    [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
-                
-                [button setTitle:@"e" forState:UIControlStateNormal];
-            }
-            
-            
-            
-            [button setTag:i+1];
-            [button addTarget:self action:@selector(answerButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-            [buttonArray addObject:button];
-            [self addSubview:[buttonArray objectAtIndex:i]];
-            [button release];
+        if (self.answerSheet.mainView.delivered == 0) {
+            // Get answer for the question
 
+            buttonArray = [[NSMutableArray alloc] init];
+            for (int i=0; i<5; i++) {
+                UIButton *button = [[UIButton alloc] initWithFrame:CGRectMake((i+1)*44, 6, 40, 40)];
+                
+                
+                [button setTitleColor:[UIColor colorWithRed:133.0 / 255.0 green:82.0 / 255.0 blue:82.0 / 255.0 alpha:1.0] forState:UIControlStateNormal];
+                
+                if (i==0){
+                    if ([givenAnswer isEqualToString:@"A"]) 
+                        [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionSelectedBG.png"] forState:UIControlStateNormal];
+                    else
+                        [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
+                        
+                    [button setTitle:@"a" forState:UIControlStateNormal];
+                }
+                else if (i==1){
+                    if ([givenAnswer isEqualToString:@"B"]) 
+                        [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionSelectedBG.png"] forState:UIControlStateNormal];
+                    else
+                        [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
+                    
+                    [button setTitle:@"b" forState:UIControlStateNormal];
+                }
+                else if (i==2){
+                    if ([givenAnswer isEqualToString:@"C"]) 
+                        [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionSelectedBG.png"] forState:UIControlStateNormal];
+                    else
+                        [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
+                    
+                    [button setTitle:@"c" forState:UIControlStateNormal];
+                }
+                else if (i==3){
+                    if ([givenAnswer isEqualToString:@"D"]) 
+                        [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionSelectedBG.png"] forState:UIControlStateNormal];
+                    else
+                        [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
+                    
+                    [button setTitle:@"d" forState:UIControlStateNormal];
+                }
+                else if (i==4){
+                    if ([givenAnswer isEqualToString:@"E"]) 
+                        [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionSelectedBG.png"] forState:UIControlStateNormal];
+                    else
+                        [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
+                    
+                    [button setTitle:@"e" forState:UIControlStateNormal];
+                }
+                
+             
+                [button setTag:i+1];
+                [button addTarget:self action:@selector(answerButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+                [buttonArray addObject:button];
+                [self addSubview:[buttonArray objectAtIndex:i]];
+                [button release];
+
+            }
+            
+            if (optionCounter == 4) {
+                [[buttonArray objectAtIndex:optionCounter] setHidden:YES];
+            }
         }
-        
-        if (optionCounter == 4) {
-            [[buttonArray objectAtIndex:optionCounter] setHidden:YES];
+        else {
+            NSDictionary *currentAnswerDict;
+            
+            if (self.answerSheet.mainView.cloneExamAnswers && [self.answerSheet.mainView.cloneExamAnswers count]>0) {
+                for (NSDictionary *dict in self.answerSheet.mainView.cloneExamAnswers) {
+                    if ([[dataDictionary objectForKey:@"number"]intValue] == [[dict objectForKey:@"soru_no"] intValue]) {
+                        currentAnswerDict = dict;
+                    }
+                }  
+                correctAnswer = [currentAnswerDict objectForKey:@"yansima_cevap"];
+            }
+            else {
+                
+                correctAnswer = @"";
+            }
+                        
+            [self finishedExamAnswerSheet:givenAnswer];
         }
-        
+            
+            
+            
         UIButton *questionNumber = [[[UIButton alloc] initWithFrame:CGRectMake(0, 0, 37, 52)] autorelease];
         [questionNumber setBackgroundColor:[UIColor clearColor]];
         [questionNumber setTitle:[NSString stringWithFormat:@"%d.", [self tag]] forState:UIControlStateNormal];
@@ -124,6 +343,7 @@
     }
     return self;
 }
+
 
 - (IBAction)answerButtonClicked:(id)sender
 {
