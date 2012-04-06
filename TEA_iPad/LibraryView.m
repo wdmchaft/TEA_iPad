@@ -238,7 +238,7 @@
     NSString *sessionNameFilter = [filterObject valueForKey:@"libraryFilter"];
     NSString *sql = @"";
     
-    if([optionalKeyword isEqualToString:NSLocalizedString(@"SearchHomework", nil)])
+    if([optionalKeyword isEqualToString:NSLocalizedString(@"SearchHomework", nil)] || [optionalKeyword isEqualToString:NSLocalizedString(@"SearchHomework2", nil)])
     {
         sql = @"select session.* from library,session where type='homework' and library.session_guid = session.session_guid";
     }
@@ -558,7 +558,7 @@
                 {
                     self.optionalKeyword = word;
                 }
-                else if([word isEqualToString:NSLocalizedString(@"SearchHomework", nil)])
+                else if([word isEqualToString:NSLocalizedString(@"SearchHomework", nil)] || [word isEqualToString:NSLocalizedString(@"SearchHomework2", nil)])
                 {
                     self.optionalKeyword = word;
                 }
