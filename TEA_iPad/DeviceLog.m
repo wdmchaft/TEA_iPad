@@ -29,7 +29,7 @@
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*)[[UIApplication sharedApplication]delegate];
     
     NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
-    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
+    [dateFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
     NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
     NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
     
@@ -45,14 +45,30 @@
     [[LocalDatabase sharedInstance] executeQuery:insertSQL];
 }
 
++ (void) deviceLogWithLocation:(CLLocation*) location
+{
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*)[[UIApplication sharedApplication]delegate];
+    
+    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
+    [dateFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
+    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
+    
+    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+    NSString *insertSQL;
+    
+    insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, lat, long, time) values ('%@','%@','%@', '%@','%f','%f','%@')", [appDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"locationUpdate", location.coordinate.latitude, location.coordinate.longitude, dateString];
+ 
 
+    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
+}
 
 + (void) deviceLogWithData:(NSString*)data
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*)[[UIApplication sharedApplication]delegate];
     
     NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
-    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
+    [dateFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
     NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
     NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
     

@@ -59,8 +59,7 @@
             [dictionary setValue:[NSNumber numberWithInt:[_data length]] forKey:@"bytes"];
     
             [appDelegate.viewController receivedContentBytes:dictionary];
-                        
-            NSLog(@"still collecting data, total collected : %u, data size: %d", [_data length] , lengthBits + 44);
+            [dictionary release];
             break;
         }
         else {
@@ -68,8 +67,9 @@
             [dictionary setValue:[NSNumber numberWithInt:1] forKey:@"totalBytes"];
             [dictionary setValue:[NSNumber numberWithInt:1] forKey:@"bytes"];
             [appDelegate.viewController receivedContentBytes:dictionary];
+            [dictionary release];
         }
-        [dictionary release];
+        
 
         
         NSData *dictData = [_data subdataWithRange:NSMakeRange(44, lengthBits)];

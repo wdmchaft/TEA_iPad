@@ -380,6 +380,8 @@
     NSData *quizAnswersData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
     
     NSDictionary *dictionary = [[CJSONDeserializer deserializer] deserializeAsDictionary:quizAnswersData error:nil];
+    [quizAnswersData release];
+    
     NSArray *quizAnswers = [dictionary objectForKey:@"answers"];
     
     

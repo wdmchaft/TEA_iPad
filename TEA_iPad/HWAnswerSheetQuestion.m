@@ -41,7 +41,10 @@
         {
             if (i==0){
                 if ([correctAnswer isEqualToString:@"A"]) 
+                {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                }
                 else {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
                     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
@@ -51,7 +54,10 @@
             }
             else if (i==1){
                 if ([correctAnswer isEqualToString:@"B"]) 
+                {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                }
                 else {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
                     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
@@ -60,7 +66,10 @@
             }
             else if (i==2){
                 if ([correctAnswer isEqualToString:@"C"]) 
+                {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                }
                 else {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
                     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
@@ -69,7 +78,10 @@
             }
             else if (i==3){
                 if ([correctAnswer isEqualToString:@"D"]) 
+                {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                }
                 else {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
                     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
@@ -78,7 +90,10 @@
             }
             else if (i==4){
                 if ([correctAnswer isEqualToString:@"E"]) 
+                {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                }
                 else {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
                     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
@@ -91,7 +106,10 @@
         {
             if (i==0){
                 if ([correctAnswer isEqualToString:@"A"])
+                {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                }
                 else {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
                 }
@@ -100,7 +118,10 @@
             }
             else if (i==1){
                 if ([correctAnswer isEqualToString:@"B"]) 
+                {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                }
                 else
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
                 
@@ -108,7 +129,10 @@
             }
             else if (i==2){
                 if ([correctAnswer isEqualToString:@"C"]) 
+                {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                }
                 else
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
                 
@@ -116,15 +140,21 @@
             }
             else if (i==3){
                 if ([correctAnswer isEqualToString:@"D"]) 
+                {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                }
                 else
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
                 
                 [button setTitle:@"d" forState:UIControlStateNormal];
             }
             else if (i==4){
-                if ([correctAnswer isEqualToString:@"E"]) 
+                if ([correctAnswer isEqualToString:@"E"])
+                {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                }  
                 else
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionOptionBG.png"] forState:UIControlStateNormal];
                 
@@ -135,7 +165,10 @@
         {
             if (i==0){
                 if ([correctAnswer isEqualToString:@"A"])
+                {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                }
                 else if([givenAnswer isEqualToString:@"A"]){
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
                     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
@@ -148,7 +181,10 @@
             }
             else if (i==1){
                 if ([correctAnswer isEqualToString:@"B"])
+                {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                }
                 else if ([givenAnswer isEqualToString:@"B"]){
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
                     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
@@ -161,7 +197,10 @@
             }
             else if (i==2){
                 if ([correctAnswer isEqualToString:@"C"])
+                {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                }
                 else if ([givenAnswer isEqualToString:@"C"]){
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
                     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
@@ -174,7 +213,10 @@
             }
             else if (i==3){
                 if ([correctAnswer isEqualToString:@"D"])
+                {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                }
                 else if ([givenAnswer isEqualToString:@"D"]){
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
                     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
@@ -187,7 +229,10 @@
             }
             else if (i==4){
                 if ([correctAnswer isEqualToString:@"E"])
+                {
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionCorrectAnswer.png"] forState:UIControlStateNormal];
+                    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                }
                 else if ([givenAnswer isEqualToString:@"E"]){
                     [button setBackgroundImage:[UIImage imageNamed:@"HWAnswerSheetQuestionWrongAnswer.png"] forState:UIControlStateNormal];
                     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
