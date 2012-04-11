@@ -11,6 +11,7 @@
 #import "DWDatabase.h"
 #import "Reachability.h"
 #import <SystemConfiguration/CaptiveNetwork.h>
+#import "DeviceLog.h"
 
 @implementation LocationService
 
@@ -239,6 +240,7 @@
     [self checkLocation];
     [NSTimer scheduledTimerWithTimeInterval:300 target:self selector:@selector(checkLocation) userInfo:nil repeats:YES];
     
+    lastUpdateMilliseconds = [[NSDate date] timeIntervalSince1970];
 }
 
 
@@ -265,22 +267,15 @@
     didUpdateToLocation:(CLLocation *)newLocation
            fromLocation:(CLLocation *)oldLocation
 {
-       // NSLog(@"%f, %f", [newLocation verticalAccuracy], [newLocation horizontalAccuracy]);
-    
-//*************************************>>>>>>>>>>>>>>>>>>>>>>>>>> 
+
     
         NSString *locationInfoMessage = [NSString stringWithFormat:@"Lat - %f, Long - %f, ", newLocation.coordinate.latitude, newLocation.coordinate.longitude];
         locationInfoMessage = [locationInfoMessage stringByAppendingFormat:@"Yatay Hassasiyet : %f, ", newLocation.verticalAccuracy];
         locationInfoMessage = [locationInfoMessage stringByAppendingFormat:@"Dikey Hassasiyet :  %f", newLocation.horizontalAccuracy];
         
-    //NSLog(@"message %@", locationInfoMessage);
-    
         [locationServiceMessageView setMessageLocationLabel:locationInfoMessage];
 
-//*************************************<<<<<<<<<<<<<<<<<<<<<<<<<<        
-    
-    
-    
+   
         if(runningOperation)
         {
             [locationServiceMessageView setHidden:YES];
@@ -303,15 +298,7 @@
                 
                 if(![self getAllowedLocation])
                 {
-                    /*[self generateAllowedConnectionRecordWithLocation: newLocation];
-                    
-                    if(![self getAllowedLocation])
-                    {
-                        [locationServiceMessageView setMessage:@"Uygulama eşleştirme kaydınız oluşturulamadı. Lütfen sistem yöneticinize haber veriniz! "];
-                        [locationServiceMessageView setHidden:NO];
-                        [locationManager stopUpdatingLocation];
-                    }*/
-                    
+
                     [locationServiceMessageView setMessage:@"Uygulama eşleştirme kaydınız oluşturulamadı. Lütfen sistem yöneticinize haber veriniz! "];
                     [locationServiceMessageView setHidden:NO];
                     [locationManager stopUpdatingLocation];
@@ -363,21 +350,19 @@
         }
         else
         {
-            /*           
-             NSString *message = [NSString stringWithFormat: @"Uygulama kullanılabilir durumda. \n(Uzaklık:%f)\n", distanceInMeters];
-             message = [message stringByAppendingFormat:@"Geçerli bölge : %f, %f\n", newLocation.coordinate.latitude, newLocation.coordinate.longitude];
-             message = [message stringByAppendingFormat:@"Lokasyon Güncelleme Sayısı : %d\n", locationCount];
-             message = [message stringByAppendingFormat:@"Yatay Hassasiyet : %f\n", newLocation.verticalAccuracy];
-             message = [message stringByAppendingFormat:@"Dikey Hassasiyet :  %f", newLocation.horizontalAccuracy];
-             
-             [locationServiceMessageView setMessage:message];
-             */
             [locationServiceMessageView setHidden:YES];
+            
+            double diff = [[NSDate date] timeIntervalSince1970] - lastUpdateMilliseconds;
+            
+            if(diff > 5)
+            {
+                [DeviceLog deviceLogWithLocation:newLocation];
+                lastUpdateMilliseconds = [[NSDate date] timeIntervalSince1970];
+            }
+            
+            
         } 
-    
-    
-
-           
+   
 }
 
 

@@ -303,6 +303,8 @@ void handleException(NSException *exception)
     [tSession release];
    
     self.window.rootViewController = self.viewController;
+    [[self viewController] release];
+    
     [self.window makeKeyAndVisible];
 
     LocationService *locationService = [[LocationService alloc] init];

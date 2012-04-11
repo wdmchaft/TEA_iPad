@@ -717,9 +717,6 @@
     [self initMonthView];
     [self initLectureNames];
     
-    blackScreen = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-    [blackScreen setBackgroundColor:[UIColor blackColor]];
-    
     self.notebookSyncService = [[NotebookSync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
   /*  self.notebookSyncService.libraryView = self;
     [notebookSyncService setHidden:YES];

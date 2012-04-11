@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <CoreLocation/CoreLocation.h>
 
 @interface DeviceLog : NSObject
 {
@@ -15,6 +16,6 @@
 
 + (void) deviceLog:(NSString*)type withLecture:(NSString*)lectureName withContentType:(NSString*)contentType;
 + (void) deviceLogWithData:(NSString*)data;
-
++ (void) deviceLogWithLocation:(CLLocation*) location;
 
 @end

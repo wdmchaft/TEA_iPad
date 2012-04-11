@@ -212,20 +212,13 @@
         
         // Clone Question Answers Request
         
-        /*
+        
         
         sql = [NSString stringWithFormat:@"select lecture_id from homework where guid='%@'", homeworkGuid];
         int lectureID = [[[[[LocalDatabase sharedInstance] executeQuery:sql] objectAtIndex:0] valueForKey:@"lecture_id"] intValue];
         [self getCloneQuestionAnswers:homeworkGuid withLectureID:lectureID];
         
-         */
-        
-        //currentQuestion = [[[[parser.quiz objectForKey:@"questions"] objectAtIndex:0] objectForKey:@"number"] intValue];
-        
-
-        //[self removeFromSuperview];
-        
-        
+    
         backGroundView = [[UIView alloc] initWithFrame:frame];
         [backGroundView setBackgroundColor:[UIColor blackColor]];
         [backGroundView setAlpha:0.7];
