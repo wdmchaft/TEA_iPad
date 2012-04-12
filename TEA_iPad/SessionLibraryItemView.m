@@ -533,10 +533,16 @@
    
     
     NSString *selectSQL = [NSString stringWithFormat:@"select lecture_name from lecture, library, session where library.guid = '%@' and library.session_guid = session.session_guid and session.lecture_guid = lecture.lecture_guid", guid ];
-    NSString *lectureName = [[[[LocalDatabase sharedInstance] executeQuery:selectSQL] objectAtIndex:0] objectForKey:@"lecture_name"];
     
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:selectSQL];
     
-    [DeviceLog deviceLog:@"openedLibraryItems" withLecture:lectureName withContentType:itemType];
+    if(result && [result count] > 0)
+    {
+        NSString *lectureName = [[result objectAtIndex:0] objectForKey:@"lecture_name"];
+
+        [DeviceLog deviceLog:@"openedLibraryItems" withLecture:lectureName withContentType:itemType];
+    }
+    
     
 }
 
