@@ -184,7 +184,7 @@ void handleException(NSException *exception)
       
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
-    NSString *iPadAppVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
+    NSString *iPadAppVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
     NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
     NSString *subject = [NSString stringWithFormat:@"[iPad ERROR] %@ - %@ - %@", [appDelegate getDeviceUniqueIdentifier],  iPadAppVersion, iPadOSVersion];
     NSString *body =  [NSString stringWithFormat:@"%@ \n\n%@", exception.reason, [exception.callStackSymbols description]]; 
@@ -414,7 +414,7 @@ void handleException(NSException *exception)
             
             for(BonjourClient *client in clientsToRemove)
             {
-                [bonjourBrowser.services removeObject:client];
+                [bonjourBrowser.services removeObject:client.netService];
                 [[bonjourBrowser bonjourServers] removeObject:client];
             }
         }
@@ -449,8 +449,7 @@ void handleException(NSException *exception)
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
-    NSLog(@"App did enter background");
-    if(!exitingApp)
+    if( !exitingApp && state == kAppStateLogon )
     {
         BonjourMessage *notificationMessage = [[[BonjourMessage alloc] init] autorelease];
         notificationMessage.messageType = kMessageTypeNotificaiton;
@@ -460,41 +459,24 @@ void handleException(NSException *exception)
         notificationMessage.userData = userData;
         [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
         
-        
-/***********************************************
-        
-        NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
-        [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
-        NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
-        NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
-        
-        NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-        NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, time) values ('%@','%@','%@','%@','%@')", [self getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"appMovedBackground", dateString];
-        
-        [[LocalDatabase sharedInstance] executeQuery:insertSQL];
-        
-//***********************************************/
-        
         [DeviceLog deviceLog:@"appMovedBackground" withLecture:nil withContentType:nil];
-        
     }
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
-    NSLog(@"App did enter foreground");
-   
-    BonjourMessage *notificationMessage = [[[BonjourMessage alloc] init] autorelease];
-    notificationMessage.messageType = kMessageTypeNotificaiton;
-    
-    NSMutableDictionary *userData = [[[NSMutableDictionary alloc] init] autorelease];
-    [userData setValue:[NSNumber numberWithInt:kNotificationCodeAppInFg] forKey:@"NotificationCode"];
-    notificationMessage.userData = userData;
-    [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
-    
-    
-    [DeviceLog deviceLog:@"appMovedForeground" withLecture:nil withContentType:nil];
-    
+    if( state == kAppStateLogon )
+    {
+        BonjourMessage *notificationMessage = [[[BonjourMessage alloc] init] autorelease];
+        notificationMessage.messageType = kMessageTypeNotificaiton;
+        
+        NSMutableDictionary *userData = [[[NSMutableDictionary alloc] init] autorelease];
+        [userData setValue:[NSNumber numberWithInt:kNotificationCodeAppInFg] forKey:@"NotificationCode"];
+        notificationMessage.userData = userData;
+        [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
+        
+        [DeviceLog deviceLog:@"appMovedForeground" withLecture:nil withContentType:nil];
+    }
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application

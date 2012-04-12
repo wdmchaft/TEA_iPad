@@ -34,6 +34,8 @@
     // Get TEA iPad's current version
     NSString *iPadVersion = [[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"] substringToIndex:3];
     
+   
+    
     // Check version
     NSDictionary *classroomParameters = [ConfigurationManager getConfigurationValueForKey:@"ClassroomParameters"];
     
@@ -41,7 +43,10 @@
     UIAlertView *alert;
     NSString *appVersion = [classroomParameters objectForKey:@"version"];
     
-    if (![iPadVersion isEqualToString:appVersion]) {
+    CGFloat iPadVersionF = [iPadVersion doubleValue];
+    CGFloat appVersionF = [appVersion doubleValue];
+    
+    if (appVersionF > iPadVersionF) {
         NSString *alertMessage = [NSString stringWithFormat:@"Uygulama versiyonu ile iPad'inize yüklü olan version uyumsuz! Lütfen güncel versiyonu (%@) indirin", appVersion];
         
         alert = [[UIAlertView alloc] initWithTitle:@"UYARI" message:alertMessage delegate:self cancelButtonTitle:@"Tamam" otherButtonTitles:@"Yükle", nil] ;

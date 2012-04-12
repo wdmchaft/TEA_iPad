@@ -30,6 +30,17 @@
     {
         sql = [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@' and type='quiz'", sessionGuid];
     }
+    
+    else if(optionalKeyword && [optionalKeyword isEqualToString:[NSString stringWithFormat:@"-%@",NSLocalizedString(@"SearchQuestion", nil)]])
+    {
+        sql = [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@' and type='quiz' and (quizAnswer = '-1' or quizAnswer <> quizCorrectAnswer)", sessionGuid];
+    }
+    
+    else if(optionalKeyword && [optionalKeyword isEqualToString:[NSString stringWithFormat:@"+%@",NSLocalizedString(@"SearchQuestion", nil)]])
+    {
+        sql = [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@' and type='quiz' and (quizAnswer <> '-1' and quizAnswer == quizCorrectAnswer)", sessionGuid];
+    }
+    
     else if(optionalKeyword && ([optionalKeyword isEqualToString:NSLocalizedString(@"SearchHomework", nil)] || [optionalKeyword isEqualToString:NSLocalizedString(@"SearchHomework2", nil)]))
     {
         sql = [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@' and type='homework'", sessionGuid];

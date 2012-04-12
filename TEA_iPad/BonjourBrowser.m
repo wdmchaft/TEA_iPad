@@ -80,7 +80,10 @@
     //   [service release];
     [netServiceBrowser stop];
     [netServiceBrowser release];
-    [clients release];
+    @synchronized(clients)
+    {
+        [clients release];
+    }
     [services release];
     
     [super dealloc];
@@ -88,7 +91,10 @@
 
 - (void) restartBrowse
 {
-    [clients release];
+    @synchronized(clients)
+    {
+        [clients release];
+    }
     //[service release];
     [netServiceBrowser stop];
     [netServiceBrowser release];
@@ -297,8 +303,13 @@
     
     [self.netServiceBrowser stop];
     [self.services removeAllObjects];
-    [clients removeAllObjects];
     
+    @synchronized(clients)
+    {
+        [clients removeAllObjects];
+    }
+    
+
     
     NSLog(@"Bonjour service stoped...");
 }
@@ -438,20 +449,27 @@
 	}
 }
 
-- (void) sendBonjourMessage:(BonjourMessage*) aMessage toClient:(BonjourClient*) aClient
+- (BOOL) sendBonjourMessage:(BonjourMessage*) aMessage toClient:(BonjourClient*) aClient
 {
-    [aClient sendBonjourMessage:aMessage];
+    return [aClient sendBonjourMessage:aMessage];
 }
 
 
 - (void) sendBonjourMessageToAllClients:(BonjourMessage*) aMessage 
 {
+    
     @synchronized(clients)
     {
+        BOOL retVal = YES;
         for(BonjourClient *client in clients)
         {
-            [self sendBonjourMessage:aMessage toClient:client];
+            retVal = [self sendBonjourMessage:aMessage toClient:client];
+            if(retVal == NO)
+            {
+               NSLog(@"out");
+            }
         }
+        
     }
     
 }

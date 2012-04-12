@@ -42,9 +42,7 @@
     NotebookWorkspace *notebookWorkspace;
     Notebook *notebook;
     BOOL compactMode;
-    
-    NSMutableArray *lectureViews;
-    
+
     LectureView *selectedLecture;
     MonthView *selectedMonth;
     int selectedDate;
@@ -60,9 +58,11 @@
     CalendarDataController *calendarController;
     ActivityIndicator *activity;
     
-    
+    NSMutableArray *lectureViews;
     NSMutableArray *sessionList;
     NSMutableArray *sessionLibraryItems;
+    NSMutableArray *swipeItems;
+    
     int currentSessionListIndex;
     int currentContentsIndex;
     BOOL displayingSessionContent;
@@ -101,6 +101,7 @@
 @property (nonatomic, retain) IBOutlet UIImageView *logonGlow;
 
 @property (nonatomic, retain) NSMutableArray *sessionLibraryItems;
+@property (nonatomic, assign) NSMutableArray *swipeItems;
 
 @property (nonatomic, retain) IBOutlet UIImageView *backgroundView;
 @property (retain, nonatomic) IBOutlet DWSearchBar *searchTextField;
@@ -111,6 +112,7 @@
 - (void) initLectureNames;
 - (void) initSessionNames;
 - (void) contentViewClosed:(id)contentView;
+- (void) fillSwipeItems;
 
 - (IBAction) libraryButtonClicked:(id) sender;
 - (IBAction) notebookButtonClicked:(id) sender;
