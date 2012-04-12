@@ -16,10 +16,13 @@
     int fileSize;
     int previousState;
     NSString *fileName;
+    long totalReceivedBytes;
     
-    NSMutableData *downloadData;
+   // NSMutableData *downloadData;
     NSMutableArray *fileList;
     NSString *directoryPath;
+    
+    NSOutputStream *fileStream;
 }
 
 - (void) requestForSync;
