@@ -331,6 +331,8 @@ void handleException(NSException *exception)
     NSString *str = [NSString stringWithFormat:@"Device Token=%@",deviceToken];
     NSLog(@"%@", str);
     
+    NSString *protocolURL = [ConfigurationManager getConfigurationValueForKey:@"ProtocolRemoteURL"];
+    
     NSString *justToken = [NSString stringWithFormat:@"%@",deviceToken];
     justToken = [justToken stringByReplacingOccurrencesOfString:@"<" withString:@""];
     justToken = [justToken stringByReplacingOccurrencesOfString:@">" withString:@""];
@@ -340,10 +342,10 @@ void handleException(NSException *exception)
     
     
     NSString *deviceTokenSQL = [NSString stringWithFormat:@"select device_token from DeviceTokens where device_id = '%@'", [self getDeviceUniqueIdentifier]];
-    NSArray *array = [[DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:deviceTokenSQL]retain];
+    NSArray *array = [[DWDatabase getResultFromURL:[NSURL URLWithString:protocolURL] withSQL:deviceTokenSQL]retain];
     if (!array || ![array count]>0) {
         NSString *insertDeviceTokenSQL = [NSString stringWithFormat:@"insert into DeviceTokens (device_id, device_token) values ('%@', '%@');", [self getDeviceUniqueIdentifier], justToken];
-       [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:insertDeviceTokenSQL];
+       [DWDatabase getResultFromURL:[NSURL URLWithString:protocolURL] withSQL:insertDeviceTokenSQL];
     }
     [array release];
 }

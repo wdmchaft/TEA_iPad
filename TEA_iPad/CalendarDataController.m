@@ -362,62 +362,6 @@ enum calendarEntryType {
 }
 
 
-/*
-- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
-{
-    if (buttonIndex == 1)
-    {
-        NSString *entryGuid = [currentEntry objectForKey:@"id"];
-        
-        NSString *deleteLocalSQL = [NSString stringWithFormat:@"delete from calendar where id = '%@' and type = '1'", entryGuid];
-        [[LocalDatabase sharedInstance] executeQuery:deleteLocalSQL];
-        
-        NSString *deleteRemoteSQL = [NSString stringWithFormat:@"delete from receivedNotifications where guid = '%@'", entryGuid];
-        [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:deleteRemoteSQL];
-        
-        deleteRemoteSQL = [NSString stringWithFormat:@"delete from notification where guid = '%@'", entryGuid];
-        [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:deleteRemoteSQL];
-        
-        [[CalendarDataClass sharedInstance] reloadEntity];
-        [self displayWeeklyEvents];
-    }
-    else if (buttonIndex == 0)
-    {
-        NSLog(@"Cancel Button clicked...");
-    }
-}
-
-
-- (IBAction)deleteEntryFromLists:(id)sender
-{  
-    NSLog(@"selected Row of daily Table View - %d", [dailyView selectedRow]);
-    if ([dailyView selectedRow]!=-1) {
-        currentEntry = [dailyView.dbResult objectAtIndex:[dailyView selectedRow]];
-        NSLog(@"dict - %@", [currentEntry description]);
-        if ([[currentEntry valueForKey:@"type"] intValue] == 1) {
-            
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"UYARI" message:@"Bildirimi silmek istediğinizden emin misiniz?" delegate:self cancelButtonTitle:@"İptal" otherButtonTitles:@"Evet", nil];
-            [alert show];
-            [alert release];
-            
-        }
-        else if ([[currentEntry valueForKey:@"type"] intValue] == 0)
-        {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"UYARI" message:@"Sistem Bildirimleri silinemez..." delegate:self cancelButtonTitle:@"Tamam" otherButtonTitles:nil];
-            [alert show];
-            [alert release];
-        }
-        
-    }
-    else {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"UYARI" message:@"Lütfen Günlük Etkinlik Listesinden etkinlik seçin..." delegate:self cancelButtonTitle:@"Tamam" otherButtonTitles:nil];
-        [alert show];
-        [alert release];
-    }
-    
-}
-
-*/
 
 
 
@@ -427,14 +371,15 @@ enum calendarEntryType {
     TEA_iPadAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
  
     NSString *selectSQL = [NSString stringWithFormat:@"select * from receivedNotifications where student_device_id = '%@' and (deleted = 1 or is_read <> 1);", [appDelegate getDeviceUniqueIdentifier]];
-    NSArray *array = [[DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:selectSQL]retain];
+    NSString *protocolURL = [ConfigurationManager getConfigurationValueForKey:@"ProtocolRemoteURL"];
+    NSArray *array = [[DWDatabase getResultFromURL:[NSURL URLWithString:protocolURL] withSQL:selectSQL]retain];
         
     for (NSDictionary *arrayObject in array) {
         
         if ([[arrayObject objectForKey:@"deleted"] intValue] == 0) {
             NSString *selectNotifications = [NSString stringWithFormat:@"select * from notification where guid = '%@'", [arrayObject valueForKey:@"guid"]];
             
-            NSArray *result = [[DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:selectNotifications]retain];
+            NSArray *result = [[DWDatabase getResultFromURL:[NSURL URLWithString:protocolURL] withSQL:selectNotifications]retain];
             
             if (result && [result count]>0) {
                 [appDelegate.notificationArray addObject:[result objectAtIndex:0]];
