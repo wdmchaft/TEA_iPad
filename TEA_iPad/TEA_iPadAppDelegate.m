@@ -218,7 +218,7 @@ void handleException(NSException *exception)
     {
        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Cihaz Kullanılamaz!" message:@"Cihazınız JailBreak edildiği için uygulama çalışmayacaktır." delegate:nil cancelButtonTitle:@"Tamam" otherButtonTitles:nil, nil];
         [alertView show];
-
+        return NO;
     }
 #endif
     
@@ -258,10 +258,9 @@ void handleException(NSException *exception)
     [self.window makeKeyAndVisible];
 
     
-    for(int i=0; i < 1000; i++)
-    {
-        [NSThread detachNewThreadSelector:@selector(startBonjourBrowser) toTarget:self withObject:nil];
-    }
+
+    [NSThread detachNewThreadSelector:@selector(startBonjourBrowser) toTarget:self withObject:nil];
+
 
     
     /*
@@ -395,20 +394,7 @@ void handleException(NSException *exception)
         [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
         
         
-/***********************************************
-        
-        NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
-        [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
-        NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
-        NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
-        
-        NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-        NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, time) values ('%@','%@','%@','%@','%@')", [self getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"appMovedBackground", dateString];
-        
-        [[LocalDatabase sharedInstance] executeQuery:insertSQL];
-        
-//***********************************************/
-        
+    
         
     }
 }
