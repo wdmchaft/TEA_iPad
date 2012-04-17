@@ -33,7 +33,7 @@
 - (void) sendData:(NSData *)dataValue groupCode:(uint8_t)groupCode groupCodeType:(uint8_t)groupCodetype dataType:(uint8_t)dataType;
 - (void) sendDictionary:(NSDictionary *)dict;
 
-- (void) sendBonjourMessage:(BonjourMessage*) aMessage;
+- (BOOL) sendBonjourMessage:(BonjourMessage*) aMessage;
 
 @property (nonatomic, retain) NSString *hostName;
 @property (nonatomic, retain) NSNetService *netService;

@@ -50,6 +50,8 @@
 @synthesize currentSessionListIndex;
 @synthesize displayingSessionContent;
 @synthesize currentContentView;
+@synthesize optionalKeyword;
+@synthesize swipeItems;
 
 - (void) refreshDate:(NSDate*)aDate
 {
@@ -235,7 +237,16 @@
 {
     
     NSString *sessionNameFilter = [filterObject valueForKey:@"libraryFilter"];
-    NSString *sql = [NSString stringWithFormat: @"select * from session where name like '%%%@%%'", sessionNameFilter];
+    NSString *sql = @"";
+    
+    if([optionalKeyword isEqualToString:NSLocalizedString(@"SearchHomework", nil)] || [optionalKeyword isEqualToString:NSLocalizedString(@"SearchHomework2", nil)])
+    {
+        sql = @"select session.* from library,session where type='homework' and library.session_guid = session.session_guid";
+    }
+    else 
+    {
+        sql = [NSString stringWithFormat: @"select * from session where name like '%%%@%%'", sessionNameFilter];
+    }
 
     // Clean up 
     for(SessionView *sessionV in contentsScrollView.subviews)
@@ -244,20 +255,26 @@
         [sessionV removeFromSuperview];
     }
     
-    if(sessionList)
+    @synchronized(sessionList)
     {
-        [sessionList release];
-        sessionList = nil;
+        if(sessionList)
+        {
+            [sessionList release];
+            sessionList = nil;
+        }
+        sessionList = [[[LocalDatabase sharedInstance] executeQuery:sql] retain];
     }
     
-    if(sessionLibraryItems)
+    @synchronized(sessionLibraryItems)
     {
-        [sessionLibraryItems release];
-        sessionLibraryItems = nil;
+        if(sessionLibraryItems)
+        {
+            [sessionLibraryItems release];
+            sessionLibraryItems = nil;
+        }
+        sessionLibraryItems = [[NSMutableArray alloc] init];
     }
     
-    sessionList = [[[LocalDatabase sharedInstance] executeQuery:sql] retain];
-    sessionLibraryItems = [[NSMutableArray alloc] init];
     
     int counter = 0;
     CGRect sessionViewRect = CGRectMake(0, 0, 0, 0);
@@ -294,6 +311,8 @@
 - (void) initSessionNames
 {
     
+    self.optionalKeyword = @"";
+    
     NSDateComponents *comps = [[[NSDateComponents alloc] init] autorelease];
     [comps setDay:self.selectedDate];
     [comps setMonth:self.selectedMonth.month];
@@ -328,21 +347,28 @@
         [sessionV removeFromSuperview];
     }
     
-    
-    if(sessionList)
+    @synchronized(sessionList)
     {
-        [sessionList release];
-        sessionList = nil;
+        if(sessionList)
+        {
+            [sessionList release];
+            sessionList = nil;
+        }
+        sessionList = [[[LocalDatabase sharedInstance] executeQuery:sql] retain];
     }
     
-    if(sessionLibraryItems)
+    
+    @synchronized(sessionLibraryItems)
     {
-        [sessionLibraryItems release];
-        sessionLibraryItems = nil;
+        if(sessionLibraryItems)
+        {
+            [sessionLibraryItems release];
+            sessionLibraryItems = nil;
+        }
+        
+        sessionLibraryItems = [[NSMutableArray alloc] init];
     }
     
-    sessionList = [[[LocalDatabase sharedInstance] executeQuery:sql] retain];
-    sessionLibraryItems = [[NSMutableArray alloc] init];
     
     int counter = 0;
     CGRect sessionViewRect = CGRectMake(0, 0, 0, 0);
@@ -409,31 +435,37 @@
 {
     
     // Clean up lecture names
-    for(UIView *lectureV in lectureNamesScrollView.subviews)
+    
+    @synchronized(lectureViews)
     {
-        [lectureV removeFromSuperview];
+        for(UIView *lectureV in lectureNamesScrollView.subviews)
+        {
+            [lectureV removeFromSuperview];
+        }
+        
+        
+        
+        NSArray *result = [[LocalDatabase sharedInstance] executeQuery:@"select * from lecture"];
+        
+        int counter = 0;
+        for(NSDictionary *resultDict in result)
+        {
+            CGRect lectureViewRect = CGRectMake(0, counter * 52, 177, 52);
+            LectureView *lectureView = [[LectureView alloc] initWithFrame:lectureViewRect];
+            lectureView.lectureName = [resultDict valueForKey:@"lecture_name"];
+            lectureView.lecture_guid = [resultDict valueForKey:@"lecture_guid"];
+            lectureView.viewController = self;
+            
+            [lectureNamesScrollView addSubview:lectureView];
+            [lectureView release];
+            
+            [lectureViews addObject:lectureView];
+            counter++;
+        }
+        lectureNamesScrollView.contentSize = CGSizeMake(177, 52 * counter);
     }
     
     
-    
-    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:@"select * from lecture"];
-    
-    int counter = 0;
-    for(NSDictionary *resultDict in result)
-    {
-        CGRect lectureViewRect = CGRectMake(0, counter * 52, 177, 52);
-        LectureView *lectureView = [[LectureView alloc] initWithFrame:lectureViewRect];
-        lectureView.lectureName = [resultDict valueForKey:@"lecture_name"];
-        lectureView.lecture_guid = [resultDict valueForKey:@"lecture_guid"];
-        lectureView.viewController = self;
-        
-        [lectureNamesScrollView addSubview:lectureView];
-        [lectureView release];
-        
-        [lectureViews addObject:lectureView];
-        counter++;
-    }
-    lectureNamesScrollView.contentSize = CGSizeMake(177, 52 * counter);
 }
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -448,6 +480,7 @@
 
 - (void)dealloc
 {
+    [optionalKeyword release];
     
     if(sessionList)
     {
@@ -520,9 +553,10 @@
     }
     else
     {
-        NSArray *words = [aText componentsSeparatedByString:@" "];
+        NSMutableArray *words = [NSMutableArray arrayWithArray:[aText componentsSeparatedByString:@" "]];
         
         aText = @"";
+        self.optionalKeyword = @"";
         
         for (int i=0; i < [words count]; i++) 
         {
@@ -540,21 +574,39 @@
                 
                 word = [word stringByReplacingCharactersInRange:NSMakeRange(0, 1) withString:firstLetter];
                 
-                aText = [aText stringByAppendingString:word];
-                if(i < [words count] - 1)
+                if([word isEqualToString:NSLocalizedString(@"SearchQuestion", nil)])
                 {
-                    aText = [aText stringByAppendingString:@" "];
+                    self.optionalKeyword = word;
                 }
+                else if([word isEqualToString:[NSString stringWithFormat:@"-%@",NSLocalizedString(@"SearchQuestion", nil)]])
+                {
+                    self.optionalKeyword = word;
+                }
+                else if([word isEqualToString:[NSString stringWithFormat:@"+%@",NSLocalizedString(@"SearchQuestion", nil)]])
+                {
+                    self.optionalKeyword = word;
+                }
+                else if([word isEqualToString:NSLocalizedString(@"SearchHomework", nil)] || [word isEqualToString:NSLocalizedString(@"SearchHomework2", nil)])
+                {
+                    self.optionalKeyword = word;
+                }
+                else 
+                {
+                    aText = [aText stringByAppendingString:word];
+                    
+                    if(i < [words count] - 1)
+                    {
+                        aText = [aText stringByAppendingString:@" "];
+                    }
+                }
+                
+                
             }
         }
         
-        for (int i=0; i < [words count]; i++) 
-        {
-            
-        }
+
         
-        
-        NSMutableDictionary *parameters = [[NSMutableDictionary alloc] init];
+        NSMutableDictionary *parameters = [[[NSMutableDictionary alloc] init] autorelease];
         [parameters setValue:aText forKey:@"libraryFilter"];
         [self initSessionNamesWithFilter:parameters];
     }
@@ -562,9 +614,7 @@
 
 - (void)handleSwipe:(UISwipeGestureRecognizer *)gestureRecognizer
 {
-    NSLog(@"Displaying session content %d", displayingSessionContent);
-    
-    @synchronized(self)
+    @synchronized(sessionLibraryItems)
     {
         if(displayingSessionContent)
         {
@@ -692,9 +742,6 @@
     [self initMonthView];
     [self initLectureNames];
     
-    blackScreen = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-    [blackScreen setBackgroundColor:[UIColor blackColor]];
-    
     self.notebookSyncService = [[NotebookSync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
     self.notebookSyncService.libraryView = self;
     [notebookSyncService setHidden:YES];
@@ -730,13 +777,17 @@
 
 - (void) selectLecture:(LectureView *) lecture
 {
-    for(LectureView *lectureView in lectureViews)
+    @synchronized(lectureViews)
     {
-        [lectureView selectLecture:NO];
+        for(LectureView *lectureView in lectureViews)
+        {
+            [lectureView selectLecture:NO];
+        }
+        
+        [lecture selectLecture:YES];
+        self.selectedLecture = lecture;
     }
     
-    [lecture selectLecture:YES];
-    self.selectedLecture = lecture;
 }
 
 - (void) receivedContentBytes:(NSDictionary*) userInfo;

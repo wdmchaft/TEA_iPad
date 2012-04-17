@@ -39,3 +39,6 @@
 "OK" = "Tamam";
 "New Notification" = "Yeni bildirim(ler)iniz var.";
 "Info" = "Duyuru";
+"SearchQuestion" = "soru";
+"SearchHomework" = "odev";
+"SearchHomework2" = "Ödev";

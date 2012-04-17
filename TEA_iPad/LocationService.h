@@ -20,10 +20,7 @@
     NSMutableArray *staticBSSIDs;
     
     int locationCount;
-  //  int allowedACPRange;
-  //  int allowed3GRange;
     int allowedRange;
-    //CLLocation *allowedLocation;
     
     NSMutableArray *allowedLocations;
     
@@ -31,6 +28,8 @@
     BOOL usingLocation;
     int checkRange;
     int allowedLocationCount;
+    
+    double lastUpdateMilliseconds;
 }
 
 - (void) startService;

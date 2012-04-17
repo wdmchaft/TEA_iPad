@@ -214,83 +214,32 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
 
 - (NSMutableArray*) executeQuery:(NSString*)pQuery
 {
-    @synchronized(self)
-    {
-        busy = YES;
-        
-        if(!database)
-        {
-            [self openDatabase];
-        }
-        
-        //  const char *sqlStatement = [pQuery UTF8String];
-        sqlite3_stmt *compiledStatement;
-        
-        if(sqlite3_prepare_v2(database, [pQuery UTF8String], -1, &compiledStatement, NULL) == SQLITE_OK) 
-        {
-            NSMutableArray *returnArray = [[NSMutableArray alloc] init];
-            
-            //  NSLog(@"running sql = %@", pQuery);
-            
-            while(sqlite3_step(compiledStatement) == SQLITE_ROW) 
-            {
-                NSMutableDictionary *columns = [[NSMutableDictionary alloc] init];
-                int columnCount = sqlite3_column_count(compiledStatement);
-                for( int i=0; i < columnCount; i++)
-                {
-                    NSString *columnName  = [NSString stringWithCString:sqlite3_column_name(compiledStatement, i) encoding:NSUTF8StringEncoding];
-                    NSString *columnValue = @"";
-                    const char* columnSqlValue = (const char*)sqlite3_column_text(compiledStatement, i);
-                    if(columnSqlValue)
-                    {
-                        columnValue = [NSString stringWithCString:(const char*)sqlite3_column_text(compiledStatement, i) encoding:NSUTF8StringEncoding];
-                    }
-                    
-                    [columns setValue:columnValue forKey:columnName];
-                    
-                }
-                [returnArray addObject:columns];
-                [columns release];
-            }
-            
-            sqlite3_finalize(compiledStatement);
-            busy = NO;
-            return [returnArray autorelease];
-        }
-        else 
-        {
-            NSLog(@"query not performed");
-        }
-        busy = NO;
-    }
-   
-    return nil;
-}
-
-
-- (NSMutableArray*) executeQuery:(NSString*)pQuery returnSimpleArray:(BOOL) returnSimpleArray
-{
+    
     busy = YES;
+    
     if(!database)
     {
         [self openDatabase];
     }
     
-    const char *sqlStatement = [pQuery UTF8String];
+  //  const char *sqlStatement = [pQuery UTF8String];
     sqlite3_stmt *compiledStatement;
     
-    if(sqlite3_prepare_v2(database, sqlStatement, -1, &compiledStatement, NULL) == SQLITE_OK) 
+    int result = sqlite3_prepare_v2(database, [pQuery UTF8String], -1, &compiledStatement, NULL);
+    
+    if(result == SQLITE_OK) 
     {
         NSMutableArray *returnArray = [[NSMutableArray alloc] init];
         
+      //  NSLog(@"running sql = %@", pQuery);
         
         while(sqlite3_step(compiledStatement) == SQLITE_ROW) 
         {
-            // NSMutableDictionary *columns = [[NSMutableDictionary alloc] init];
+            NSMutableDictionary *columns = [[NSMutableDictionary alloc] init];
             int columnCount = sqlite3_column_count(compiledStatement);
             for( int i=0; i < columnCount; i++)
             {
-                // NSString *columnName  = [NSString stringWithCString:sqlite3_column_name(compiledStatement, i) encoding:NSUTF8StringEncoding];
+                NSString *columnName  = [NSString stringWithCString:sqlite3_column_name(compiledStatement, i) encoding:NSUTF8StringEncoding];
                 NSString *columnValue = @"";
                 const char* columnSqlValue = (const char*)sqlite3_column_text(compiledStatement, i);
                 if(columnSqlValue)
@@ -298,11 +247,11 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
                     columnValue = [NSString stringWithCString:(const char*)sqlite3_column_text(compiledStatement, i) encoding:NSUTF8StringEncoding];
                 }
                 
-                //[columns setValue:columnValue forKey:columnName];
-                [returnArray addObject:columnValue];
+                [columns setValue:columnValue forKey:columnName];
+                
             }
-            //[returnArray addObject:columns];
-            //[columns release];
+            [returnArray addObject:columns];
+            [columns release];
         }
         
         sqlite3_finalize(compiledStatement);
@@ -311,9 +260,64 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
     }
     else 
     {
-        NSLog(@"query not performed");
+        NSLog(@"query not performed error code %d", result);
     }
     busy = NO;
+    return nil;
+}
+
+
+- (NSMutableArray*) executeQuery:(NSString*)pQuery returnSimpleArray:(BOOL) returnSimpleArray
+{
+    @synchronized(self)
+    {
+        busy = YES;
+        if(!database)
+        {
+            [self openDatabase];
+        }
+        
+        sqlite3_stmt *compiledStatement;
+        
+        int result = sqlite3_prepare_v2(database, [pQuery UTF8String], -1, &compiledStatement, NULL);
+        
+        if(result == SQLITE_OK) 
+        {
+            NSMutableArray *returnArray = [[NSMutableArray alloc] init];
+            
+            
+            while(sqlite3_step(compiledStatement) == SQLITE_ROW) 
+            {
+                // NSMutableDictionary *columns = [[NSMutableDictionary alloc] init];
+                int columnCount = sqlite3_column_count(compiledStatement);
+                for( int i=0; i < columnCount; i++)
+                {
+                    // NSString *columnName  = [NSString stringWithCString:sqlite3_column_name(compiledStatement, i) encoding:NSUTF8StringEncoding];
+                    NSString *columnValue = @"";
+                    const char* columnSqlValue = (const char*)sqlite3_column_text(compiledStatement, i);
+                    if(columnSqlValue)
+                    {
+                        columnValue = [NSString stringWithCString:(const char*)sqlite3_column_text(compiledStatement, i) encoding:NSUTF8StringEncoding];
+                    }
+                    
+                    //[columns setValue:columnValue forKey:columnName];
+                    [returnArray addObject:columnValue];
+                }
+                //[returnArray addObject:columns];
+                //[columns release];
+            }
+            
+            sqlite3_finalize(compiledStatement);
+            busy = NO;
+            return [returnArray autorelease];
+        }
+        else 
+        {
+            NSLog(@"query not performed error code %d", result);
+        }
+        busy = NO;
+    }
+    
     return nil;
 }
 

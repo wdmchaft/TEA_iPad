@@ -45,3 +45,7 @@
 "Calendar" = "Kalendář";
 "Guest" = "Host";
 "Edit" = "Upravit";
+
+"SearchQuestion" = "question";
+"SearchHomework" = "odev";
+"SearchHomework2" = "Ödev";

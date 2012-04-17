@@ -49,19 +49,28 @@
         int typeBits = 0; [_data getBytes:&typeBits range:NSMakeRange(36, 4)];
         int lengthBits = 0; [_data getBytes:&lengthBits range:NSMakeRange(40, 4)];
         
+        
+        TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+        NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] init];
+        
         if([_data length] < lengthBits + 44 )
         {
-            TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-            NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] init];
             [dictionary setValue:[NSNumber numberWithInt:lengthBits + 44] forKey:@"totalBytes"];
             [dictionary setValue:[NSNumber numberWithInt:[_data length]] forKey:@"bytes"];
     
             [appDelegate.viewController receivedContentBytes:dictionary];
             [dictionary release];
-            
-            NSLog(@"still collecting data, total collected : %u, data size: %d", [_data length] , lengthBits + 44);
             break;
         }
+        else {
+            
+            [dictionary setValue:[NSNumber numberWithInt:1] forKey:@"totalBytes"];
+            [dictionary setValue:[NSNumber numberWithInt:1] forKey:@"bytes"];
+            [appDelegate.viewController receivedContentBytes:dictionary];
+            [dictionary release];
+        }
+        
+
         
         NSData *dictData = [_data subdataWithRange:NSMakeRange(44, lengthBits)];
         [_data replaceBytesInRange:NSMakeRange(0, lengthBits + 44 ) withBytes:NULL length:0]; //clean up data
@@ -80,7 +89,7 @@
         [dateFormatter setDateFormat:@"yyyy-MM-dd"];
         NSString *convertedDate = [dateFormatter stringFromDate:[NSDate date]];
         
-        NSString *messageInsert = [NSString stringWithFormat:@"insert into system_messages select '%@', '%@', '%d'", messageGuid, convertedDate, typeBits];
+        NSString *messageInsert = [NSString stringWithFormat:@"insert into system_messages select '%@', '%@', '%d', '0'", messageGuid, convertedDate, typeBits];
    
         [[LocalDatabase sharedInstance] executeQuery:messageInsert];
 

@@ -41,7 +41,7 @@ NSDictionary *respResponse;
 	NSData *receivedData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
     
    //	NSLog([[NSString alloc] initWithData:receivedData encoding:NSUTF8StringEncoding ]);
-	respResponse = [[response allHeaderFields] retain];
+	//respResponse = [[response allHeaderFields] retain];
 
 	NSDictionary *dictionary = [[CJSONDeserializer deserializer] deserializeAsDictionary:receivedData error:&error];
 	

@@ -22,28 +22,19 @@
 #import "HWView.h"
 #import "ConfigurationManager.h"
 
+#import "DeviceLog.h"
 
 @implementation SessionLibraryItemView
 @synthesize name, path, type, sessionView, quizImagePath, previewPath, correctAnswer, answer, guid, quizOptCount, direction;
 @synthesize index;
 
-
-- (NSString *) getFileNameOfPath:(NSString *) pathString
-{
-    NSString *returnValue = [[pathString componentsSeparatedByString:@"/"] lastObject];
-    return returnValue;
-}
-
-
 - (NSString *) getFullPathForFile:(NSString *) file
 {
-    NSString *fileName = [self getFileNameOfPath:file];
-    
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     
     NSString *documentsPath = [paths objectAtIndex:0];
     
-    NSString *fullPath = [NSString stringWithFormat:@"%@/%@", documentsPath, fileName];
+    NSString *fullPath = [NSString stringWithFormat:@"%@/%@", documentsPath, file];
     
     return fullPath;
     
@@ -52,7 +43,6 @@
 
 - (UIImage *) getFilePreview;
 {
- 
     if(previewPath && [previewPath length] > 0)
     {
         if(previewWebView)
@@ -96,6 +86,7 @@
                 [previewWebView.layer setCornerRadius:10];
                 [previewWebView.layer setMasksToBounds:YES];
                 [self addSubview:previewWebView];
+                [previewWebView release];
             }
             [previewWebView setHidden:NO];
             [previewWebView setDelegate:[self retain]];
@@ -108,7 +99,7 @@
 
         }
     }
-
+    
     return nil;
 }
 
@@ -260,9 +251,10 @@
         [self bringSubviewToFront:borderImage];
     }
     
-    [previewWebView setHidden:YES];
+   // [previewWebView setHidden:YES];
     [previewWebView setDelegate:nil];
-    [previewWebView release];
+    [previewWebView removeFromSuperview];
+  //  [previewWebView release];
     previewWebView = nil;
     
     [imageData release];
@@ -360,7 +352,28 @@
     }
     else if ([type isEqualToString:@"homework"]) 
     {
-        [borderImage setImage:[UIImage imageNamed:@"LibraryItemQuiz.png"]];
+        NSString *sql = [NSString stringWithFormat:@"select delivered from homework where guid = '%@'", guid];
+        NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql];
+        if(result && [result count] == 1)
+        {
+            int delivered = [[[result objectAtIndex:0] valueForKey:@"delivered"] intValue];
+            
+            if(delivered)
+            {
+                [borderImage setImage:[UIImage imageNamed:@"LibraryItemQuizDelivered.png"]];
+            }
+            else {
+                [borderImage setImage:[UIImage imageNamed:@"LibraryItemQuizNotDelivered.png"]];
+            }
+        }
+        else 
+        {
+            [borderImage setImage:[UIImage imageNamed:@"LibraryItemQuizNotDelivered.png"]];
+        }
+        
+        
+        
+        
     }
     else if ([type isEqualToString:@"document"]) 
     {
@@ -499,14 +512,48 @@
     
 }
 
+- (void) logDeviceModule:(NSString*)itemType
+{
+    /******************************************************************
+    
+    TEA_iPadAppDelegate *logAppDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
+    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
+    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
+    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
+    
+    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
+    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+    
+    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, lecture, content_type, time) values ('%@','%@','%@', '%@','%@','%@','%@')", [logAppDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"openedLibraryItems",lectureName, itemType, dateString];
+     
+    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
 
+     
+     /******************************************************************/
+    
+   
+    
+    NSString *selectSQL = [NSString stringWithFormat:@"select lecture_name from lecture, library, session where library.guid = '%@' and library.session_guid = session.session_guid and session.lecture_guid = lecture.lecture_guid", guid ];
+    
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:selectSQL];
+    
+    if(result && [result count] > 0)
+    {
+        NSString *lectureName = [[result objectAtIndex:0] objectForKey:@"lecture_name"];
+
+        [DeviceLog deviceLog:@"openedLibraryItems" withLecture:lectureName withContentType:itemType];
+    }
+    
+    
+}
 
 -(void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if(state == kStateNormalMode)
     {
         
-       // [self logDeviceModule:type];
+        [self logDeviceModule:type];
         
         if([type isEqualToString:@"video"])
         {
@@ -517,7 +564,6 @@
             
             [appDelegate.viewController.view addSubview:player];
             [player loadContentView:player withDirection:direction];
-
             [player release];
         }
         else if([type isEqualToString:@"audio"])
@@ -643,7 +689,8 @@
     if(previewWebView)
     {
         [previewWebView setDelegate:nil];
-        [previewWebView release];
+        [previewWebView removeFromSuperview];
+        previewWebView = nil;
     }
     
     [guid release];

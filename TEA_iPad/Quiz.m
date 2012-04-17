@@ -48,6 +48,7 @@
         [userData setValue:[NSNumber numberWithInt:time] forKey:@"solutionTime"];
         solutionMessage.userData = userData;
         [appDelegate.bonjourBrowser sendBonjourMessageToAllClients:solutionMessage];
+        //[appDelegate.bonjourBrowser sendBonjourMessage:solutionMessage toClient:<#(BonjourClient *)#>
         
         [appDelegate.viewController dismissModalViewControllerAnimated:YES];
     }
@@ -130,7 +131,7 @@
 - (void) continueTimer
 {
     quizFinished = NO;
-    displayingAlert = NO;
+   // displayingAlert = NO;
     
     timerControl.paused = NO;
     [self lockQuizOptions:NO];

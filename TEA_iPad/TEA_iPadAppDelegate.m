@@ -29,7 +29,7 @@
 #import "LocationService.h"
 #import "ConfigurationManager.h"
 #include <SystemConfiguration/SystemConfiguration.h>
-
+#import "DeviceLog.h"
 
 @implementation TEA_iPadAppDelegate
 
@@ -180,7 +180,7 @@ void handleException(NSException *exception)
       
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
-    NSString *iPadAppVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
+    NSString *iPadAppVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
     NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
     NSString *subject = [NSString stringWithFormat:@"[iPad ERROR] %@ - %@ - %@", [appDelegate getDeviceUniqueIdentifier],  iPadAppVersion, iPadOSVersion];
     NSString *body =  [NSString stringWithFormat:@"%@ \n\n%@", exception.reason, [exception.callStackSymbols description]]; 
@@ -255,6 +255,8 @@ void handleException(NSException *exception)
     [tSession release];
    
     self.window.rootViewController = self.viewController;
+    [[self viewController] release];
+    
     [self.window makeKeyAndVisible];
 
     
@@ -262,37 +264,7 @@ void handleException(NSException *exception)
     [NSThread detachNewThreadSelector:@selector(startBonjourBrowser) toTarget:self withObject:nil];
 
 
-    
-    /*
-    NSUserDefaults *userToken = [NSUserDefaults standardUserDefaults];
-    [userToken setValue:justToken forKey:@"token"];
-    
-    
-    NSString *deviceTokenSQL = [NSString stringWithFormat:@"select device_token from DeviceTokens where device_id = '%@'", [self getDeviceUniqueIdentifier]];
-    NSArray *array = [[DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:deviceTokenSQL]retain];
-    if (!array || ![array count]>0) {
-        NSString *insertDeviceTokenSQL = [NSString stringWithFormat:@"insert into DeviceTokens (device_id, device_token) values ('%@', '%@');", [self getDeviceUniqueIdentifier], justToken];
-       [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:insertDeviceTokenSQL];
-    }
-    [array release];
-     */
-    
-    return YES;
 }
-
-- (void)application:(UIApplication *)app didFailToRegisterForRemoteNotificationsWithError:(NSError *)err { 
-    
-    NSString *str = [NSString stringWithFormat: @"Error: %@", err];
-    NSLog(@"%@", str);
-    
-}
-
-- (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification
-{
-    NSLog(@"local notification");
-}
-
-
 
 
 
@@ -347,7 +319,7 @@ void handleException(NSException *exception)
             
             for(BonjourClient *client in clientsToRemove)
             {
-                [bonjourBrowser.services removeObject:client];
+                [bonjourBrowser.services removeObject:client.netService];
                 [[bonjourBrowser bonjourServers] removeObject:client];
             }
         }
@@ -382,8 +354,7 @@ void handleException(NSException *exception)
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
-    NSLog(@"App did enter background");
-    if(!exitingApp)
+    if( !exitingApp && state == kAppStateLogon )
     {
         BonjourMessage *notificationMessage = [[[BonjourMessage alloc] init] autorelease];
         notificationMessage.messageType = kMessageTypeNotificaiton;
@@ -392,27 +363,28 @@ void handleException(NSException *exception)
         [userData setValue:[NSNumber numberWithInt:kNotificationCodeAppInBg] forKey:@"NotificationCode"];
         notificationMessage.userData = userData;
         [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
-        
-        
-    
-        
+
+        [DeviceLog deviceLog:@"appMovedBackground" withLecture:nil withContentType:nil];
+
     }
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
-    NSLog(@"App did enter foreground");
-   
-    BonjourMessage *notificationMessage = [[[BonjourMessage alloc] init] autorelease];
-    notificationMessage.messageType = kMessageTypeNotificaiton;
-    
-    NSMutableDictionary *userData = [[[NSMutableDictionary alloc] init] autorelease];
-    [userData setValue:[NSNumber numberWithInt:kNotificationCodeAppInFg] forKey:@"NotificationCode"];
-    notificationMessage.userData = userData;
-    [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
-    
-    
-    
+
+    if( state == kAppStateLogon )
+    {
+        BonjourMessage *notificationMessage = [[[BonjourMessage alloc] init] autorelease];
+        notificationMessage.messageType = kMessageTypeNotificaiton;
+        
+        NSMutableDictionary *userData = [[[NSMutableDictionary alloc] init] autorelease];
+        [userData setValue:[NSNumber numberWithInt:kNotificationCodeAppInFg] forKey:@"NotificationCode"];
+        notificationMessage.userData = userData;
+        [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
+        
+        [DeviceLog deviceLog:@"appMovedForeground" withLecture:nil withContentType:nil];
+    }
+
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application

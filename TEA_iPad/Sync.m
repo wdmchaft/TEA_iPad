@@ -178,7 +178,18 @@
 
 - (void) downloadSyncFile
 {
-    //    NSDictionary *iPadConfigDictionary = [ConfigurationManager getConfigurationValueForKey:@"iPadConfig"];
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDir = [paths objectAtIndex:0];
+    directoryPath = [[NSString stringWithFormat:@"%@/%@", documentsDir, [[fileName componentsSeparatedByString:@"."] objectAtIndex:0] ] retain];
+    NSString *filePath = [NSString stringWithFormat:@"%@/%@", directoryPath, fileName];
+    [[NSFileManager defaultManager] createDirectoryAtPath:directoryPath withIntermediateDirectories:YES attributes:nil error:nil];
+
+    fileStream = [[NSOutputStream outputStreamToFileAtPath:filePath append:NO] retain];
+    
+    [fileStream open];
+    
+    totalReceivedBytes = 0;
+    
     
     NSString *syncFileBaseURL = [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]; //[iPadConfigDictionary valueForKey:@"syncFileDownloadURL"];
     NSString *downloadURL = [NSString stringWithFormat: @"%@/%@", syncFileBaseURL, fileName];
@@ -200,7 +211,7 @@
 	
 	if (theConnection) 
     {
-		downloadData = [[NSMutableData data] retain];
+		//downloadData = [[NSMutableData data] retain];
 	} 
 }
 
@@ -380,6 +391,8 @@
     NSData *quizAnswersData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
     
     NSDictionary *dictionary = [[CJSONDeserializer deserializer] deserializeAsDictionary:quizAnswersData error:nil];
+    [quizAnswersData release];
+    
     NSArray *quizAnswers = [dictionary objectForKey:@"answers"];
     
     
@@ -408,7 +421,7 @@
     int totalCount = [fileList count];
     for(int i=0; i < totalCount; i++)
     {
-        
+        NSAutoreleasePool *arPool = [[NSAutoreleasePool alloc] init];
         NSString *localFileName = [[fileList objectAtIndex:i] valueForKey:@"name"];
         NSString *localFileSessionId = [[fileList objectAtIndex:i] valueForKey:@"sessionGuid"];
         
@@ -488,7 +501,8 @@
             }
        
         [self performSelectorInBackground:@selector(updateProgress:) withObject:[NSNumber numberWithFloat:(float) i / (float) totalCount]];
-        
+
+        [arPool release];
     }
     
     
@@ -541,13 +555,38 @@
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
 {
     
-    [downloadData setLength:0];
+  //  [downloadData setLength:0];
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
-    [downloadData appendData:data];
-    [progressView setProgress: (float) downloadData.length / (float) fileSize];
+    
+    NSInteger       dataLength;
+    const uint8_t * dataBytes;
+    NSInteger       bytesWritten;
+    NSInteger       bytesWrittenSoFar;
+        
+    dataLength = [data length];
+    dataBytes  = [data bytes];
+    
+    bytesWrittenSoFar = 0;
+    do {
+        bytesWritten = [fileStream write:&dataBytes[bytesWrittenSoFar] maxLength:dataLength - bytesWrittenSoFar];
+        assert(bytesWritten != 0);
+        if (bytesWritten == -1) 
+        {
+            break;
+        } 
+        else 
+        {
+            bytesWrittenSoFar += bytesWritten;
+        }
+    } while (bytesWrittenSoFar != dataLength);
+    
+    totalReceivedBytes += dataLength;
+    
+ //   [downloadData appendData:data];
+    [progressView setProgress: (float) totalReceivedBytes / (float) fileSize];
 }
 
 
@@ -555,17 +594,24 @@
 {
     [progressView setProgress:1.0];
     
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+   /* NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsDir = [paths objectAtIndex:0];
     directoryPath = [[NSString stringWithFormat:@"%@/%@", documentsDir, [[fileName componentsSeparatedByString:@"."] objectAtIndex:0] ] retain];
     NSString *filePath = [NSString stringWithFormat:@"%@/%@", directoryPath, fileName];
-    
+  */  
     // create directory
-    [[NSFileManager defaultManager] createDirectoryAtPath:directoryPath withIntermediateDirectories:YES attributes:nil error:nil];
+  //  [[NSFileManager defaultManager] createDirectoryAtPath:directoryPath withIntermediateDirectories:YES attributes:nil error:nil];
     
-    [downloadData writeToFile:filePath atomically:YES];
+   // [downloadData writeToFile:filePath atomically:YES];
     
-    [downloadData release];
+   // [downloadData release];
+    
+    if (fileStream != nil) 
+    {
+        [fileStream close];
+        [fileStream release];
+        fileStream = nil;
+    }
     
     [self applySyncing];
 }

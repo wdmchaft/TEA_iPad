@@ -39,3 +39,6 @@
 "OK" = "OK";
 "New Notification" = "You have new notification(s).";
 "Info" = "Announcement";
+"SearchQuestion" = "soru";
+"SearchHomework" = "odev";
+"SearchHomework2" = "Ödev";

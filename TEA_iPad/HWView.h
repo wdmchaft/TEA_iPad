@@ -54,13 +54,14 @@ enum kHomeworkDelivered {
     
     
     int previousQuestionNumber;
+    NSMutableArray *cloneExamAnswers;
+    NSMutableData *downloadData;
 }
 
 
+@property (nonatomic, retain) NSMutableArray *cloneExamAnswers;
 
-//**********>>>>>>
 @property (nonatomic, assign) Timer *questionTimer;
-//**********<<<<<<
 
 
 - (id)initWithFrame:(CGRect)frame andZipFileName:(NSString*) aZipFileName andHomeworkId:(NSString*) aHomeworkGUID;

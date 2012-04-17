@@ -204,12 +204,17 @@
                     NSString *checkString = [[[NSString alloc] initWithData:homeworkFileData encoding:NSUTF8StringEncoding] autorelease];
                     checkString = [checkString substringToIndex:2];
                     
-                    if ([checkString isEqualToString:@"OK"]) {
+                    if ([checkString isEqualToString:@"OK"]) 
+                    {
                         [[LocalDatabase sharedInstance] executeQuery:[NSString stringWithFormat:@"update homework set delivered = 1 where guid = '%@'", [[result objectAtIndex:i] objectForKey:@"guid"]]];
                         NSLog(@"%@ guid'li ödevin gönderim işlemi tamamlandı. Sıradaki ödev kontrol ediliyor...", [[result objectAtIndex:i] valueForKey:@"guid"]);
                     }
                     else
-                        NSLog(@"HATA oluştu....");
+                    {
+                        NSLog(@"Homework sending error...");
+                        NSLog(@"%@", checkString);
+                    }
+                        
                     
                 }
                 @catch (NSException *exception) 
