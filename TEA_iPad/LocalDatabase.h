@@ -19,7 +19,7 @@ enum kLocalDbState {
     sqlite3 *database;
     
     //NSOperationQueue *operationQue;
-    BOOL busy;
+   // BOOL busy;
 }
 
 - (NSMutableArray*) executeQuery:(NSString*)pQuery;
@@ -27,6 +27,5 @@ enum kLocalDbState {
 + (NSString*) stringWithUUID;
 + (LocalDatabase*) sharedInstance;
 
-@property (nonatomic, assign) BOOL busy;
 
 @end
