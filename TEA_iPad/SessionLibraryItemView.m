@@ -86,6 +86,7 @@
                 [previewWebView.layer setCornerRadius:10];
                 [previewWebView.layer setMasksToBounds:YES];
                 [self addSubview:previewWebView];
+                [previewWebView release];
             }
             [previewWebView setHidden:NO];
             [previewWebView setDelegate:[self retain]];
@@ -250,9 +251,10 @@
         [self bringSubviewToFront:borderImage];
     }
     
-    [previewWebView setHidden:YES];
+   // [previewWebView setHidden:YES];
     [previewWebView setDelegate:nil];
-    [previewWebView release];
+    [previewWebView removeFromSuperview];
+  //  [previewWebView release];
     previewWebView = nil;
     
     [imageData release];
@@ -687,7 +689,8 @@
     if(previewWebView)
     {
         [previewWebView setDelegate:nil];
-        [previewWebView release];
+        [previewWebView removeFromSuperview];
+        previewWebView = nil;
     }
     
     [guid release];

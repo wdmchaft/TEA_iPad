@@ -12,6 +12,7 @@
 #import "WeeklyView.h"
 #import "DailyView.h"
 #import "DWDatabase.h"
+#import "ConfigurationManager.h"
 
 @implementation NewEntryView
 @synthesize deleteButton;
@@ -415,15 +416,15 @@ int viewScrollSize = 0;
     if (buttonIndex == 1)
     {
         NSString *entryGuid = [self.currentDictionary objectForKey:@"id"];
-        
+        NSString *protocolURL = [ConfigurationManager getConfigurationValueForKey:@"ProtocolRemoteURL"];
         NSString *deleteLocalSQL = [NSString stringWithFormat:@"delete from calendar where id = '%@' and type = '1'", entryGuid];
         [[LocalDatabase sharedInstance] executeQuery:deleteLocalSQL];
         
         NSString *deleteRemoteSQL = [NSString stringWithFormat:@"delete from receivedNotifications where guid = '%@'", entryGuid];
-        [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:deleteRemoteSQL];
+        [DWDatabase getResultFromURL:[NSURL URLWithString:protocolURL] withSQL:deleteRemoteSQL];
         
         deleteRemoteSQL = [NSString stringWithFormat:@"delete from notification where guid = '%@'", entryGuid];
-        [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:deleteRemoteSQL];
+        [DWDatabase getResultFromURL:[NSURL URLWithString:protocolURL] withSQL:deleteRemoteSQL];
         
         [[CalendarDataClass sharedInstance] reloadEntity];
         [self.controller displayWeeklyEvents];

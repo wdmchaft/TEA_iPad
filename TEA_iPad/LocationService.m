@@ -12,7 +12,7 @@
 #import "Reachability.h"
 #import <SystemConfiguration/CaptiveNetwork.h>
 #import "DeviceLog.h"
-
+#import "ConfigurationManager.h"
 @implementation LocationService
 
 - (NSString*) getBSSID
@@ -51,7 +51,8 @@
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     NSString *deviceUDID = [appDelegate getDeviceUniqueIdentifier];
     NSString *sql = [NSString stringWithFormat:@"select * from location where device_id='%@'", deviceUDID];
-    NSArray *rows = [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:sql];
+    NSString *protocolURL = [ConfigurationManager getConfigurationValueForKey:@"ProtocolRemoteURL"];
+    NSArray *rows = [DWDatabase getResultFromURL:[NSURL URLWithString:protocolURL] withSQL:sql];
     
     [allowedLocations removeAllObjects];
     
@@ -110,13 +111,14 @@
     // Get user current location
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     [locationServiceMessageView setMessage:@"İlk kullanım için eşleştirme kaydı oluşturulyor..."];
+    NSString *protocolURL = [ConfigurationManager getConfigurationValueForKey:@"ProtocolRemoteURL"];
     
     NSString *deviceUDID = [appDelegate getDeviceUniqueIdentifier];
     NSString *deviceName = [appDelegate getDeviceName];
     deviceName = [deviceName stringByReplacingOccurrencesOfString:@"'" withString:@""];
     NSString *bssid = [self getBSSID];
     NSString *sql = [NSString stringWithFormat:@"INSERT INTO `location` (`device_name`, `device_id`,`lat`,`lon`,`acp_range`,`3g_range`,`acp_address`,`reset`) VALUES ('%@', '%@', '%f', '%f', 160, 80, '%@', 0);", deviceName, deviceUDID, aLocation.coordinate.latitude, aLocation.coordinate.longitude, bssid];
-    [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:sql];
+    [DWDatabase getResultFromURL:[NSURL URLWithString:protocolURL] withSQL:sql];
     
     [self getAllowedLocation];
 }
@@ -145,10 +147,10 @@
         if(allowedLocationCount == -1)
         {
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-            
+            NSString *protocolURL = [ConfigurationManager getConfigurationValueForKey:@"ProtocolRemoteURL"];
             NSString *deviceUDID = [appDelegate getDeviceUniqueIdentifier];
             NSString *sql = [NSString stringWithFormat:@"select * from location_count where device_id='%@'", deviceUDID];
-            NSArray *locationCountList = [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:sql];
+            NSArray *locationCountList = [DWDatabase getResultFromURL:[NSURL URLWithString:protocolURL] withSQL:sql];
             
             if(locationCountList && [locationCountList count] > 0)
             {
@@ -222,7 +224,8 @@
 //--*************************************>>>>>>>>>>>>>>>>>>>>>>>>>>    
    
     NSError *error=nil;
-    NSString *protocolURL = [NSString stringWithContentsOfURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] encoding:NSUTF8StringEncoding error:&error];
+    NSString *protocolBaseURL = [ConfigurationManager getConfigurationValueForKey:@"ProtocolRemoteURL"];
+    NSString *protocolURL = [NSString stringWithContentsOfURL:[NSURL URLWithString:protocolBaseURL] encoding:NSUTF8StringEncoding error:&error];
     
     if (protocolURL == NULL ) {
         [locationServiceMessageView setMessage:@"İnternet Bağlantısı Sağlanamadı. Lütfen bağlantınızı kontrol edin."];
@@ -354,7 +357,7 @@
             
             double diff = [[NSDate date] timeIntervalSince1970] - lastUpdateMilliseconds;
             
-            if(diff > 5)
+            if(diff > (60 * 15)) // 60sn * 15 = 15dk.
             {
                 [DeviceLog deviceLogWithLocation:newLocation];
                 lastUpdateMilliseconds = [[NSDate date] timeIntervalSince1970];

@@ -351,8 +351,10 @@
         else {
             NSDictionary *currentAnswerDict;
             
-            if (self.answerSheet.mainView.cloneExamAnswers && [self.answerSheet.mainView.cloneExamAnswers count]>0) {
-                for (NSDictionary *dict in self.answerSheet.mainView.cloneExamAnswers) {
+            if (self.answerSheet.mainView.cloneExamAnswers && [self.answerSheet.mainView.cloneExamAnswers count] > 0) 
+            {
+                for (NSDictionary *dict in self.answerSheet.mainView.cloneExamAnswers) 
+                {
                     if ([[dataDictionary objectForKey:@"number"]intValue] == [[dict objectForKey:@"soru_no"] intValue]) {
                         currentAnswerDict = dict;
                     }

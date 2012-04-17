@@ -419,8 +419,8 @@
             {
                 NSString *insertSQL = [NSString stringWithFormat:@"insert into DWHomeworkResult (homework_guid, device_id, question_number,answer,correct_answer, time) values ('%@','%@', '%@','%@','%@','%@')", [[result objectAtIndex:i] objectForKey:@"homework"], [appDelegate getDeviceUniqueIdentifier], [[result objectAtIndex:i] objectForKey:@"question"],[[result objectAtIndex:i] objectForKey:@"answer"],[[result objectAtIndex:i] objectForKey:@"correct_answer"], [[result objectAtIndex:i] objectForKey:@"time"]];
                 
-                
-                [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:insertSQL];
+                NSString *protocolURL = [ConfigurationManager getConfigurationValueForKey:@"ProtocolRemoteURL"];
+                [DWDatabase getResultFromURL:[NSURL URLWithString:protocolURL] withSQL:insertSQL];
             }
             
             NSString *updateRemoteNotificationTable = [NSString stringWithFormat:@"update notification set completed = 1 where file_url = '%@'", zipFileName];
