@@ -131,7 +131,7 @@
 - (void) continueTimer
 {
     quizFinished = NO;
-    displayingAlert = NO;
+   // displayingAlert = NO;
     
     timerControl.paused = NO;
     [self lockQuizOptions:NO];
