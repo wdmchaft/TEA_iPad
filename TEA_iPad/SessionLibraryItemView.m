@@ -514,25 +514,7 @@
 
 - (void) logDeviceModule:(NSString*)itemType
 {
-    /******************************************************************
-    
-    TEA_iPadAppDelegate *logAppDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-    
-    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
-    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
-    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
-    
-    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
-    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-    
-    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, lecture, content_type, time) values ('%@','%@','%@', '%@','%@','%@','%@')", [logAppDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"openedLibraryItems",lectureName, itemType, dateString];
-     
-    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
-
-     
-     /******************************************************************/
-    
-   
+  
     
     NSString *selectSQL = [NSString stringWithFormat:@"select lecture_name from lecture, library, session where library.guid = '%@' and library.session_guid = session.session_guid and session.lecture_guid = lecture.lecture_guid", guid ];
     
@@ -542,7 +524,7 @@
     {
         NSString *lectureName = [[result objectAtIndex:0] objectForKey:@"lecture_name"];
 
-        [DeviceLog deviceLog:@"openedLibraryItems" withLecture:lectureName withContentType:itemType];
+        [DeviceLog deviceLog:@"openedLibraryItems" withLecture:lectureName withContentType:itemType withGuid:guid];
     }
     
     
@@ -550,15 +532,16 @@
 
 -(void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
+
     if(state == kStateNormalMode)
     {
-        
         [self logDeviceModule:type];
         
         if([type isEqualToString:@"video"])
         {
             MediaPlayer *player = [[MediaPlayer alloc] initWithFrame:CGSizeMake(500, 500) andVideoPath:[self getFullPathForFile:self.path]];
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+            player.guid = self.guid;
             
             sessionView.libraryViewController.currentContentView = player;
             
@@ -570,7 +553,7 @@
         {
             MediaPlayer *player = [[MediaPlayer alloc] initWithFrame:CGSizeMake(500, 500) andVideoPath:[self getFullPathForFile:self.path]];
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-            
+            player.guid = self.guid;
             
             sessionView.libraryViewController.currentContentView = player;
             
@@ -585,7 +568,7 @@
             
             QuizViewer *quiz = [[QuizViewer alloc] initWithNibName:@"QuizViewer" bundle:nil];
             [appDelegate.viewController.view addSubview:quiz.view];
-            
+            quiz.guid = self.guid;
             [quiz loadContentView:quiz.view withDirection:direction];
             
             //[quiz.quizImage setImage:[UIImage imageWithContentsOfFile:self.quizImagePath]];
@@ -593,6 +576,7 @@
             quiz.correctAnswer = self.correctAnswer;
             quiz.optionCount = self.quizOptCount;
             quiz.answer = self.answer;
+            
             
             sessionView.libraryViewController.currentContentView = quiz;
             
@@ -605,23 +589,24 @@
             LibraryDocumentItem *libraryDocumentItem = [[LibraryDocumentItem alloc] init];
             libraryDocumentItem.path = [self getFullPathForFile:self.path];
             libraryDocumentItem.name = self.name;
+            libraryDocumentItem.guid = self.guid;
             
             DocumentViewer *documentViewer = [[DocumentViewer alloc] initWithLibraryItem:libraryDocumentItem];
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
             
             sessionView.libraryViewController.currentContentView = documentViewer;
-            
+
             [appDelegate.viewController.view addSubview:documentViewer];
             [documentViewer loadContentView:documentViewer withDirection:direction];
             [libraryDocumentItem release];
             [documentViewer release];
-            
  
         }
         else if([type isEqualToString:@"document"])
         {
             LibraryDocumentItem *libraryDocumentItem = [[LibraryDocumentItem alloc] init];
             libraryDocumentItem.path = [self getFullPathForFile:self.path];
+            libraryDocumentItem.guid = self.guid;
             libraryDocumentItem.name = name;
             
             DocumentViewer *documentViewer = [[DocumentViewer alloc] initWithLibraryItem:libraryDocumentItem];
@@ -671,6 +656,8 @@
         sessionView.libraryViewController.currentContentsIndex = self.index;
         sessionView.libraryViewController.displayingSessionContent = YES;
     }
+    
+    
     
     
 }

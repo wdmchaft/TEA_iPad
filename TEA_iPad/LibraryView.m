@@ -848,7 +848,7 @@
     //*********************************************************/
     
     
-    [DeviceLog deviceLog:@"openedLibrary" withLecture:nil withContentType:nil];
+    [DeviceLog deviceLog:@"openedLibrary" withLecture:nil withContentType:nil withGuid:nil];
     
     //********************************************************* 
     
@@ -875,7 +875,7 @@
     [[LocalDatabase sharedInstance] executeQuery:insertSQL];*/
 //*********************************************************/    
 
-     [DeviceLog deviceLog:@"openedNotebook" withLecture:nil withContentType:nil];
+     [DeviceLog deviceLog:@"openedNotebook" withLecture:nil withContentType:nil withGuid:nil];
     
     
     [self setNotebookViewHidden:NO];
@@ -919,7 +919,7 @@
     [self performSelectorInBackground:@selector(showIndicator) withObject:nil];
    
     NSLog(@"Calendar Button Clicked:");
-    [DeviceLog deviceLog:@"openedCalendar" withLecture:nil withContentType:nil];
+    [DeviceLog deviceLog:@"openedCalendar" withLecture:nil withContentType:nil withGuid:nil];
     
     [self setNotebookViewHidden:YES];
     [self setLibraryViewHidden:YES];

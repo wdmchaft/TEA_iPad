@@ -16,10 +16,12 @@
 #import "DWDatabase.h"
 #import "ConfigurationManager.h"
 
+#import "DeviceLog.h"
+
 @implementation HWView 
 
 @synthesize answerSheetView, parser, questionImageURL, currentQuestion, timer, zipFileName, titleOfHomework, homeworkGuid, delivered, questionTimer;
-@synthesize cloneExamAnswers;
+@synthesize cloneExamAnswers, activeTime, currentTime;
 
 - (int) getCurrentQuestionTimer
 {
@@ -181,6 +183,8 @@
     self = [super initWithFrame:frame];
     if (self) {
         
+        //set duration start time
+        self.currentTime = [NSDate date];
         previousQuestionNumber = -1;
         
        // TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
@@ -381,6 +385,12 @@
 
 - (IBAction)closeButtonClicked:(id)sender
 {
+    //get view active time
+    activeTime = (long)[[NSDate date] timeIntervalSinceDate:currentTime];
+    
+    //update duration of view 
+    [DeviceLog updateDurationTime:activeTime withGuid:homeworkGuid withDate:currentTime];
+    
     [self closeContentView];
 }
 
@@ -447,6 +457,8 @@
 }
 
 - (void)dealloc {
+    
+    [currentTime release];
     
     
     if (cloneExamAnswers) {

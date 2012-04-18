@@ -95,6 +95,7 @@
 
 - (void) loadContentView:(UIView *)view withDirection :(ContentViewOpenDirection)direction
 {
+   
     CGRect initialRect;
     if(direction == kContentViewOpenDirectionToLeft)
     {

@@ -122,10 +122,18 @@ static LocalDatabase *sharedInstance;
         // Check Device Log table
         NSString *deviceLogTableCheck = @"SELECT name FROM sqlite_master WHERE name='device_log'";
         NSArray *deviceLogTableResult = [self executeQuery:deviceLogTableCheck];
-        if (deviceLogTableResult || [deviceLogTableResult count]<= 0) 
+        if (!deviceLogTableResult || [deviceLogTableResult count]<= 0) 
         {
             NSString *deviceLogTableCreate = @"CREATE TABLE device_log (device_id TEXT, system_version TEXT, version TEXT, key TEXT, lecture TEXT, content_type TEXT, time TEXT, data TEXT, lat TEXT, long TEXT );";
             [self executeQuery:deviceLogTableCreate];
+        }
+        else {
+            NSString *deviceLogAlterTable = @"ALTER TABLE device_log ADD duration CHAR(25) NULL;";
+            [self executeQuery:deviceLogAlterTable];
+            deviceLogAlterTable = @"ALTER TABLE device_log ADD guid char(255);";
+            [self executeQuery:deviceLogAlterTable];
+            deviceLogAlterTable = @"ALTER TABLE device_log ADD session_name char(255);";
+            [self executeQuery:deviceLogAlterTable];
         }
         
         
@@ -134,7 +142,7 @@ static LocalDatabase *sharedInstance;
         NSString *calendarTableCheck = @"SELECT name FROM sqlite_master WHERE name='calendar'";
         NSArray *calendarTableResult = [self executeQuery:calendarTableCheck];
         
-        if (calendarTableResult || [calendarTableResult count]<=0) 
+        if (!calendarTableResult || [calendarTableResult count]<=0) 
         {
             NSString *calendarTableCreate = @"CREATE TABLE calendar (id TEXT, type TEXT, title TEXT, body TEXT, image_name TEXT, image_url TEXT, date_time TEXT, valid_date_time TEXT, alarm_date_time TEXT, repeated TEXT, completed TEXT, homework_ref_id TEXT, alarm_state TEXT, deleted TEXT);";
             [self executeQuery:calendarTableCreate];

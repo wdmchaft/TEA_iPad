@@ -15,7 +15,16 @@
     
     MPMoviePlayerController *player;
     BOOL contentSetFlag;
+    
+    NSString *guid;
+    NSDate *currentTime;
+    long activeTime;
 }
+
+@property (nonatomic, assign) long activeTime;
+@property (nonatomic, retain) NSString *guid;
+@property (nonatomic, retain) NSDate *currentTime;
+
 
 - (id)initWithFrame:(CGSize)size andVideoPath:(NSString*) videoPath;
 
