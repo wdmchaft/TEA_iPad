@@ -14,9 +14,17 @@
 #import "Sync.h"
 #import "Homework.h"
 #import "NotebookSync.h"
+#import "SyncUploadiPadDataService.h"
 #import "ActivityIndicator.h"
 #import "ContentViewerInterface.h"
 #import "CalendarDataController.h"
+
+enum kSyncServiceType {
+    kSyncServiceTypeiPadSync = 0,
+    kSyncServiceTypeHomeworkSync = 1,
+    kSyncServiceTypeNotebookSync = 2,
+    kSyncServiceTypeSync = 3
+    };
 
 @class DWDrawingViewController, LectureView, MonthView, DWSearchBar;
 @interface LibraryView : UIViewController <UIAccelerometerDelegate, UITextFieldDelegate> {
@@ -50,6 +58,7 @@
     
     UIView *blackScreen;
     Sync *syncView;
+    SyncUploadiPadDataService *syncUploadiPadView;
     Homework *homeworkService;
     NotebookSync *notebookSyncService;
     
@@ -76,6 +85,8 @@
 //Calendar
 @property (nonatomic, assign) CalendarDataController *calendarController;
 - (void) setCalendarViewHidden:(BOOL) hidden;
+- (void) refreshLibraryView;
+- (void) startSyncService:(int) syncServiceType;
 
 @property (nonatomic, assign) int currentSessionListIndex;
 @property (nonatomic, assign) BOOL displayingSessionContent;
@@ -92,6 +103,8 @@
 @property (nonatomic, assign) BOOL compactMode;
 @property (nonatomic, assign) NotebookWorkspace *notebookWorkspace;;
 @property (nonatomic, retain) Sync *syncView;
+@property (nonatomic, retain) SyncUploadiPadDataService *syncUploadiPadView;
+
 @property (nonatomic, retain) Homework *homeworkService;
 @property (nonatomic, retain) NotebookSync *notebookSyncService;
 @property (nonatomic, assign) Notebook *notebook;

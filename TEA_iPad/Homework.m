@@ -233,23 +233,11 @@
     }
 }
 
-- (void) startSyncingAfterHomework
-{
-    
-    
-    NSLog(@"**** starting sync service");
-    
-    libraryViewController.syncView = [[Sync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-    [libraryViewController.syncView setHidden:YES];
-    [libraryViewController.view addSubview:libraryViewController.syncView];
-    [libraryViewController.syncView requestForSync];
-    [libraryViewController.syncView release];
-    
-}
 
 - (void) downloadHomeworkFile
 {
-    
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+
     if(dictionary)
     {
         
@@ -289,8 +277,7 @@
         {
             [self setHidden:YES];
             [self insertHomeworkAnswers];
-            [self startSyncingAfterHomework];
-            //[appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
+            [appDelegate.viewController startSyncService:kSyncServiceTypeNotebookSync];    
         }
         
     }
@@ -298,8 +285,8 @@
     {
         [self setHidden:YES];
         [self insertHomeworkAnswers];
-        [self startSyncingAfterHomework];
-        //[appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
+        [appDelegate.viewController startSyncService:kSyncServiceTypeNotebookSync];    
+
     }
     
 }
@@ -373,14 +360,15 @@
         @catch (NSException *exception) 
         {
             //NSLog(@"Exception :: %@",  [exception description]);
-            [self startSyncingAfterHomework];
             [self setHidden:YES];
+            [appDelegate.viewController startSyncService:kSyncServiceTypeNotebookSync];    
+
         }
     }
     else
     {
         [self setHidden:YES];
-        [self startSyncingAfterHomework];
+        [appDelegate.viewController startSyncService:kSyncServiceTypeNotebookSync];    
     }
     
     [tmpData release];
@@ -389,9 +377,9 @@
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     [self setHidden:YES];
-    [self startSyncingAfterHomework];
-    
+    [appDelegate.viewController startSyncService:kSyncServiceTypeNotebookSync];    
 }
 
 

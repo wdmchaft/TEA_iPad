@@ -24,6 +24,8 @@ enum kLocalDbState {
 
 - (NSMutableArray*) executeQuery:(NSString*)pQuery;
 - (NSMutableArray*) executeQuery:(NSString*)pQuery returnSimpleArray:(BOOL) returnSimpleArray;
+- (void) closeDatabase;
+
 + (NSString*) stringWithUUID;
 + (LocalDatabase*) sharedInstance;
 
