@@ -188,6 +188,7 @@ static LocalDatabase *sharedInstance;
 - (void) closeDatabase
 {
     sqlite3_close(database);
+    database = nil;
 }
 
 int rowCallBack(void *a_param, int argc, char **argv, char **column)

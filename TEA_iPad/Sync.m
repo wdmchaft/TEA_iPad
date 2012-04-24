@@ -55,7 +55,7 @@
 
 - (void) requestForSync
 {
-    
+   
     [progressLabel setText:@"Yedekten veri yükleme işlemi başlatılıyor..."];
     
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
@@ -182,7 +182,15 @@
     NSString *documentsDir = [paths objectAtIndex:0];
     directoryPath = [[NSString stringWithFormat:@"%@/%@", documentsDir, [[fileName componentsSeparatedByString:@"."] objectAtIndex:0] ] retain];
     NSString *filePath = [NSString stringWithFormat:@"%@/%@", directoryPath, fileName];
-    [[NSFileManager defaultManager] createDirectoryAtPath:directoryPath withIntermediateDirectories:YES attributes:nil error:nil];
+    
+    NSError *error;
+    if([[NSFileManager defaultManager] fileExistsAtPath:directoryPath])
+    {
+        [[NSFileManager defaultManager] removeItemAtPath:directoryPath error:&error];
+    }
+    
+    
+    [[NSFileManager defaultManager] createDirectoryAtPath:directoryPath withIntermediateDirectories:YES attributes:nil error:&error];
 
     fileStream = [[NSOutputStream outputStreamToFileAtPath:filePath append:NO] retain];
     
@@ -551,6 +559,8 @@
     }
     return self;
 }
+
+
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
 {

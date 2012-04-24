@@ -98,7 +98,6 @@
     [notebookFiles release];
     [jsonDictionary release];
     
-  //  return [NSString stringWithFormat:@"{'notebooks': %@ }", returnValue];
     return returnValue;
 }
 
@@ -139,15 +138,23 @@
 
 - (void) requestForNotebookSync
 {
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+
+
     
     // Check notebook workspace. If there is no notebook in current workspace that means
     // application is recently installed. Full backup is required.
     
-    NSMutableArray *notebooks = [[LocalDatabase sharedInstance] executeQuery:@"select * from notebookworkspace"];
-    if(!notebooks || [notebooks count] <=0)
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSString *restoreNotebooksRequired = [defaults objectForKey:@"restoreNotebooksRequired"];
+    
+    if(!restoreNotebooksRequired || [restoreNotebooksRequired isEqualToString:@"false"])
+
     {
         
-        TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+        [defaults setObject:@"true" forKey:@"restoreNotebooksRequired"];
+        [defaults synchronize];
+        
         
         [self setHidden:NO];
         
@@ -162,7 +169,7 @@
         NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:syncURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
         
         NSData *tmpData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
-        
+    
         
         if(syncEnabled && response)
         {
@@ -200,6 +207,7 @@
                 else
                 {
                     [self setHidden:YES];
+                    [appDelegate.viewController startSyncService:kSyncServiceTypeSync];
                 }
                 
                 
@@ -209,26 +217,21 @@
             {
                 NSLog(@"Exception :: %@",  [exception description]);
                 [self setHidden:YES];
+                [appDelegate.viewController startSyncService:kSyncServiceTypeSync];
             }
         }
         else
         {
             [self setHidden:YES];
-            
+            [appDelegate.viewController startSyncService:kSyncServiceTypeSync];
         }
-        [self setHidden:YES];
+        
         [tmpData release];
 
-
-        
-        
-        
-        
 
     }
     else // Notebooks found, sync to server
     {
-        TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
         
         [self setHidden:NO];
         
@@ -281,10 +284,13 @@
                         [self uploadSyncFile];
                     }
                     
+                    [self setHidden:YES];
+                    [appDelegate.viewController startSyncService:kSyncServiceTypeSync];
                 }
                 else
                 {
                     [self setHidden:YES];
+                    [appDelegate.viewController startSyncService:kSyncServiceTypeSync];
                 }
                 
                 
@@ -294,14 +300,16 @@
             {
                 NSLog(@"Exception :: %@",  [exception description]);
                 [self setHidden:YES];
+                [appDelegate.viewController startSyncService:kSyncServiceTypeSync];
             }
         }
         else
         {
             [self setHidden:YES];
+            [appDelegate.viewController startSyncService:kSyncServiceTypeSync];
             
         }
-        [self setHidden:YES];
+
         [tmpData release];
     }
        
@@ -518,7 +526,7 @@
     
     // remove sync view...
     [self setHidden:YES];
-
+    [appDelegate.viewController startSyncService:kSyncServiceTypeSync];
 }
 
 
@@ -552,6 +560,7 @@
     [downloadData release];
     
     [self applyNotebookSyncing];
+    
 }
 
 
@@ -576,9 +585,13 @@
         progressView = [[[UIProgressView alloc] initWithFrame:CGRectMake(100, 480, 824, 25)] autorelease];
         [self addSubview:progressView];
         
-        progressLabel = [[[UILabel alloc] initWithFrame:CGRectMake(0, 480, 1024, 25)] autorelease];
+        progressLabel = [[[UILabel alloc] initWithFrame:CGRectMake(0, 510, 1024, 25)] autorelease];
         [progressLabel setTextColor:[UIColor whiteColor]];
+        [progressLabel setBackgroundColor:[UIColor clearColor]];
         [progressLabel setTextAlignment:UITextAlignmentCenter];
+        [progressLabel setFont:[UIFont boldSystemFontOfSize:16.0]];
+        
+        
         [self addSubview:progressLabel]; 
         
         

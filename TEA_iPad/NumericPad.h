@@ -24,11 +24,14 @@ enum kButtonTags
     kButtonDelete   = 50,
 } ;
 
+@class AdminPanel;
 @interface NumericPad : UIViewController
 {
     UIPopoverController *popup;
+    UIPopoverController *adminPanel;
 }
 
+@property (retain, nonatomic) UIPopoverController *adminPanel;
 @property (retain, nonatomic) IBOutlet UITextField *textField;
 @property (retain, nonatomic) IBOutlet UIPopoverController *popup;
 

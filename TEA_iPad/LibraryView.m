@@ -52,6 +52,8 @@
 @synthesize currentContentView;
 @synthesize optionalKeyword;
 @synthesize swipeItems;
+@synthesize syncUploadiPadView;
+
 
 - (void) refreshDate:(NSDate*)aDate
 {
@@ -499,6 +501,7 @@
     
     [numericPadPopover release];
     [syncView release];
+    [syncUploadiPadView release];
     [notebookSyncService release];
     [homeworkService release];
     [lectureViews release];
@@ -652,6 +655,84 @@
  
 }
 
+- (void) refreshLibraryView
+{
+    
+    [[LocalDatabase sharedInstance] closeDatabase];
+    
+    [self initMonthView];
+    [self initLectureNames];
+    [self refreshDate:[NSDate date]];
+}
+
+
+- (void) startSyncService:(int) syncServiceType
+{
+    
+    NSLog(@"********** startSyncService %d ***************", syncServiceType);
+    
+    switch (syncServiceType) 
+    {
+        case kSyncServiceTypeiPadSync:
+            
+            self.syncUploadiPadView = [[SyncUploadiPadDataService alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
+            [self.syncUploadiPadView setHidden:YES];
+            [self.view addSubview:syncUploadiPadView];
+            [syncUploadiPadView requestForSync];
+            [syncUploadiPadView release];
+            
+            break;
+        
+        
+        case kSyncServiceTypeHomeworkSync:
+            
+            self.homeworkService = [[Homework alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
+            [homeworkService setHidden:YES];
+            homeworkService.libraryViewController = self;
+            [self.view addSubview:homeworkService];
+            [homeworkService requestForHomework];
+            [homeworkService release];
+            
+            break;
+       
+        
+        case kSyncServiceTypeNotebookSync:
+            self.notebookSyncService = [[NotebookSync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
+            self.notebookSyncService.libraryView = self;
+            [notebookSyncService setHidden:YES];
+            [self.view addSubview:notebookSyncService];
+            [notebookSyncService requestForNotebookSync];
+            [notebookSyncService release];
+            
+            break;
+            
+        case kSyncServiceTypeSync:
+            
+            self.syncView = [[Sync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
+            [self.syncView setHidden:YES];
+            [self.view addSubview:self.syncView];
+            [self.syncView requestForSync];
+            [self.syncView release];
+            
+            [self refreshLibraryView];
+            
+            break;
+            
+    }
+    
+    
+    /*
+     
+     
+     
+     
+     
+     
+     
+     */
+    
+}
+
 
 - (void)viewDidLoad
 {
@@ -719,19 +800,9 @@
         
         [sessionNameScrollView setHidden:NO];
         
-/*        UIView *viewCalendar = [[[UIView alloc] initWithFrame:CGRectMake(93, 0, 1024, 748)] autorelease];
-        [viewCalendar setBackgroundColor:[UIColor grayColor]];
- */      
         calendarController = [[CalendarDataController alloc] init];
         [self.view addSubview:calendarController.containerVeiw];
         [calendarController setHiddenComponents:YES];
-        
-        
-/*        [viewCalendar addSubview:calendarController.containerVeiw];
-        [self.view addSubview:viewCalendar];
-*/
-        
-        
         
     }
     else
@@ -739,9 +810,8 @@
         [sessionNameScrollView setHidden:YES];
     }
     dateView.controller = self;
-    [self initMonthView];
-    [self initLectureNames];
     
+<<<<<<< HEAD
     self.notebookSyncService = [[NotebookSync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
   /*  self.notebookSyncService.libraryView = self;
     [notebookSyncService setHidden:YES];
@@ -758,6 +828,9 @@
     
     [self refreshDate:[NSDate date]];
 
+=======
+  
+>>>>>>> master
     
     // Add swipe gesture for library view
     UISwipeGestureRecognizer *rightSwipe = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipe:)];
@@ -773,6 +846,9 @@
     [leftSwipe release];
     [rightSwipe release];
     
+    
+    // Start syncing saga
+    [self startSyncService:kSyncServiceTypeiPadSync];
 }
 
 - (void) selectLecture:(LectureView *) lecture
