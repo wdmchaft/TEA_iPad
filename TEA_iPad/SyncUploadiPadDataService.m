@@ -241,7 +241,7 @@
     
     NSData *tmpData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
        
-    if(syncEnabled && response)
+    if(0 == 1) // Do not start service for eu
     {
         @try 
         {

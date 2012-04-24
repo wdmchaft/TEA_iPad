@@ -811,26 +811,7 @@
     }
     dateView.controller = self;
     
-<<<<<<< HEAD
-    self.notebookSyncService = [[NotebookSync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-  /*  self.notebookSyncService.libraryView = self;
-    [notebookSyncService setHidden:YES];
-    [self.view addSubview:notebookSyncService];
-    [notebookSyncService requestForNotebookSync];*/
-    [notebookSyncService release];
-    
-    self.homeworkService = [[Homework alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-    [homeworkService setHidden:YES];
-    homeworkService.libraryViewController = self;
-    [self.view addSubview:homeworkService];
-    [homeworkService requestForHomework];
-    [homeworkService release];
-    
-    [self refreshDate:[NSDate date]];
 
-=======
-  
->>>>>>> master
     
     // Add swipe gesture for library view
     UISwipeGestureRecognizer *rightSwipe = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipe:)];
