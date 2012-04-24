@@ -191,7 +191,7 @@
 
 - (void) startService
 {
-   /* TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
     allowedLocationCount = -1;
     
@@ -244,7 +244,6 @@
     [NSTimer scheduledTimerWithTimeInterval:300 target:self selector:@selector(checkLocation) userInfo:nil repeats:YES];
     
     lastUpdateMilliseconds = [[NSDate date] timeIntervalSince1970];
-    */
 }
 
 
