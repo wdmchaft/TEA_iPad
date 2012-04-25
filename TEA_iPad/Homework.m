@@ -53,7 +53,7 @@
     NSURLResponse *response = nil;
     NSError **error=nil;
     
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:deviceLogURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:deviceLogURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:1];
     
     NSData *tmpData = [[[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]] autorelease];
     
@@ -111,7 +111,7 @@
     NSURLResponse *response = nil;
     NSError **error=nil; 
     
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:questionAnswersURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:questionAnswersURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:1];
     
     NSData *homeworkAnswerData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
     
@@ -170,7 +170,7 @@
             NSURLResponse *response = nil;
             NSError **error=nil;
             
-            NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:homeworkURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+            NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:homeworkURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:1];
             
             NSData *tmpData = [[[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]] autorelease];
             
@@ -305,10 +305,10 @@
     NSURLResponse *response = nil;
     NSError **error=nil; 
     
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:homeworkURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:homeworkURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:1];
     
     NSData *tmpData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
-    
+    NSLog(@"after homework connect");
     
     if(homeworkEnabled && response)
     {

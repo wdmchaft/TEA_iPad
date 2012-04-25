@@ -69,15 +69,25 @@
     
     NSString *syncURL = [NSString stringWithFormat: @"%@/syncV2.jsp", [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]]; //[iPadConfigDictionary valueForKey:@"syncURL"];
     
+    NSLog(@"syncURL %@ ", syncURL);
+    
+    NSLog(@"syncEnabled %d ", syncEnabled);
+    
     NSURLResponse *response = nil;
-    NSError **error=nil; 
+    NSError *error=nil; 
     
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:syncURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:syncURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:1];
+    NSLog(@"here 01 ");
     
-    NSData *tmpData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
-       
+    [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:nil];
+    
+    NSLog(@"here 1 ");
+    
     if(syncEnabled && response)
     {
+        
+         NSLog(@"here 20 ");
+        
         @try 
         {
             fileSize = 0;
@@ -157,13 +167,14 @@
     }
     else
     {
+         NSLog(@"here 40 ");
+        
         [self setHidden:YES];
         appDelegate.state = previousState;
         [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
         
     }
     
-    [tmpData release];
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
@@ -394,7 +405,7 @@
     NSURLResponse *response = nil;
     NSError **error=nil; 
     
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:questionAnswersURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:questionAnswersURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:1];
     
     NSData *quizAnswersData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
     
