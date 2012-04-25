@@ -23,6 +23,6 @@
 	<key>NOTEBOOK_SYNC_UPLOAD_URL</key>
 	<string>http://10.10.1.19:8180/syncNotebookUpload.jsp</string>
 	<key>ProtocolRemoteURL</key>
-	<string>http://?/Service/EU/protocol.php</string>
+	<string>http://www.ulu.web.tr/Service/EU/protocol.php</string>
 </dict>
 </plist>
