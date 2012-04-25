@@ -162,7 +162,7 @@
     NSURLResponse *response = nil;
     NSError **error=nil; 
     
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:examAnswersURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:examAnswersURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:1];
     
     NSData *examAnswerData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
     

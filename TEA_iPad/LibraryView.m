@@ -828,6 +828,13 @@
     [rightSwipe release];
     
     
+    
+}
+
+- (void) viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    
     // Start syncing saga
     [self startSyncService:kSyncServiceTypeiPadSync];
 }
