@@ -117,6 +117,8 @@ void MyReachabilityCallback(
 
 - (void) startBonjourBrowser
 {
+     [self.viewController.globalSyncView setHidden:YES];
+    
     NSLog(@"bonjour browser started!!!! ");
     
     NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
@@ -129,6 +131,7 @@ void MyReachabilityCallback(
     [pool release];
     
     NSLog(@"Bonjur service started...");
+   
 }
 
 - (void) restartBonjourBrowser

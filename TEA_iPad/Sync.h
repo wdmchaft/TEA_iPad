@@ -8,11 +8,10 @@
 
 #import <UIKit/UIKit.h>
 
-@interface Sync : UIView 
+@class  GlobalSync;
+@interface Sync : NSObject 
 {
-    UIProgressView *progressView;
-    UILabel *progressLabel;
-    
+
     int fileSize;
     int previousState;
     NSString *fileName;
@@ -24,6 +23,8 @@
     
     NSOutputStream *fileStream;
 }
+
+@property (nonatomic, assign) GlobalSync *globalSync;
 
 - (void) requestForSync;
 - (void) downloadSyncFile;
