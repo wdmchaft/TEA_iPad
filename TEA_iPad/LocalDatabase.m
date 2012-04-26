@@ -7,7 +7,8 @@
 //
 
 #import "LocalDatabase.h"
-
+#import "TEA_iPadAppDelegate.h"
+#import "ConfigurationManager.h"
 
 @implementation LocalDatabase
 
@@ -31,6 +32,7 @@ static LocalDatabase *sharedInstance;
 
 - (void) openDatabase
 {
+
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSString *databaseName = @"library.sqlite";
 	NSArray  *documentPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
@@ -43,23 +45,14 @@ static LocalDatabase *sharedInstance;
     }
     
 	NSString *databasePath = [documentsDir stringByAppendingPathComponent:databaseName];
-    
-    
 	BOOL success = [fileManager fileExistsAtPath:databasePath];
 	
 	if(success)
     {
-        // NSLog(@"DB FOUND");
     }
     else
     {
-        //    NSLog(@"DB NOT FOUND");
-        //    NSLog(@"Trying to copy resource db");
-        
         NSString *databasePathFromApp = [[NSBundle mainBundle] pathForResource:@"library" ofType:@"sqlite"];
-        
-        
-        
         [fileManager copyItemAtPath:databasePathFromApp toPath:databasePath error:nil];
     }
     
@@ -82,13 +75,19 @@ static LocalDatabase *sharedInstance;
             NSString *systemMessagesCreate = @"CREATE TABLE system_messages (guid TEXT, date TEXT, type TEXT, deleted TEXT);";
             [self executeQuery:systemMessagesCreate];
         }
-        else {
-            NSString *systemMessagesAlterTable = @"ALTER TABLE system_messages ADD deleted CHAR(25) NULL;";
-            [self executeQuery:systemMessagesAlterTable];
+        else 
+        {
             
-            NSString *updateSystemMessages = @"update system_messages set deleted='0' where deleted is NULL";
-            [self executeQuery:updateSystemMessages];
+            NSArray *columnExistsResult = [self executeQuery:@"SELECT sql FROM sqlite_master where name='system_messages' and sql like '%deleted%'"]; // check column exists.
             
+            if([columnExistsResult count] <= 0)
+            {
+                NSString *systemMessagesAlterTable = @"ALTER TABLE system_messages ADD deleted CHAR(25) NULL;";
+                [self executeQuery:systemMessagesAlterTable];
+                
+                NSString *updateSystemMessages = @"update system_messages set deleted='0' where deleted is NULL";
+                [self executeQuery:updateSystemMessages];
+            }
         }
         
         // Check homework table
@@ -96,12 +95,19 @@ static LocalDatabase *sharedInstance;
         NSArray *homeworkTableResult = [self executeQuery:homeworkTableCheck];
         if(!homeworkTableResult || [homeworkTableResult count] <= 0)
         {
-            NSString *homeworkTableCreate = @"CREATE TABLE homework (guid TEXT, lecture_id TEXT, name TEXT, type TEXT, date TEXT, file TEXT, delivered TEXT, total_time TEXT);";
+            NSString *homeworkTableCreate = @"CREATE TABLE homework (guid TEXT, lecture_id TEXT, name TEXT, type TEXT, date TEXT, file TEXT, delivered TEXT, total_time TEXT, deleted TEXT);";
             [self executeQuery:homeworkTableCreate];
         }
-        else {
-            NSString *homeworkTableCreate = @"ALTER TABLE homework ADD deleted CHAR(25) NULL;";
-            [self executeQuery:homeworkTableCreate];
+        else 
+        {
+            NSArray *columnExistsResult = [self executeQuery:@"SELECT sql FROM sqlite_master where name='homework' and sql like '%deleted%'"]; // check column exists.
+            
+            if([columnExistsResult count] <= 0)
+            {
+                NSString *homeworkTableCreate = @"ALTER TABLE homework ADD deleted CHAR(25) NULL;";
+                [self executeQuery:homeworkTableCreate];
+            }
+            
         }
         
         
@@ -113,16 +119,23 @@ static LocalDatabase *sharedInstance;
             NSString *homeworkAnswerTableCreate = @"CREATE TABLE homework_answer (homework TEXT, question TEXT, answer TEXT, correct_answer TEXT, time TEXT);";
             [self executeQuery:homeworkAnswerTableCreate];
         }
-        else {
-            NSString *homeworkAnswerAlterTable = @"ALTER TABLE homework_answer ADD time CHAR(25) NULL;";
-            [self executeQuery:homeworkAnswerAlterTable];
+        else 
+        {
+            NSArray *columnExistsResult = [self executeQuery:@"SELECT sql FROM sqlite_master where name='homework_answer' and sql like '%time%'"]; // check column exists.
+            
+            if([columnExistsResult count] <= 0)
+            {
+                NSString *homeworkAnswerAlterTable = @"ALTER TABLE homework_answer ADD time CHAR(25) NULL;";
+                [self executeQuery:homeworkAnswerAlterTable];
+            }
+            
         }
             
         
         // Check Device Log table
         NSString *deviceLogTableCheck = @"SELECT name FROM sqlite_master WHERE name='device_log'";
         NSArray *deviceLogTableResult = [self executeQuery:deviceLogTableCheck];
-        if (deviceLogTableResult || [deviceLogTableResult count]<= 0) 
+        if (!deviceLogTableResult || [deviceLogTableResult count]<= 0) 
         {
             NSString *deviceLogTableCreate = @"CREATE TABLE device_log (device_id TEXT, system_version TEXT, version TEXT, key TEXT, lecture TEXT, content_type TEXT, time TEXT, data TEXT, lat TEXT, long TEXT );";
             [self executeQuery:deviceLogTableCreate];
@@ -134,13 +147,13 @@ static LocalDatabase *sharedInstance;
         NSString *calendarTableCheck = @"SELECT name FROM sqlite_master WHERE name='calendar'";
         NSArray *calendarTableResult = [self executeQuery:calendarTableCheck];
         
-        if (calendarTableResult || [calendarTableResult count]<=0) 
+        if (!calendarTableResult || [calendarTableResult count]<=0) 
         {
             NSString *calendarTableCreate = @"CREATE TABLE calendar (id TEXT, type TEXT, title TEXT, body TEXT, image_name TEXT, image_url TEXT, date_time TEXT, valid_date_time TEXT, alarm_date_time TEXT, repeated TEXT, completed TEXT, homework_ref_id TEXT, alarm_state TEXT, deleted TEXT);";
             [self executeQuery:calendarTableCreate];
         }
         
-        // NSLog(@"DB OPENED");
+        openDBFinished = YES;
 	}
     else
     {
@@ -187,8 +200,13 @@ static LocalDatabase *sharedInstance;
 
 - (void) closeDatabase
 {
-    sqlite3_close(database);
-    database = nil;
+    @synchronized(self)
+    {
+        sqlite3_close(database);
+        database = nil;
+        openDBFinished = NO;
+    }
+    
 }
 
 int rowCallBack(void *a_param, int argc, char **argv, char **column)
@@ -200,6 +218,42 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
     return 0;
 }
 
+
+- (void) sendError:(NSString*) message
+{
+    
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
+    NSString *iPadAppVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
+    NSString *subject = [NSString stringWithFormat:@"[iPad DB ERROR] %@ - %@ - %@", [appDelegate getDeviceUniqueIdentifier],  iPadAppVersion, iPadOSVersion];
+
+    NSString *body =  [NSString stringWithFormat:@"\n\n%@ \n\n%@", message, [[NSThread callStackSymbols] description]]; 
+    
+    NSLog(@"SQL ERROR : \n%@", body);
+    
+    NSString *downloadURL = [NSString stringWithFormat: @"subject=%@&body=%@&", subject, body];
+    NSData *postData = [downloadURL dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+    NSString *postLength = [NSString stringWithFormat:@"%d",[postData length]];
+    
+    NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
+    
+    
+    
+    NSString *postURL = [ConfigurationManager getConfigurationValueForKey:@"EXCEPTION_POST_URL"];
+    
+    
+    [request setURL:[NSURL URLWithString:[NSString stringWithFormat:postURL]]];
+    
+    [request setHTTPMethod:@"POST"];
+    [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+    [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Current-Type"];
+    [request setHTTPBody:postData];
+    
+    // send e-mail
+    [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:nil];
+    
+}
 
 - (NSMutableArray*) executeQuery:(NSString*)pQuery
 {
@@ -213,6 +267,8 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
         sqlite3_stmt *compiledStatement;
         
         int result = sqlite3_prepare_v2(database, [pQuery UTF8String], -1, &compiledStatement, NULL);
+        
+        sqlite3_extended_result_codes(database, 1);
         
         if(result == SQLITE_OK) 
         {
@@ -247,7 +303,9 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
         }
         else 
         {
-            NSLog(@"query not performed error code %d", result);
+            const char* errorString = sqlite3_errmsg(database);
+            NSString *dbError = [NSString stringWithFormat:@"Query not performed! \n sql:%@\n\nerror:%s", pQuery, errorString];
+            [self sendError:dbError];
         }
     }
     
@@ -300,7 +358,9 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
         }
         else 
         {
-            NSLog(@"query not performed error code %d", result);
+            const char* errorString = sqlite3_errmsg(database);
+            NSString *dbError = [NSString stringWithFormat:@"Query not performed! \n sql:%@\n\nerror:%s", pQuery, errorString];
+            [self sendError:dbError];
         }
     }
     
