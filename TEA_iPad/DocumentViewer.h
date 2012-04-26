@@ -15,11 +15,19 @@
     UIWebView *webView;
     LibraryDocumentItem *libraryItem;
     BOOL contentSetFlag;
+    
+    NSDate *currentTime;
+    long activeTime;
+
 }
 
 @property (nonatomic, retain) IBOutlet UIWebView *webView;
 @property (nonatomic, retain) IBOutlet LibraryDocumentItem *libraryItem;
 
 - (id) initWithLibraryItem:(LibraryDocumentItem*) libraryDocumentItem;
+
+@property (nonatomic, assign) long activeTime;
+@property (nonatomic, retain) NSDate *currentTime;
+
 
 @end

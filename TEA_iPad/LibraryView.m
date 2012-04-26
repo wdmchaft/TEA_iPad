@@ -777,9 +777,7 @@
         [calendarButton addTarget:self action:@selector(calendarButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
         [self.view addSubview:calendarButton];
         [calendarButton release];
-        
-        
-        
+
 #ifdef HAS_GUEST_ENTER
         guestEnterButton = [[UIButton alloc] initWithFrame:CGRectMake(19, 400, 62, 71)];
         [guestEnterButton setImage:[UIImage imageNamed:@"LibraryGuestEnter.png"] forState:UIControlStateNormal];
@@ -917,7 +915,7 @@
     //*********************************************************/
     
     
-    [DeviceLog deviceLog:@"openedLibrary" withLecture:nil withContentType:nil];
+    [DeviceLog deviceLog:@"openedLibrary" withLecture:nil withContentType:nil withGuid:nil];
     
     //********************************************************* 
     
@@ -944,7 +942,7 @@
     [[LocalDatabase sharedInstance] executeQuery:insertSQL];*/
 //*********************************************************/    
 
-     [DeviceLog deviceLog:@"openedNotebook" withLecture:nil withContentType:nil];
+     [DeviceLog deviceLog:@"openedNotebook" withLecture:nil withContentType:nil withGuid:nil];
     
     
     [self setNotebookViewHidden:NO];
@@ -988,7 +986,7 @@
     [self performSelectorInBackground:@selector(showIndicator) withObject:nil];
    
     NSLog(@"Calendar Button Clicked:");
-    [DeviceLog deviceLog:@"openedCalendar" withLecture:nil withContentType:nil];
+    [DeviceLog deviceLog:@"openedCalendar" withLecture:nil withContentType:nil withGuid:nil];
     
     [self setNotebookViewHidden:YES];
     [self setLibraryViewHidden:YES];

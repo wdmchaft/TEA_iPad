@@ -9,6 +9,7 @@
 #import "QuizViewer.h"
 #import <QuartzCore/QuartzCore.h>
 #import "TEA_iPadAppDelegate.h"
+#import "DeviceLog.h"
 
 @implementation QuizViewer
 @synthesize answerA;
@@ -16,12 +17,14 @@
 @synthesize answerC;
 @synthesize answerD;
 @synthesize answerE;
-
+@synthesize guid;
 @synthesize answer;
 @synthesize correctAnswer;
 @synthesize quizImage;
 @synthesize quizImageView;
 @synthesize optionCount;
+
+@synthesize activeTime, currentTime;
 
 - (void) setupView
 {
@@ -132,6 +135,12 @@
 
 - (void) closeContentViewWithDirection:(ContentViewOpenDirection)direction dontSetDisplayingContent:(BOOL)setFlag
 {
+    //getting view active time
+    activeTime = (long)[[NSDate date] timeIntervalSinceDate:currentTime];
+
+    //update duration of view 
+    [DeviceLog updateDurationTime:activeTime withGuid:self.guid withDate:currentTime];
+    
     contentSetFlag = setFlag;
 
     CGRect closeRect;
@@ -229,6 +238,11 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) 
     {
+        
+        //set duration started time
+        self.currentTime = [NSDate date];
+        
+        
         [self.view setBackgroundColor:[UIColor clearColor]];
         
         UIView *bg = [[UIView alloc] initWithFrame:self.view.frame];
@@ -243,6 +257,9 @@
 
 - (void)dealloc
 {
+    
+    [currentTime release];
+    
     if (hideAnswerImageView) {
         [hideAnswerImageView release]; 
     }

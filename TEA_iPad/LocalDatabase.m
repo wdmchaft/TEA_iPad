@@ -140,6 +140,14 @@ static LocalDatabase *sharedInstance;
             NSString *deviceLogTableCreate = @"CREATE TABLE device_log (device_id TEXT, system_version TEXT, version TEXT, key TEXT, lecture TEXT, content_type TEXT, time TEXT, data TEXT, lat TEXT, long TEXT );";
             [self executeQuery:deviceLogTableCreate];
         }
+        else {
+            NSString *deviceLogAlterTable = @"ALTER TABLE device_log ADD duration CHAR(25) NULL;";
+            [self executeQuery:deviceLogAlterTable];
+            deviceLogAlterTable = @"ALTER TABLE device_log ADD guid char(255);";
+            [self executeQuery:deviceLogAlterTable];
+            deviceLogAlterTable = @"ALTER TABLE device_log ADD session_name char(255);";
+            [self executeQuery:deviceLogAlterTable];
+        }
         
         
         
