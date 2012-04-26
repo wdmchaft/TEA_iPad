@@ -40,7 +40,7 @@
 @synthesize selectedDate;
 @synthesize logonGlow;
 @synthesize guestEnterButton;
-@synthesize syncView;
+@synthesize syncService;
 @synthesize notebookSyncService;
 @synthesize homeworkService;
 @synthesize numericPadPopover;
@@ -52,8 +52,8 @@
 @synthesize currentContentView;
 @synthesize optionalKeyword;
 @synthesize swipeItems;
-@synthesize syncUploadiPadView;
-
+@synthesize syncUploadiPadService;
+@synthesize globalSyncView;
 
 - (void) refreshDate:(NSDate*)aDate
 {
@@ -482,6 +482,8 @@
 
 - (void)dealloc
 {
+    [globalSyncView release];
+    
     [optionalKeyword release];
     
     if(sessionList)
@@ -500,8 +502,8 @@
         [notebookWorkspace release];
     
     [numericPadPopover release];
-    [syncView release];
-    [syncUploadiPadView release];
+    [syncService release];
+    [syncUploadiPadService release];
     [notebookSyncService release];
     [homeworkService release];
     [lectureViews release];
@@ -674,22 +676,21 @@
     switch (syncServiceType) 
     {
         case kSyncServiceTypeiPadSync:
-            
-            self.syncUploadiPadView = [[SyncUploadiPadDataService alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-            [self.syncUploadiPadView setHidden:YES];
-            [self.view addSubview:syncUploadiPadView];
-            [syncUploadiPadView requestForSync];
-            [syncUploadiPadView release];
+            self.globalSyncView.currentPhase = 0;
+            self.syncUploadiPadService = [[SyncUploadiPadDataService alloc] init];
+            syncUploadiPadService.globalSync = self.globalSyncView;
+            [syncUploadiPadService requestForSync];
+            [syncUploadiPadService release];
             
             break;
         
         
         case kSyncServiceTypeHomeworkSync:
             
-            self.homeworkService = [[Homework alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-            [homeworkService setHidden:YES];
+            self.globalSyncView.currentPhase = 1;
+            self.homeworkService = [[Homework alloc] init];
             homeworkService.libraryViewController = self;
-            [self.view addSubview:homeworkService];
+            homeworkService.globalSync = self.globalSyncView;
             [homeworkService requestForHomework];
             [homeworkService release];
             
@@ -697,27 +698,26 @@
        
         
         case kSyncServiceTypeNotebookSync:
-            self.notebookSyncService = [[NotebookSync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
+            self.globalSyncView.currentPhase = 2;
+            self.notebookSyncService = [[NotebookSync alloc] init];
             self.notebookSyncService.libraryView = self;
-            [notebookSyncService setHidden:YES];
-            [self.view addSubview:notebookSyncService];
+            self.notebookSyncService.globalSync = self.globalSyncView;
             [notebookSyncService requestForNotebookSync];
             [notebookSyncService release];
             
             break;
             
         case kSyncServiceTypeSync:
-            
-            self.syncView = [[Sync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-            [self.syncView setHidden:YES];
-            [self.view addSubview:self.syncView];
-            [self.syncView requestForSync];
-            [self.syncView release];
+            self.globalSyncView.currentPhase = 3;
+            self.syncService = [[Sync alloc] init];
+            self.syncService.globalSync = self.globalSyncView;
+            [self.syncService requestForSync];
+            [self.syncService release];
             
             [self refreshLibraryView];
             
             break;
-            
+           
     }
     
     
@@ -828,7 +828,8 @@
     [rightSwipe release];
     
     
-    
+    self.globalSyncView = [[[GlobalSync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)] autorelease];
+    [self.view addSubview:self.globalSyncView];
 }
 
 - (void) viewDidAppear:(BOOL)animated

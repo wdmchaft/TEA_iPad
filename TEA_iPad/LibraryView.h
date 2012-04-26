@@ -18,6 +18,7 @@
 #import "ActivityIndicator.h"
 #import "ContentViewerInterface.h"
 #import "CalendarDataController.h"
+#import "GlobalSync.h"
 
 enum kSyncServiceType {
     kSyncServiceTypeiPadSync = 0,
@@ -57,10 +58,14 @@ enum kSyncServiceType {
     UIImageView *logonGlow;
     
     UIView *blackScreen;
-    Sync *syncView;
-    SyncUploadiPadDataService *syncUploadiPadView;
+    
+    // SYNC Services...
+    GlobalSync *globalSyncView;
+    Sync *syncService;
+    SyncUploadiPadDataService *syncUploadiPadService;
     Homework *homeworkService;
     NotebookSync *notebookSyncService;
+
     
     BOOL screenClosed;
 
@@ -101,10 +106,12 @@ enum kSyncServiceType {
 @property (nonatomic, retain) IBOutlet UIScrollView *contentsScrollView;
 @property (nonatomic, retain) IBOutlet DateView *dateView;
 @property (nonatomic, assign) BOOL compactMode;
-@property (nonatomic, assign) NotebookWorkspace *notebookWorkspace;;
-@property (nonatomic, retain) Sync *syncView;
-@property (nonatomic, retain) SyncUploadiPadDataService *syncUploadiPadView;
 
+@property (nonatomic, assign) NotebookWorkspace *notebookWorkspace;
+
+@property (nonatomic, retain) GlobalSync *globalSyncView;
+@property (nonatomic, retain) Sync *syncService;
+@property (nonatomic, retain) SyncUploadiPadDataService *syncUploadiPadService;
 @property (nonatomic, retain) Homework *homeworkService;
 @property (nonatomic, retain) NotebookSync *notebookSyncService;
 @property (nonatomic, assign) Notebook *notebook;

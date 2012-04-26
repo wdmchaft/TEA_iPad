@@ -8,21 +8,22 @@
 
 #import <UIKit/UIKit.h>
 
-@interface SyncUploadiPadDataService : UIView 
+@class GlobalSync;
+@interface SyncUploadiPadDataService : NSObject 
 {
-    UIProgressView *progressView;
-    UILabel *progressLabel;
-    
+        
     long totalBytes;
     long totalReceivedBytes;
+    long sizeOfFile;
     
     NSOutputStream *fileStream;
     NSURLConnection *uploadURLConnection;
     NSURLConnection *downloadURLConnection;
+    GlobalSync *globalSync;
 }
 
+@property (nonatomic, assign) GlobalSync *globalSync;
+
 - (void) requestForSync;
-- (void) downloadSyncFile;
-- (void) applySyncing;
 + (void) compressDocuments;
 @end

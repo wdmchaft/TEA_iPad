@@ -111,6 +111,8 @@ void MyReachabilityCallback(
 
 - (void) startBonjourBrowser
 {
+     [self.viewController.globalSyncView setHidden:YES];
+    
     NSLog(@"bonjour browser started!!!! ");
     
     if(!bonjourBrowser)
@@ -123,7 +125,7 @@ void MyReachabilityCallback(
         [pool release];
     }
     
-    
+
    
 }
 
@@ -260,8 +262,6 @@ void handleException(NSException *exception)
     [self.window makeKeyAndVisible];
 
     
-
-    [NSThread detachNewThreadSelector:@selector(startBonjourBrowser) toTarget:self withObject:nil];
 
 
 }

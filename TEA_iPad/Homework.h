@@ -8,8 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
-@class LibraryView;
-@interface Homework : UIView 
+@class LibraryView, GlobalSync;
+@interface Homework : NSObject 
 {
     UIProgressView *progressView;
     UILabel *progressLabel;
@@ -20,13 +20,13 @@
     NSMutableDictionary *dictionary;
     int currentFileIndex;
     NSMutableData *downloadData;
-    //NSString *directoryPath;
     LibraryView *libraryViewController;
-   
+    GlobalSync *globalSync;
 }
 
 - (void) requestForHomework;
 @property (nonatomic, retain) NSMutableDictionary *dictionary;
 @property (nonatomic, assign) LibraryView *libraryViewController;
+@property (nonatomic, assign)  GlobalSync *globalSync;
 
 @end

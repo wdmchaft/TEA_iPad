@@ -8,11 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
-@class LibraryView;
-@interface NotebookSync : UIView
+@class LibraryView, GlobalSync;
+@interface NotebookSync : NSObject
 {
-    UIProgressView *progressView;
-    UILabel *progressLabel;
     
     int fileSize;
     NSString *fileName;
@@ -21,9 +19,12 @@
     NSMutableArray *fileList;
     NSString *directoryPath;
     LibraryView *libraryView;
+    GlobalSync *globalSync;
 }
 
 @property (assign) LibraryView *libraryView;
+@property (assign, nonatomic)  GlobalSync *globalSync;
+
 
 - (void) compressDocuments;
 
