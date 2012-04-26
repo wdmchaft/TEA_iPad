@@ -31,7 +31,7 @@
 #import "Sync.h"
 
 @implementation Homework
-@synthesize dictionary, libraryViewController;
+@synthesize dictionary, libraryViewController, globalSync;
 
 
 - (NSString*) getDeviceLogMessages
@@ -53,7 +53,7 @@
     NSURLResponse *response = nil;
     NSError **error=nil;
     
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:deviceLogURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:deviceLogURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:1];
     
     NSData *tmpData = [[[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]] autorelease];
     
@@ -111,7 +111,7 @@
     NSURLResponse *response = nil;
     NSError **error=nil; 
     
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:questionAnswersURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:questionAnswersURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:1];
     
     NSData *homeworkAnswerData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
     
@@ -170,7 +170,7 @@
             NSURLResponse *response = nil;
             NSError **error=nil;
             
-            NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:homeworkURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+            NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:homeworkURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:1];
             
             NSData *tmpData = [[[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]] autorelease];
             
@@ -275,7 +275,6 @@
         }
         else
         {
-            [self setHidden:YES];
             [self insertHomeworkAnswers];
             [appDelegate.viewController startSyncService:kSyncServiceTypeNotebookSync];    
         }
@@ -283,7 +282,6 @@
     }
     else
     {
-        [self setHidden:YES];
         [self insertHomeworkAnswers];
         [appDelegate.viewController startSyncService:kSyncServiceTypeNotebookSync];    
 
@@ -295,7 +293,6 @@
 {
     
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-    [self setHidden:NO];
     
     // NSDictionary *iPadConfigDictionary = [ConfigurationManager getConfigurationValueForKey:@"iPadConfig"];
     BOOL homeworkEnabled = [[ConfigurationManager getConfigurationValueForKey:@"HOMEWORK_ENABLED"] boolValue];// [[iPadConfigDictionary valueForKey:@"iPadSyncEnabled"] boolValue];
@@ -305,15 +302,17 @@
     NSURLResponse *response = nil;
     NSError **error=nil; 
     
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:homeworkURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:homeworkURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:1];
     
     NSData *tmpData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
-    
+    NSLog(@"after homework connect");
     
     if(homeworkEnabled && response)
     {
         @try 
         {   
+            [globalSync updateMessage:@"Ev ödevleri yükleniyor..."];
+            
             fileSize = 0;
             
             NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -360,14 +359,12 @@
         @catch (NSException *exception) 
         {
             //NSLog(@"Exception :: %@",  [exception description]);
-            [self setHidden:YES];
             [appDelegate.viewController startSyncService:kSyncServiceTypeNotebookSync];    
 
         }
     }
     else
     {
-        [self setHidden:YES];
         [appDelegate.viewController startSyncService:kSyncServiceTypeNotebookSync];    
     }
     
@@ -378,7 +375,6 @@
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-    [self setHidden:YES];
     [appDelegate.viewController startSyncService:kSyncServiceTypeNotebookSync];    
 }
 
@@ -390,29 +386,6 @@
     [super dealloc];
 }
 
-- (id)initWithFrame:(CGRect)frame
-{
-    self = [super initWithFrame:frame];
-    if (self) {
-        
-        UIImageView *imageView = [[[UIImageView alloc] initWithFrame:self.bounds] autorelease];
-        [imageView setImage:[UIImage imageNamed:@"HomeworkBG.jpg"]];
-        [self addSubview:imageView];
-        
-        
-        
-        progressView = [[[UIProgressView alloc] initWithFrame:CGRectMake(100, 480, 824, 25)] autorelease];
-        [self addSubview:progressView];
-        
-        progressLabel = [[[UILabel alloc] initWithFrame:CGRectMake(0, 480, 1024, 25)] autorelease];
-        [progressLabel setTextColor:[UIColor whiteColor]];
-        [progressLabel setTextAlignment:UITextAlignmentCenter];
-        //  [self addSubview:progressLabel]; 
-        
-        
-    }
-    return self;
-}
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
 {
@@ -423,7 +396,7 @@
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
     [downloadData appendData:data];
-    [progressView setProgress: (float) downloadData.length / (float) fileSize];
+    [globalSync updateProgress:[NSNumber numberWithFloat:(float) downloadData.length / (float) fileSize]];
 }
 
 
@@ -447,8 +420,7 @@
     appDelegate.session.sessionLectureGuid = [file valueForKey:@"lecture_id"];
     appDelegate.session.sessionLectureName = [file valueForKey:@"lecture_name"];
     
-    
-    [progressView setProgress:1.0];
+    [globalSync updateProgress:[NSNumber numberWithFloat:1.0]];
     
     // save into documents path
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);

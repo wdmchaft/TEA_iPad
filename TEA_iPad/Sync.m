@@ -33,11 +33,7 @@
 #import "DWDatabase.h"
 
 @implementation Sync
-
-- (void) updateMessage:(NSString*) message
-{
-    [progressLabel setText:message];
-}
+@synthesize globalSync;
 
 - (NSString*) getSystemMessages
 {
@@ -56,13 +52,12 @@
 - (void) requestForSync
 {
    
-    [progressLabel setText:@"Yedekten veri yükleme işlemi başlatılıyor..."];
+    [globalSync updateMessage:@"Yedekten veri yükleme işlemi başlatılıyor..."];
     
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
     previousState = appDelegate.state;
     appDelegate.state = kAppStateSyncing;
-    [self setHidden:NO];
     
     // NSDictionary *iPadConfigDictionary = [ConfigurationManager getConfigurationValueForKey:@"iPadConfig"];
     BOOL syncEnabled = [[ConfigurationManager getConfigurationValueForKey:@"SYNC_ENABLED"] boolValue];// [[iPadConfigDictionary valueForKey:@"iPadSyncEnabled"] boolValue];
@@ -70,14 +65,16 @@
     NSString *syncURL = [NSString stringWithFormat: @"%@/syncV2.jsp", [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]]; //[iPadConfigDictionary valueForKey:@"syncURL"];
     
     NSURLResponse *response = nil;
-    NSError **error=nil; 
+    NSError *error=nil; 
     
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:syncURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:syncURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:1];
     
-    NSData *tmpData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
-       
+    [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:nil];
+    
+    
     if(syncEnabled && response)
     {
+        
         @try 
         {
             fileSize = 0;
@@ -101,9 +98,6 @@
             
             NSString *downloadURL = [NSString stringWithFormat: @"system_messages=%@&device_id=%@&start_date_time=%@", systemMessges, [appDelegate getDeviceUniqueIdentifier], lastSyncTime];
             
-            //NSLog(@"[SYNC] %@", downloadURL);
-            
-            //  downloadURL = [downloadURL stringByAddingPercentEscapesUsingEncoding: NSASCIIStringEncoding];
             
             NSData *postData = [downloadURL dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
             
@@ -136,12 +130,11 @@
                     [defaults synchronize];
                 } 
                 
-                [progressLabel setText:@"Yedek veri dosyası yükleniyor..."];
+                [globalSync updateMessage:@"Yedek veri dosyası yükleniyor..."];
                 [self downloadSyncFile];
             }
             else
             {
-                [self setHidden:YES];
                 appDelegate.state = previousState;
                 [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
             }
@@ -151,27 +144,22 @@
         @catch (NSException *exception) 
         {
             NSLog(@"Exception :: %@",  [exception description]);
-            [self setHidden:YES];
             appDelegate.state = previousState;
         }
     }
     else
-    {
-        [self setHidden:YES];
+    {        
         appDelegate.state = previousState;
         [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
         
     }
     
-    [tmpData release];
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
-    NSLog(@"timout");
-    [self setHidden:YES];
     appDelegate.state = previousState;
     [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
 }
@@ -202,7 +190,6 @@
     NSString *syncFileBaseURL = [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]; //[iPadConfigDictionary valueForKey:@"syncFileDownloadURL"];
     NSString *downloadURL = [NSString stringWithFormat: @"%@/%@", syncFileBaseURL, fileName];
 	
-    NSLog(@"[SYNC] downloadingFile : %@", downloadURL);
     
     NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
 	[request setURL:  [NSURL URLWithString:downloadURL]];
@@ -223,18 +210,13 @@
 	} 
 }
 
-- (void) updateProgress:(NSNumber*) progressValue
-{
-    [progressView setProgress: [progressValue floatValue]];
-}
 
 - (void) extractZipFile
 {
     NSString *filePath = [NSString stringWithFormat:@"%@/%@", directoryPath, fileName];
     
-    [self performSelectorInBackground:@selector(updateMessage:) withObject:@"Yedek veri arşiv dosyası açılıyor..."];
-    [self performSelectorInBackground:@selector(updateProgress:) withObject:[NSNumber numberWithFloat: 0.0]];
-    
+    [globalSync updateMessage:@"Yedek veri arşiv dosyası açılıyor..."];
+
     ZipFile *zippedFile = [[[ZipFile alloc] initWithFileName:filePath mode:ZipFileModeUnzip] autorelease];
     float numberOfZippedFile = (float) [zippedFile numFilesInZip];
     
@@ -269,10 +251,10 @@
         
         counter ++;
         
-        [self performSelectorInBackground:@selector(updateProgress:) withObject:[NSNumber numberWithFloat: (float) counter / numberOfZippedFile]];
+        CGFloat progressValue = 0.333 + ((float) counter / numberOfZippedFile / 3.0);
+        [globalSync updateProgress:[NSNumber numberWithFloat: progressValue ]];
 
     }
-    [self updateProgress:[NSNumber numberWithFloat:100.0 ]];
 
     [zippedFile close];
     
@@ -394,7 +376,7 @@
     NSURLResponse *response = nil;
     NSError **error=nil; 
     
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:questionAnswersURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:questionAnswersURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:1];
     
     NSData *quizAnswersData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
     
@@ -422,8 +404,7 @@
     // extract zip file.
     [self extractZipFile];
     
-    
-    [self performSelectorInBackground:@selector(updateMessage:) withObject:@"Yedek veri mesajları işleniyor..."];
+    [globalSync updateMessage:@"Yedek veri mesajları işleniyor..."];
     
     // process every message
     int totalCount = [fileList count];
@@ -501,14 +482,12 @@
                     
                     [[LocalDatabase sharedInstance] executeQuery:insertSystemMessagesSQL];
                 }
-                
-               
-                
-                //NSString *progressMessage = [NSString stringWithFormat:@"[%d / %d]", i, totalCount];
-               // [self performSelectorInBackground:@selector(updateMessage:) withObject:progressMessage];
+
             }
        
-        [self performSelectorInBackground:@selector(updateProgress:) withObject:[NSNumber numberWithFloat:(float) i / (float) totalCount]];
+        CGFloat progressValue = 0.6666 + ((float) i / (float) totalCount / 3.0);
+        [globalSync updateProgress:[NSNumber numberWithFloat: progressValue ]];
+        
 
         [arPool release];
     }
@@ -516,7 +495,6 @@
     
     
     // remove sync view...
-    [self setHidden:YES];
     appDelegate.state = previousState;
  
     [self updateQuizAnswers]; // Load quiz answers from database and update library.
@@ -533,32 +511,6 @@
     [super dealloc];
 }
 
-- (id)initWithFrame:(CGRect)frame
-{
-    self = [super initWithFrame:frame];
-    if (self) {
-        
-        UIImageView *imageView = [[[UIImageView alloc] initWithFrame:self.bounds] autorelease];
-        [imageView setImage:[UIImage imageNamed:@"SyncBG.jpg"]];
-        [self addSubview:imageView];
-        
-        
-        
-        progressView = [[[UIProgressView alloc] initWithFrame:CGRectMake(100, 480, 824, 25)] autorelease];
-        [self addSubview:progressView];
-        
-        progressLabel = [[[UILabel alloc] initWithFrame:CGRectMake(0, 510, 1024, 25)] autorelease];
-        [progressLabel setTextColor:[UIColor whiteColor]];
-        [progressLabel setBackgroundColor:[UIColor clearColor]];
-        [progressLabel setTextAlignment:UITextAlignmentCenter];
-        [progressLabel setFont:[UIFont boldSystemFontOfSize:16.0]];
-        
-        [self addSubview:progressLabel]; 
-        
-        
-    }
-    return self;
-}
 
 
 
@@ -594,27 +546,14 @@
     } while (bytesWrittenSoFar != dataLength);
     
     totalReceivedBytes += dataLength;
-    
- //   [downloadData appendData:data];
-    [progressView setProgress: (float) totalReceivedBytes / (float) fileSize];
+     
+    CGFloat progressValue = (float) totalReceivedBytes / (float) fileSize / 3.0;
+    [globalSync updateProgress:[NSNumber numberWithFloat: progressValue ]];
 }
 
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
-    [progressView setProgress:1.0];
-    
-   /* NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *documentsDir = [paths objectAtIndex:0];
-    directoryPath = [[NSString stringWithFormat:@"%@/%@", documentsDir, [[fileName componentsSeparatedByString:@"."] objectAtIndex:0] ] retain];
-    NSString *filePath = [NSString stringWithFormat:@"%@/%@", directoryPath, fileName];
-  */  
-    // create directory
-  //  [[NSFileManager defaultManager] createDirectoryAtPath:directoryPath withIntermediateDirectories:YES attributes:nil error:nil];
-    
-   // [downloadData writeToFile:filePath atomically:YES];
-    
-   // [downloadData release];
     
     if (fileStream != nil) 
     {

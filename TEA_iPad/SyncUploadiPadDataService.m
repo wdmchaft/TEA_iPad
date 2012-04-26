@@ -21,7 +21,7 @@
 #import "ConfigurationManager.h"
 
 #import "Reachability.h"
-
+#import "GlobalSync.h"
 #import <ifaddrs.h>
 #import <sys/socket.h>
 #import <netinet/in.h>
@@ -33,11 +33,7 @@
 #import "DWDatabase.h"
 
 @implementation SyncUploadiPadDataService
-
-- (void) updateMessage:(NSString*) message
-{
-    [progressLabel setText:message];
-}
+@synthesize globalSync;
 
 
 - (void) compressDocuments
@@ -51,11 +47,15 @@
     
     ZipFile *zippedFile = [[[ZipFile alloc] initWithFileName:filePath mode:ZipFileModeCreate] autorelease];
     
+    [globalSync updateMessage:@"İlk yedek için içerikler arşivleniyor..."];
     
     NSArray *files = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:documentsDir error:nil];
     
+    int counter = 0;
+    
     for(NSString *file in files)
     {
+        NSAutoreleasePool *arPool = [[NSAutoreleasePool alloc] init];
         NSString *filePathToBeCompressed = [NSString stringWithFormat:@"%@/%@", documentsDir, file];
         NSString *fileName = [[file componentsSeparatedByString:@"/"] lastObject];
         NSString *extension = [[fileName componentsSeparatedByString:@"."] lastObject];
@@ -69,6 +69,14 @@
         NSData *data = [NSData dataWithContentsOfFile:filePathToBeCompressed];
         [stream writeData:data];
         [stream finishedWriting];
+        
+        CGFloat progressValue = (float)counter / (float)files.count / 2.0;
+        [globalSync updateProgress:[NSNumber numberWithFloat:progressValue]];
+        
+        counter++;
+        
+        [arPool release];
+        
     }
     
     [zippedFile close];    
@@ -125,7 +133,7 @@
 
     totalBytes = [postData length];
     
-    [progressLabel setText:@"Güncel veri yedekleniyor..."];
+    [globalSync.progressLabel setText:@"İlk yedek veri dosyası sunucuya yükleniyor."];
     
     uploadURLConnection = [[[NSURLConnection alloc] initWithRequest:uploadRequest delegate:self] autorelease];
 
@@ -161,6 +169,7 @@
     [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Current-Type"];
     [request setHTTPBody:postData];
     
+    [globalSync updateMessage:@"İlk yedek veri dosyası indiriliyor..."];    
 	downloadURLConnection = [[[NSURLConnection alloc] initWithRequest:request delegate:self] autorelease];
 	
 }
@@ -174,8 +183,7 @@
     NSString *documentsDir = [paths objectAtIndex:0];
     NSString *filePath = [NSString stringWithFormat:@"%@/%@", documentsDir, fileName];
     
-    [self performSelectorInBackground:@selector(updateMessage:) withObject:@"Yedek veri arşiv dosyası açılıyor..."];
-    [self performSelectorInBackground:@selector(updateProgress:) withObject:[NSNumber numberWithFloat: 0.0]];
+    [globalSync updateMessage:@"İlk yedek veri arşiv dosyası açılıyor..."];   
     
     ZipFile *zippedFile = [[[ZipFile alloc] initWithFileName:filePath mode:ZipFileModeUnzip] autorelease];
     float numberOfZippedFile = (float) [zippedFile numFilesInZip];
@@ -185,6 +193,8 @@
     BOOL continueReading = YES;
     int counter=0;
     while (continueReading) {
+        
+        NSAutoreleasePool *arPool = [[NSAutoreleasePool alloc] init];
         
         // Get file info
         FileInZipInfo *info = [zippedFile getCurrentFileInZipInfo];
@@ -201,7 +211,8 @@
         
         if (error) 
         {
-            NSLog(@"Error unzipping file: %@", [error localizedDescription]);
+            [globalSync updateMessage:@"İlk yedek veri dosyası açılırken hata oluştu..."]; 
+            NSLog(@"error is %@", [error localizedDescription]);
         }
         
         // Cleanup
@@ -213,12 +224,18 @@
         
         counter ++;
         
-        [self performSelectorInBackground:@selector(updateProgress:) withObject:[NSNumber numberWithFloat: (float) counter / numberOfZippedFile]];
+        CGFloat progressValue = 0.5 + ((float) counter / (float) numberOfZippedFile / 2.0);
+        [globalSync updateProgress:[NSNumber numberWithFloat:progressValue]];
+
+        
+        [arPool release];
         
     }
     [self updateProgress:[NSNumber numberWithFloat:100.0 ]];
     
     [zippedFile close];
+    
+    [globalSync updateMessage:@"İlk yedek veri arşiv dosyası açılma işlemi tamamlandı..."]; 
     
     [appDelegate.viewController refreshLibraryView];
     [appDelegate.viewController startSyncService:kSyncServiceTypeHomeworkSync];
@@ -229,7 +246,7 @@
     
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
-    [self setHidden:NO];
+    [globalSync updateMessage:@"İlk yedekleme işlemi başlatılıyor..."];
     
     BOOL syncEnabled = [[ConfigurationManager getConfigurationValueForKey:@"SYNC_ENABLED"] boolValue];    
     NSString *syncURL = [NSString stringWithFormat: @"%@/synciPadCheckFile.jsp", [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]]; 
@@ -237,11 +254,15 @@
     NSURLResponse *response = nil;
     NSError **error=nil; 
     
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:syncURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:syncURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:1];
+    
+    [globalSync updateMessage:@"İlk yedekleme servisi çağırılıyor..."];
     
     NSData *tmpData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
-       
-    if(0 == 1) // Do not start service for eu
+    
+    [globalSync updateMessage:@"İlk yedekleme servisinden cevap alındı..."];
+    
+    if(syncEnabled && response)
     {
         @try 
         {
@@ -259,31 +280,39 @@
             [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Current-Type"];
             [request setHTTPBody:postData];
             
+            [globalSync updateMessage:@"Mevcut yedek dosyası kontrol ediliyor..."];
             
             NSData *syncFileData = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:nil];
             
             NSString *result = [[[NSString alloc] initWithData:syncFileData encoding:NSUTF8StringEncoding] autorelease];
-            NSLog(@"iPad file check result is %@", result);
             
             if(![[result substringToIndex:2] isEqualToString:@"ok"])
             {
+                
+                
+                [globalSync updateMessage:@"Mevcut yedek dosyası bulunamadı, oluşturuluyor..."];
+                
                 [self compressDocuments];
                 [self uploadSyncFile];
             }
             else 
             {
+                sizeOfFile = [[result substringFromIndex:2] longLongValue];
+                [globalSync updateMessage:@"Mevcut yedek dosyası bulundu..."];
+                
                 // Get user defaults for first run
                 NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
                 NSString *notFirstRun = [defaults objectForKey:@"notFirstRun"];
                 
                 if(!notFirstRun) // That means it is running for the first time.
                 {
+                    [globalSync updateMessage:@"Uygulama ilk kez çalıştılıyor, yedek dosyası yüklenecek..."];
                     // Download iPad backup file and when finished, extract zip file...
                     [self downloadiPadSyncFile];
                 }
                 else
                 {
-                    [self setHidden:YES];
+                    [globalSync updateMessage:@"Uygulamanın yüklemesi gereken herhangi bir ilk yedek verisi yok..."];
                     [appDelegate.viewController startSyncService:kSyncServiceTypeHomeworkSync];
                 }
                 [defaults setObject:@"notFirstRun" forKey:@"notFirstRun"];
@@ -294,14 +323,13 @@
         }
         @catch (NSException *exception) 
         {
-            NSLog(@"Exception :: %@",  [exception description]);
-            [self setHidden:YES];
+            [globalSync updateMessage:@"İlk yedek veri servis bağlantısında problem oluştu. Servisi kontrol ediniz..."];
             [appDelegate.viewController startSyncService:kSyncServiceTypeHomeworkSync];
         }
     }
     else
     {
-        [self setHidden:YES];
+        [globalSync updateMessage:@"İlk yedek veri senkronizasyonu 'disable' edilmiş..."];
         [appDelegate.viewController startSyncService:kSyncServiceTypeHomeworkSync];
     }
     
@@ -315,9 +343,8 @@
     
     if(connection == uploadURLConnection)
     {
-        float progressValue = (float) totalBytesWritten / (float) totalBytes;
-        NSLog(@"progressValue %f" ,progressValue); 
         
+        float progressValue = 0.5 + ((float) totalBytesWritten / (float) totalBytes / 2.0);
         [self updateProgress:[NSNumber numberWithFloat:progressValue]];
     }
 }
@@ -327,7 +354,6 @@
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
     NSLog(@"timout");
-    [self setHidden:YES];
     [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
 }
 
@@ -335,42 +361,9 @@
 
 - (void) updateProgress:(NSNumber*) progressValue
 {
-    [progressView setProgress: [progressValue floatValue]];
+    [globalSync.progressView setProgress: [progressValue floatValue]];
 }
 
-
-
-- (void)dealloc {
-
-    [super dealloc];
-}
-
-- (id)initWithFrame:(CGRect)frame
-{
-    self = [super initWithFrame:frame];
-    if (self) {
-        
-        UIImageView *imageView = [[[UIImageView alloc] initWithFrame:self.bounds] autorelease];
-        [imageView setImage:[UIImage imageNamed:@"SyncBG.jpg"]];
-        [self addSubview:imageView];
-        
-        
-        
-        progressView = [[[UIProgressView alloc] initWithFrame:CGRectMake(100, 480, 824, 25)] autorelease];
-        [self addSubview:progressView];
-        
-        progressLabel = [[[UILabel alloc] initWithFrame:CGRectMake(0, 510, 1024, 25)] autorelease];
-        [progressLabel setTextColor:[UIColor whiteColor]];
-        [progressLabel setBackgroundColor:[UIColor clearColor]];
-        [progressLabel setTextAlignment:UITextAlignmentCenter];
-        [progressLabel setFont:[UIFont boldSystemFontOfSize:16.0]];
-        
-        [self addSubview:progressLabel]; 
-        
-        
-    }
-    return self;
-}
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
 {
@@ -405,8 +398,8 @@
         
         totalReceivedBytes += dataLength;
         
-        //   [downloadData appendData:data];
-        [progressView setProgress: 0.5];
+        CGFloat progressValue = (float) totalReceivedBytes / (float) sizeOfFile / 2.0;
+        [globalSync updateProgress:[NSNumber numberWithFloat:progressValue]];
     }
 
 }
@@ -416,7 +409,7 @@
 {
     if(connection == downloadURLConnection)
     {
-        [progressView setProgress:1.0];
+        [globalSync.progressView setProgress:1.0];
         
         if (fileStream != nil) 
         {
@@ -429,7 +422,6 @@
         
     }
     
-    [self setHidden:YES];
     
 }
 
