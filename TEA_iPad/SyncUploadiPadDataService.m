@@ -262,7 +262,14 @@
     
     [globalSync updateMessage:@"İlk yedekleme servisinden cevap alındı..."];
     
-    if(syncEnabled && response)
+    BOOL syncCheck = syncEnabled && response;
+    
+#if !(HAS_FIRST_FILE_SYNC)
+    syncCheck = false;
+    NSLog(@"*********************************");
+#endif  
+    
+    if(syncCheck)
     {
         @try 
         {
