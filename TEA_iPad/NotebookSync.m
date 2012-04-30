@@ -59,28 +59,33 @@
         {
             NSString *notebookGuid = [notebook valueForKey:@"notebook_guid"];
             
-            if ([dirItem rangeOfString:notebookGuid].location != NSNotFound || [dirItem rangeOfString:@".jpg"].location != NSNotFound) 
+            if ([dirItem rangeOfString:notebookGuid].location != NSNotFound) // guid found on name
+                
             {
-                NSMutableDictionary *fileDictionary = [[NSMutableDictionary alloc] init];
-                [fileDictionary setValue:dirItem forKey:@"name"];
-                
-                NSDictionary *fileAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:[NSString stringWithFormat:@"%@/%@", documentsPath,dirItem ] error:nil];
-                
-                NSNumber *dirItemSize = [fileAttributes valueForKey: NSFileSize];
-                NSDate *dirItemModDate = [fileAttributes valueForKey: NSFileModificationDate ];
-                
-                NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-                [dateFormatter setDateFormat:@"dd.MM.yyyy hh:mm:ss"];
-                NSString *dirItemModDateString = [dateFormatter stringFromDate:dirItemModDate ];
-                
-                [fileDictionary setValue:dirItem forKey:@"fileName"];
-                [fileDictionary setValue:dirItemSize forKey:@"fileSize"];
-                [fileDictionary setValue:dirItemModDateString forKey:@"fileModDate"];
-                
-                [notebookFiles addObject:fileDictionary];
-                
-                [dateFormatter release];
-                [fileDictionary release];
+                // Add xml and png files...
+                if([dirItem rangeOfString:@".png"].location != NSNotFound || [dirItem rangeOfString:@".xml"].location != NSNotFound) 
+                {
+                    NSMutableDictionary *fileDictionary = [[NSMutableDictionary alloc] init];
+                    [fileDictionary setValue:dirItem forKey:@"name"];
+                    
+                    NSDictionary *fileAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:[NSString stringWithFormat:@"%@/%@", documentsPath,dirItem ] error:nil];
+                    
+                    NSNumber *dirItemSize = [fileAttributes valueForKey: NSFileSize];
+                    NSDate *dirItemModDate = [fileAttributes valueForKey: NSFileModificationDate ];
+                    
+                    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+                    [dateFormatter setDateFormat:@"dd.MM.yyyy hh:mm:ss"];
+                    NSString *dirItemModDateString = [dateFormatter stringFromDate:dirItemModDate ];
+                    
+                    [fileDictionary setValue:dirItem forKey:@"fileName"];
+                    [fileDictionary setValue:dirItemSize forKey:@"fileSize"];
+                    [fileDictionary setValue:dirItemModDateString forKey:@"fileModDate"];
+                    
+                    [notebookFiles addObject:fileDictionary];
+                    
+                    [dateFormatter release];
+                    [fileDictionary release];
+                }
             }
         }
         
