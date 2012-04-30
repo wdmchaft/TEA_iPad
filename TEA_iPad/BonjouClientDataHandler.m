@@ -43,7 +43,7 @@
 - (void) handleData
 {
  
-    while ([_data length] > 44) // There is enough data
+    while (_data && [_data length] > 44) // There is enough data
     {
         NSString *messageGuid = [[[NSString alloc] initWithData:[_data subdataWithRange:NSMakeRange(0, 36 )] encoding:NSASCIIStringEncoding ] autorelease];
         int typeBits = 0; [_data getBytes:&typeBits range:NSMakeRange(36, 4)];

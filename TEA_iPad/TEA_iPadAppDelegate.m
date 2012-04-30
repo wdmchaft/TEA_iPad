@@ -364,7 +364,7 @@ void handleException(NSException *exception)
         notificationMessage.userData = userData;
         [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
 
-        [DeviceLog deviceLog:@"appMovedBackground" withLecture:nil withContentType:nil];
+     //   [DeviceLog deviceLog:@"appMovedBackground" withLecture:nil withContentType:nil];
 
     }
 }
@@ -382,7 +382,7 @@ void handleException(NSException *exception)
         notificationMessage.userData = userData;
         [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
         
-        [DeviceLog deviceLog:@"appMovedForeground" withLecture:nil withContentType:nil];
+      //  [DeviceLog deviceLog:@"appMovedForeground" withLecture:nil withContentType:nil];
     }
 
 }

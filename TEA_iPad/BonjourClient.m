@@ -241,10 +241,12 @@
                 
                 if(len >=0) 
                 {
-                    
-                    [dataHandler._data appendBytes:(const void *)buf length:len];
-                    [dataHandler handleData];
-
+                    @synchronized(self)
+                    {
+                        [dataHandler._data appendBytes:(const void *)buf length:len];
+                        [dataHandler handleData];
+                    }
+ 
                 }
                 else
                 {

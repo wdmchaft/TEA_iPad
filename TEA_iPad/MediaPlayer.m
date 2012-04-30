@@ -181,7 +181,7 @@
 - (void)dealloc
 {
 
-    [currentTime release];
+    [currentTime release];    
 
     [player release];
     player = nil;
