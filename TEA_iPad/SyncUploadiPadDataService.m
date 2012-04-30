@@ -82,62 +82,134 @@
     [zippedFile close];    
 }
 
+- (void) mergeRemoteFiles:(int)fileCount
+{
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+
+    NSString *downloadURL = [NSString stringWithFormat: @"device_id=%@&file_count=%d", [appDelegate getDeviceUniqueIdentifier], fileCount];
+    
+    NSData *postData = [downloadURL dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+    NSString *postLength = [NSString stringWithFormat:@"%d",[postData length]];
+    
+    NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
+
+    NSString *syncURL = [NSString stringWithFormat: @"%@/synciPadMergeFiles.jsp", [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]]; 
+
+    [request setURL:[NSURL URLWithString:[NSString stringWithFormat:syncURL]]];
+    
+    [request setHTTPMethod:@"POST"];
+    [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+    [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Current-Type"];
+    [request setHTTPBody:postData];
+    
+    [globalSync updateMessage:@"Sistem yedek dosyaları birleştiriliyor..."];
+    
+    NSData *syncFileData = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:nil];
+    
+    NSString *result = [[[NSString alloc] initWithData:syncFileData encoding:NSUTF8StringEncoding] autorelease];
+    
+    if(![result isEqualToString:@"ok"])
+    {
+        [globalSync updateMessage:@"Sistem yedek dosyaları birleştirilirken hata oluştu..."];
+    }
+    else 
+    {
+        [appDelegate.viewController startSyncService:kSyncServiceTypeHomeworkSync];
+    }
+}
 
 - (void) uploadSyncFile
 {
+    
+    
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsDir = [paths objectAtIndex:0];
     NSString *fileName = [NSString stringWithFormat:@"%@_iPad.zip", [appDelegate getDeviceUniqueIdentifier]];
     NSString *filePath = [NSString stringWithFormat:@"%@/%@", documentsDir, fileName];
     
-    NSString *boundry = [LocalDatabase stringWithUUID];
+    [globalSync updateMessage:@"İlk yedek veri arşiv dosyası sunucuya yedekleniyor..."]; 
     
-    // Generate the post header:
-    NSString *post = [NSString stringWithFormat:@"--%@\r\nContent-Disposition: form-data; name=\"device_id\"\r\n\r\n%@\r\n", [appDelegate getDeviceUniqueIdentifier], [appDelegate getDeviceUniqueIdentifier]];
-    post = [post stringByAppendingFormat:@"--%@\r\nContent-Disposition: form-data; name=\"filename\"; filename=\"%@\"\r\nContent-Type: application/zip\r\n\r\n", boundry, fileName];
+    int i=0;
+    long totalSentBytes = 0;
+    long lengthOfFile = [[[[NSFileManager defaultManager] attributesOfItemAtPath:filePath error:nil] valueForKey:@"NSFileSize"] longValue];
     
-    //    post = [post stringByAppendingFormat:@"--%@\r\nContent-Disposition: form-data; name=\"device_id\"\r\n\r\n%@", [appDelegate getDeviceUniqueIdentifier]];
+    NSLog(@"total file size %ldl", lengthOfFile);
     
-    // Get the post header int ASCII format:
-    NSData *postHeaderData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
-    
-    // Generate the mutable data variable:
-    NSMutableData *postData = [[NSMutableData alloc] initWithLength:[postHeaderData length] ];
-    [postData setData:postHeaderData];
-    
-    // Add the image:
-    [postData appendData: [NSData dataWithContentsOfFile:filePath]];
-    
-    
-    // Add the closing boundry:
-    [postData appendData: [[NSString stringWithFormat:@"\r\n--%@--", boundry] dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES]];
-    
-    
-    
-    NSString *postLength = [NSString stringWithFormat:@"%d", [postData length]];
-    
-    NSString *uploadURL = [NSString stringWithFormat: @"%@/synciPadUpload.jsp", [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]]; 
 
-    
-    // Setup the request:
-    NSMutableURLRequest *uploadRequest = [[[NSMutableURLRequest alloc]
-                                           initWithURL:[NSURL URLWithString:uploadURL]
-                                           cachePolicy: NSURLRequestReloadIgnoringLocalCacheData timeoutInterval: 30 ] autorelease];
-    [uploadRequest setHTTPMethod:@"POST"];
-    [uploadRequest setValue:postLength forHTTPHeaderField:@"Content-Length"];
-    [uploadRequest setValue:[NSString stringWithFormat:@"multipart/form-data; boundary=%@", boundry] forHTTPHeaderField:@"Content-Type"];
-    [uploadRequest setValue:@"en-us" forHTTPHeaderField:@"Accept-Language"];
-
-    [uploadRequest setHTTPBody:postData];
-
-    totalBytes = [postData length];
-    
-    [globalSync.progressLabel setText:@"İlk yedek veri dosyası sunucuya yükleniyor."];
-    
-    uploadURLConnection = [[[NSURLConnection alloc] initWithRequest:uploadRequest delegate:self] autorelease];
-
+    while (totalSentBytes < lengthOfFile) 
+    {
+        NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+        
+        NSString *boundry = [LocalDatabase stringWithUUID];
+        
+        // Generate the post header:
+        NSString *post = [NSString stringWithFormat:@"--%@\r\nContent-Disposition: form-data; name=\"device_id\"\r\n\r\n%@\r\n", [appDelegate getDeviceUniqueIdentifier], [appDelegate getDeviceUniqueIdentifier]];
+        
+        NSString *newFileName = [NSString stringWithFormat:@"%@_iPad.zip-%d", [appDelegate getDeviceUniqueIdentifier], i];
+        i++;
+        
+        post = [post stringByAppendingFormat:@"--%@\r\nContent-Disposition: form-data; name=\"filename\"; filename=\"%@\"\r\nContent-Type: application/zip\r\n\r\n", boundry, newFileName];
+                    
+        // Get the post header int ASCII format:
+        NSData *postHeaderData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+        
+        // Generate the mutable data variable:
+        NSMutableData *postData = [[NSMutableData alloc] initWithLength:[postHeaderData length] ];
+        [postData setData:postHeaderData];
+        
+        // Add the image:
+        
+        NSFileHandle *fileHandle = [NSFileHandle fileHandleForReadingAtPath:filePath];
+        [fileHandle seekToFileOffset:totalSentBytes];
+        NSData *data = [fileHandle readDataOfLength:10000000];
+        
+        
+        [postData appendData: data];
+        
+        
+        // Add the closing boundry:
+        [postData appendData: [[NSString stringWithFormat:@"\r\n--%@--", boundry] dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES]];
+        
+        
+        
+        NSString *postLength = [NSString stringWithFormat:@"%d", [postData length]];
+        
+        NSString *uploadURL = [NSString stringWithFormat: @"%@/synciPadUpload.jsp", [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]]; 
+        
+        
+        // Setup the request:
+        NSMutableURLRequest *uploadRequest = [[[NSMutableURLRequest alloc]
+                                               initWithURL:[NSURL URLWithString:uploadURL]
+                                               cachePolicy: NSURLRequestReloadIgnoringLocalCacheData timeoutInterval: 30 ] autorelease];
+        [uploadRequest setHTTPMethod:@"POST"];
+        [uploadRequest setValue:postLength forHTTPHeaderField:@"Content-Length"];
+        [uploadRequest setValue:[NSString stringWithFormat:@"multipart/form-data; boundary=%@", boundry] forHTTPHeaderField:@"Content-Type"];
+        [uploadRequest setValue:@"en-us" forHTTPHeaderField:@"Accept-Language"];
+        
+        [uploadRequest setHTTPBody:postData];
+        
+        totalBytes = [postData length];
+        
+        [NSURLConnection sendSynchronousRequest:uploadRequest returningResponse:nil error:nil];
+        
+        [postData release];
+        
+        totalSentBytes += 10000000;
+        
+        NSLog(@"total send bytes size %ldl", totalSentBytes);
+        
+        float progressValue = 0.5 + ((float) totalSentBytes / (float) lengthOfFile / 2.0);
+        [globalSync updateProgress:[NSNumber numberWithFloat:progressValue]];
+        
+        [pool release];
+    }
+        
+    [self mergeRemoteFiles:i];
+     
 }
+
+
 
 - (void) downloadiPadSyncFile
 {
@@ -231,7 +303,7 @@
         [arPool release];
         
     }
-    [self updateProgress:[NSNumber numberWithFloat:100.0 ]];
+
     
     [zippedFile close];
     
@@ -344,7 +416,7 @@
 }
 
 
-
+/*
 - (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite
 {
     
@@ -355,21 +427,17 @@
         [self updateProgress:[NSNumber numberWithFloat:progressValue]];
     }
 }
+ */
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
     NSLog(@"timout");
-    [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
+    [appDelegate.viewController startSyncService:kSyncServiceTypeHomeworkSync];
 }
 
 
-
-- (void) updateProgress:(NSNumber*) progressValue
-{
-    [globalSync.progressView setProgress: [progressValue floatValue]];
-}
 
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
@@ -428,6 +496,7 @@
         [self extractZipFile];
         
     }
+    
     
     
 }
