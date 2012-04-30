@@ -9,8 +9,12 @@
 #import "MediaPlayer.h"
 #import <QuartzCore/QuartzCore.h>
 #import "TEA_iPadAppDelegate.h"
+#import "DeviceLog.h"
 
 @implementation MediaPlayer
+
+@synthesize guid, activeTime, currentTime;
+
 
 - (void) playbackStoped 
 {
@@ -35,6 +39,9 @@
     self = [super initWithFrame:CGRectMake(0, 0, 1024, 768)];
     if(self)
     {
+        //set start time of duration
+        self.currentTime = [NSDate date];
+        
         [self setBackgroundColor:[UIColor clearColor]];
         
         UIView *bg = [[UIView alloc] initWithFrame:self.frame];
@@ -90,6 +97,13 @@
 
 - (void) closeContentViewWithDirection:(ContentViewOpenDirection)direction dontSetDisplayingContent:(BOOL)setFlag
 {
+    //getting view active time
+    activeTime = (long)[[NSDate date] timeIntervalSinceDate:currentTime];
+    
+    
+    //update duration of view 
+    [DeviceLog updateDurationTime:activeTime withGuid:self.guid withDate:currentTime];
+    
     contentSetFlag = setFlag;
 
 
@@ -123,6 +137,9 @@
 
 - (void) loadContentView:(UIView *)view withDirection :(ContentViewOpenDirection)direction
 {
+    //getting duration started time
+//    currentTime = [[NSDate date] retain];
+    
     CGRect initialRect;
     if(direction == kContentViewOpenDirectionToLeft)
     {
@@ -164,6 +181,7 @@
 - (void)dealloc
 {
 
+    [currentTime release];
 
     [player release];
     player = nil;

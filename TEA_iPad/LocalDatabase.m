@@ -110,7 +110,6 @@ static LocalDatabase *sharedInstance;
             
         }
         
-        
         // Check homework asnwers table
         NSString *homeworkAnswersCheck = @"SELECT name FROM sqlite_master WHERE name='homework_answer'";
         NSArray *homeworkAnswerTableResult = [self executeQuery:homeworkAnswersCheck];
@@ -137,8 +136,33 @@ static LocalDatabase *sharedInstance;
         NSArray *deviceLogTableResult = [self executeQuery:deviceLogTableCheck];
         if (!deviceLogTableResult || [deviceLogTableResult count]<= 0) 
         {
-            NSString *deviceLogTableCreate = @"CREATE TABLE device_log (device_id TEXT, system_version TEXT, version TEXT, key TEXT, lecture TEXT, content_type TEXT, time TEXT, data TEXT, lat TEXT, long TEXT );";
+            NSString *deviceLogTableCreate = @"CREATE TABLE device_log (device_id TEXT, system_version TEXT, version TEXT, key TEXT, lecture TEXT, content_type TEXT, time TEXT, data TEXT, lat TEXT, long TEXT, duration TEXT, guid TEXT, session_name TEXT);";
             [self executeQuery:deviceLogTableCreate];
+        }
+        else 
+        {
+            NSString *deviceLogAlterTable=@"";
+            NSArray *columnExistsResult = [self executeQuery:@"SELECT sql FROM sqlite_master where name='device_log' and sql like '%duration%'"]; // check column exists.
+            if([columnExistsResult count] <= 0)
+            {
+                deviceLogAlterTable = @"ALTER TABLE device_log ADD duration CHAR(25) NULL;";
+                [self executeQuery:deviceLogAlterTable];
+            }
+            
+            columnExistsResult = [self executeQuery:@"SELECT sql FROM sqlite_master where name='device_log' and sql like '%guid%'"]; // check column exists.
+            if([columnExistsResult count] <= 0)
+            {
+                deviceLogAlterTable = @"ALTER TABLE device_log ADD guid char(255);";
+                [self executeQuery:deviceLogAlterTable];
+            }
+            
+            columnExistsResult = [self executeQuery:@"SELECT sql FROM sqlite_master where name='device_log' and sql like '%session_name%'"]; // check column exists.
+            if([columnExistsResult count] <= 0)
+            {
+                deviceLogAlterTable = @"ALTER TABLE device_log ADD session_name char(255);";
+                [self executeQuery:deviceLogAlterTable];
+            }
+            
         }
         
         
@@ -238,10 +262,7 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
     
     NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
     
-    
-    
     NSString *postURL = [ConfigurationManager getConfigurationValueForKey:@"EXCEPTION_POST_URL"];
-    
     
     [request setURL:[NSURL URLWithString:[NSString stringWithFormat:postURL]]];
     
@@ -304,7 +325,7 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
         else 
         {
             const char* errorString = sqlite3_errmsg(database);
-            NSString *dbError = [NSString stringWithFormat:@"Query not performed! \n sql:%@\n\nerror:%s", pQuery, errorString];
+            NSString *dbError = [NSString stringWithFormat:@"Query not performed! \nsql:%@\n\nerror:%s", pQuery, errorString];
             [self sendError:dbError];
         }
     }
