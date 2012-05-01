@@ -480,7 +480,7 @@ void handleException(NSException *exception)
         notificationMessage.userData = userData;
         [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
         
-        [DeviceLog deviceLog:@"appMovedForeground" withLecture:nil withContentType:nil];
+      //  [DeviceLog deviceLog:@"appMovedForeground" withLecture:nil withContentType:nil];
     }
 }
 
