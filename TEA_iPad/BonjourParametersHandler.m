@@ -33,8 +33,7 @@
     
     // Get TEA iPad's current version
     NSString *iPadVersion = [[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"] substringToIndex:3];
-    
-   
+    NSString *iPadAppIdentifier = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleIdentifier"] ;
     
     // Check version
     NSDictionary *classroomParameters = [ConfigurationManager getConfigurationValueForKey:@"ClassroomParameters"];
@@ -43,19 +42,33 @@
     UIAlertView *alert;
     NSString *appVersion = [classroomParameters objectForKey:@"version"];
     
+    NSString *forbidenIdentifier = [classroomParameters objectForKey:@"forbidenIdentifier"];
+
+    
     CGFloat iPadVersionF = [iPadVersion doubleValue];
     CGFloat appVersionF = [appVersion doubleValue];
     
-    if (appVersionF > iPadVersionF) {
-        NSString *alertMessage = [NSString stringWithFormat:@"Uygulama versiyonu ile iPad'inize yüklü olan version uyumsuz! Lütfen güncel versiyonu (%@) indirin", appVersion];
-        
-        alert = [[UIAlertView alloc] initWithTitle:@"UYARI" message:alertMessage delegate:self cancelButtonTitle:@"Tamam" otherButtonTitles:@"Yükle", nil] ;
-        
-
-        [alert show];
-      
-    }
     
+    if ([forbidenIdentifier isEqualToString:iPadAppIdentifier]) 
+    {
+        NSString *alertMessage = [NSString stringWithFormat:@"Bu uygulama sürümü geçersizdir. Lütfen okulunuzun yerel sunucusu üzerinden yüklediğiniz sürümü kullanınız...", appVersion];
+        alert = [[UIAlertView alloc] initWithTitle:@"UYARI" message:alertMessage delegate:self cancelButtonTitle:@"Tamam" otherButtonTitles:nil] ;
+        alert.tag = 0;
+        [alert show];
+        
+    }
+    else 
+    {
+        if (appVersionF > iPadVersionF) {
+            NSString *alertMessage = [NSString stringWithFormat:@"Uygulama versiyonu ile iPad'inize yüklü olan version uyumsuz! Lütfen güncel versiyonu (%@) indirin", appVersion];
+            
+            alert = [[UIAlertView alloc] initWithTitle:@"UYARI" message:alertMessage delegate:self cancelButtonTitle:@"Tamam" otherButtonTitles:@"Yükle", nil] ;
+            alert.tag = 1;            
+            [alert show];
+            
+        }
+    }
+
     [arPool release];
 
 }
@@ -66,20 +79,27 @@
     TEA_iPadAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
     NSDictionary *classroomParameters = [ConfigurationManager getConfigurationValueForKey:@"ClassroomParameters"];
     
-    if (buttonIndex == 1)
+    if(alertView.tag == 1)
     {
-        //cancel clicked ...do your action
-        [appDelegate stopBonjourBrowser];
-        NSString *stringURL = [classroomParameters objectForKey:@"appURL"];
-        NSLog(@"%@ descriptioon", [classroomParameters description]);
-        NSURL *url = [[ [ NSURL alloc ] initWithString: stringURL ] autorelease];
-        [[UIApplication sharedApplication] openURL:url];
+        if (buttonIndex == 1)
+        {
+            //cancel clicked ...do your action
+            [appDelegate stopBonjourBrowser];
+            NSString *stringURL = [classroomParameters objectForKey:@"appURL"];
+            NSLog(@"%@ descriptioon", [classroomParameters description]);
+            NSURL *url = [[ [ NSURL alloc ] initWithString: stringURL ] autorelease];
+            [[UIApplication sharedApplication] openURL:url];
+        }
+        else if (buttonIndex == 0)
+        {
+            //reset clicked
+            [appDelegate stopBonjourBrowser];
+        }
     }
-    else if (buttonIndex == 0)
-    {
-        //reset clicked
-        [appDelegate stopBonjourBrowser];
+    else {
+        exit(0);
     }
+    
     
     
 }
