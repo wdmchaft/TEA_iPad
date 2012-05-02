@@ -29,6 +29,8 @@
 #import "ZipWriteStream.h"
 #import "LibraryHomeworkItem.h"
 #import "Sync.h"
+#import "DeviceLog.h"
+
 
 @implementation Homework
 @synthesize dictionary, libraryViewController, globalSync;
@@ -89,7 +91,7 @@
             if ([checkString isEqualToString:@"OK"]) {
                 NSLog(@"Device Log alındı...");
                 [[LocalDatabase sharedInstance] executeQuery:@"delete from device_log;"];
-            }
+           }
             else
                 NSLog(@"Device Log sending error.");
             
