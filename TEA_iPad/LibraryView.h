@@ -83,13 +83,20 @@ enum kSyncServiceType {
     BOOL refreshDateSkipped;
     id<ContentViewerInterface> currentContentView;
     NSString *optionalKeyword;
+    
+    NSDate *selectedDayOfLibrary;
+    
 }
+
+@property (nonatomic, retain) NSDate *selectedDayOfLibrary;
 
 //Calendar
 @property (nonatomic, assign) CalendarDataController *calendarController;
 - (void) setCalendarViewHidden:(BOOL) hidden;
 - (void) refreshLibraryView;
 - (void) startSyncService:(int) syncServiceType;
+- (void) refreshDate:(NSDate*)aDate;
+
 
 @property (nonatomic, assign) int currentSessionListIndex;
 @property (nonatomic, assign) BOOL displayingSessionContent;

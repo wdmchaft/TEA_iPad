@@ -14,7 +14,7 @@
     
 }
 
-+ (void) deviceLog:(NSString*)type withLecture:(NSString*)lectureName withContentType:(NSString*)contentType withGuid:(NSString*)guid;
++ (void) deviceLog:(NSString*)type withLecture:(NSString*)lectureName withContentType:(NSString*)contentType withGuid:(NSString*)guid withDate:(NSDate*) date;
 + (void) deviceLogWithData:(NSString*)data;
 + (void) deviceLogWithLocation:(CLLocation*) location;
 + (void) updateDurationTime:(long)duration withGuid:(NSString*) guid withDate:(NSDate*)openedDate;

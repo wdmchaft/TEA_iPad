@@ -12,7 +12,7 @@
 #import "LibraryView.h"
 
 @implementation SessionView
-@synthesize sessionName, sessionGuid, libraryViewController, index;
+@synthesize sessionName, sessionGuid, libraryViewController, index, itemCount;
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -52,16 +52,13 @@
     
     NSArray *result = [[LocalDatabase sharedInstance] executeQuery: sql];
     
-    
     int counter = 0;
     int x,y;
     CGRect sessionItemViewRect = CGRectNull;
     
     for(NSDictionary *resultDict in result)
     {
-        
-        
-        
+        itemCount++;
         if(libraryViewController.compactMode)
         {
             x = ((counter % 5) * 51) ;
@@ -104,15 +101,24 @@
         [sessionItemView release];
         counter++;
     }
-
-
     
-    self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, sessionItemViewRect.origin.y + sessionItemViewRect.size.height + 20);
+    if (result && [result count]>0) {
+        self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, sessionItemViewRect.origin.y + sessionItemViewRect.size.height + 20);
+    }
+    
+    if (itemCount<=0) {
+        sessionNameLabel.frame = CGRectMake(0, 0, self.bounds.size.width, 0);
+    }
+    
+    
+//    self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, sessionItemViewRect.origin.y + sessionItemViewRect.size.height + 20);
+    
 }
 
 - (void) initSessionView
 {
 
+    itemCount = 0;
     sessionNameLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.bounds.size.width, 30)];
     
     if(libraryViewController.compactMode)
@@ -132,8 +138,7 @@
     [self addSubview:sessionNameLabel];
     
     [self setBackgroundColor:[UIColor colorWithRed:109.0/255.0 green:36.0/255.0 blue:35.0/255.0 alpha:0.5]];
-    
-    
+   
     
     [self insertContents:self.libraryViewController.optionalKeyword];
 }
