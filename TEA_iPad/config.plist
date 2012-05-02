@@ -5,6 +5,6 @@
 	<key>ConfigFileURL</key>
 	<string>local</string>
 	<key>ConfigurationMode</key>
-	<string>dev</string>
+	<string>prod</string>
 </dict>
 </plist>

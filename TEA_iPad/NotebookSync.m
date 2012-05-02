@@ -135,7 +135,11 @@
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
 
-
+#if !(HAS_FIRST_FILE_SYNC)
+    NSLog(@"*********** Notebooksync not working **************");
+    [appDelegate.viewController startSyncService:kSyncServiceTypeSync];
+    return;
+#endif  
     
     // Check notebook workspace. If there is no notebook in current workspace that means
     // application is recently installed. Full backup is required.
