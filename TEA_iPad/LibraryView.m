@@ -54,6 +54,7 @@
 @synthesize swipeItems;
 @synthesize syncUploadiPadService;
 @synthesize globalSyncView;
+@synthesize selectedDayOfLibrary;
 
 - (void) refreshDate:(NSDate*)aDate
 {
@@ -92,6 +93,8 @@
             searchTextField.text = @"";
             
             refreshDateSkipped = NO;
+            
+            
         }
     }
 }
@@ -291,14 +294,22 @@
         
         [contentsScrollView addSubview:sessionView];
         [sessionView initSessionView];
+        
+        //if session does not content any items
+        if (sessionView.itemCount <= 0) {
+            sessionView.frame = CGRectMake(sessionView.frame.origin.x, sessionView.frame.origin.y-20, 0, 0);
+        }
+        
+        
         [sessionView release];
         counter++;
         sessionViewRect = sessionView.frame;
+        
     }
     
     
     
-   // remove old date marks
+    // remove old date marks
     for(UIView *view in self.dateView.subviews)
     {
         if(view.tag == 100)
@@ -320,8 +331,15 @@
     [comps setMonth:self.selectedMonth.month];
     [comps setYear:self.selectedMonth.year];
     
-    NSCalendar *gregorian = [[NSCalendar alloc]
-                             initWithCalendarIdentifier:NSGregorianCalendar];
+    
+    //setting selected day of library
+    NSDateFormatter *df = [[NSDateFormatter alloc] init];
+    [df setDateFormat:@"yyyy-MM-dd 00:00"];
+    NSString *dayTime = [NSString stringWithFormat:@"%d-%d-%d 00:00", self.selectedMonth.year, self.selectedMonth.month, self.selectedDate];
+    selectedDayOfLibrary = [df dateFromString:dayTime];
+    
+    
+    NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
     NSDate *date = [gregorian dateFromComponents:comps];
     [gregorian release];
     
@@ -340,7 +358,6 @@
         sql = [sql stringByAppendingFormat:@" and lecture_guid='%@'", lectureGuid];
     }
     
-    // NSString *lectureGuid = 
     
     // Clean up lecture names
     for(SessionView *sessionV in contentsScrollView.subviews)
@@ -720,17 +737,6 @@
            
     }
     
-    
-    /*
-     
-     
-     
-     
-     
-     
-     
-     */
-    
 }
 
 
@@ -868,8 +874,6 @@
     contentProgress.progress = progress;
     [contentProgress setNeedsDisplay];
     
-    NSLog(@"current progress is %f", progress); 
-    
     if( fabsf(1.0 - progress) <= 0.1 )
     {
         [contentProgress setHidden:YES];
@@ -900,24 +904,7 @@
 
 - (IBAction) libraryButtonClicked:(id) sender
 {
-    /*********************************************************    
-    TEA_iPadAppDelegate *logAppDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-    
-    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
-    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
-    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
-    
-    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
-    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-    
-    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key,  time) values ('%@','%@','%@','%@','%@')", [logAppDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"openedLibrary", dateString];
-    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
-    //*********************************************************/
-    
-    
-    [DeviceLog deviceLog:@"openedLibrary" withLecture:nil withContentType:nil withGuid:nil];
-    
-    //********************************************************* 
+    [DeviceLog deviceLog:@"openedLibrary" withLecture:nil withContentType:nil withGuid:nil withDate:[NSDate date]];
     
     
     [self setNotebookViewHidden:YES];
@@ -928,22 +915,7 @@
 - (IBAction) notebookButtonClicked:(id) sender
 {
     
-/*********************************************************    
-    TEA_iPadAppDelegate *logAppDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-    
-    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
-    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
-    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
-    
-    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
-    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-    
-    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key,  time) values ('%@','%@','%@','%@','%@')", [logAppDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"openedNotebook", dateString];
-    [[LocalDatabase sharedInstance] executeQuery:insertSQL];*/
-//*********************************************************/    
-
-     [DeviceLog deviceLog:@"openedNotebook" withLecture:nil withContentType:nil withGuid:nil];
-    
+    [DeviceLog deviceLog:@"openedNotebook" withLecture:nil withContentType:nil withGuid:nil withDate:[NSDate date]];
     
     [self setNotebookViewHidden:NO];
     [self setLibraryViewHidden:YES];
@@ -986,7 +958,8 @@
     [self performSelectorInBackground:@selector(showIndicator) withObject:nil];
    
     NSLog(@"Calendar Button Clicked:");
-    [DeviceLog deviceLog:@"openedCalendar" withLecture:nil withContentType:nil withGuid:nil];
+    
+    [DeviceLog deviceLog:@"openedCalendar" withLecture:nil withContentType:nil withGuid:nil withDate:[NSDate date]];
     
     [self setNotebookViewHidden:YES];
     [self setLibraryViewHidden:YES];

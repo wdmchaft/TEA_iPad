@@ -39,8 +39,22 @@ enum appState
     
     
     NSMutableArray *notificationArray;
+    
+    
+    //Log instance variable properties
+    NSDate *currentTime;
+    NSDate *backgroundTime;
+    long duration;
+    long bgDuration;
+    NSString *appGuid;
 }
 
+//Log instance variable properties
+@property (nonatomic, assign) long duration;
+@property (nonatomic, assign) long bgDuration;
+@property (nonatomic, retain) NSDate *currentTime;
+@property (nonatomic, retain) NSDate *backgroundTime;
+@property (nonatomic, retain) NSString *appGuid;
 
 @property (nonatomic, retain) NSMutableArray *notificationArray;
 

@@ -15,7 +15,8 @@ enum kState {
     };
 
 @class SessionView;
-@interface SessionLibraryItemView : UIView <UIWebViewDelegate, UITextFieldDelegate> {
+@interface SessionLibraryItemView : UIView <UIWebViewDelegate, UITextFieldDelegate> 
+{
     NSString *name;
     NSString *path;
     NSString *type;
@@ -37,6 +38,10 @@ enum kState {
     int viewScrollSize;
     int index;
     ContentViewOpenDirection direction;
+    
+    
+    UIButton *notebookAnchor;
+    NSArray *itemGuidArray;
 }
 
 @property (nonatomic, retain) NSString *name;

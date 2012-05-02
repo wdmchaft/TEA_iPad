@@ -45,6 +45,7 @@
 @synthesize window=_window, bonjourBrowser, session, state, connectedHost, guestEnterNumber;
 @synthesize currentQuizWindow;
 @synthesize viewController=_viewController, bonjourBrowserThread, selectedItemView, notificationArray;
+@synthesize duration, bgDuration, backgroundTime, currentTime, appGuid;
 
 void PrintReachabilityFlags(
                             const char *                hostname, 
@@ -270,7 +271,8 @@ void handleException(NSException *exception)
     if ([[ConfigurationManager getConfigurationValueForKey:@"EXCEPTION_ENABLED"] intValue]){
         NSSetUncaughtExceptionHandler(&handleException);
     }
- 
+    
+     
 
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     [center addObserver:self selector:@selector(screenDidConnect:) name:UIScreenDidConnectNotification object:nil];
@@ -313,19 +315,19 @@ void handleException(NSException *exception)
     LocationService *locationService = [[LocationService alloc] init];
     blackScreen = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
     [locationService startService];
-
+    
+    
+    self.duration = 0;
+    self.bgDuration=0;
+    self.appGuid = [LocalDatabase stringWithUUID];
+    self.currentTime = [NSDate date];
+    [DeviceLog deviceLog:@"appRunTime" withLecture:nil withContentType:nil withGuid:self.appGuid withDate:self.currentTime];
     
     self.notificationArray = [[NSMutableArray alloc] init];
 
-    
-    NSUserDefaults *userToken = [NSUserDefaults standardUserDefaults];
+    NSLog(@"Registering for push notifications...");    
+    [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
 
-//    if ([userToken stringForKey:@"token"]) 
-    {
-        NSLog(@"Registering for push notifications...");    
-        [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
-    }
-    
     return YES;
 }
 
@@ -464,9 +466,17 @@ void handleException(NSException *exception)
         notificationMessage.userData = userData;
         [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
         
-        [DeviceLog deviceLog:@"appMovedBackground" withLecture:nil withContentType:nil];
+        
     }
+    
+    [DeviceLog deviceLog:@"appMovedBackground" withLecture:nil withContentType:nil withGuid:nil withDate:[NSDate date]];
+    
+    duration = [[NSDate date] timeIntervalSinceDate:currentTime] - bgDuration;
+    
+    [DeviceLog updateDurationTime:duration withGuid:appGuid withDate:currentTime];
+    self.backgroundTime = [NSDate date]; 
 }
+
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
@@ -480,8 +490,13 @@ void handleException(NSException *exception)
         notificationMessage.userData = userData;
         [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
         
-        [DeviceLog deviceLog:@"appMovedForeground" withLecture:nil withContentType:nil];
+        
     }
+    
+    [DeviceLog deviceLog:@"appMovedForeground" withLecture:nil withContentType:nil withGuid:nil withDate:[NSDate date]];
+    
+    self.bgDuration = [[NSDate date] timeIntervalSinceDate:backgroundTime] + bgDuration;
+    
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
@@ -497,9 +512,10 @@ void handleException(NSException *exception)
 - (void)applicationWillTerminate:(UIApplication *)application
 {
     
-   
-    [DeviceLog deviceLog:@"appTerminated" withLecture:nil withContentType:nil];
-    
+    [DeviceLog deviceLog:@"appTerminated" withLecture:nil withContentType:nil withGuid:nil withDate:[NSDate date]];
+     
+    duration = [[NSDate date] timeIntervalSinceDate:currentTime] - bgDuration;
+    [DeviceLog updateDurationTime:duration withGuid:appGuid withDate:currentTime];
     
     NSLog(@"App will be terminated");
     exitingApp = YES;
@@ -524,7 +540,8 @@ void handleException(NSException *exception)
 - (NSString *) getDeviceUniqueIdentifier
 {
     #if TARGET_IPHONE_SIMULATOR
-        return @"11111-22222-33333-44444-55555";
+//        return @"11111-22222-33333-44444-55555";
+        return @"ertan-simulator";
     #else
         return [[UIDevice currentDevice] uniqueIdentifier];
     #endif  
@@ -549,7 +566,8 @@ void handleException(NSException *exception)
 
 - (void)dealloc
 {
-    
+    [backgroundTime release];
+    [currentTime release];
     [notificationArray release];
     
     if(bonjourBrowserThread)
