@@ -39,6 +39,7 @@
 @synthesize window=_window, bonjourBrowser, session, state, connectedHost, guestEnterNumber;
 @synthesize currentQuizWindow;
 @synthesize viewController=_viewController, bonjourBrowserThread, selectedItemView, notificationArray;
+@synthesize duration, bgDuration, backgroundTime, currentTime, appGuid;
 
 void PrintReachabilityFlags(
                             const char *                hostname, 
@@ -227,7 +228,7 @@ void handleException(NSException *exception)
     if ([[ConfigurationManager getConfigurationValueForKey:@"EXCEPTION_ENABLED"] intValue]){
         NSSetUncaughtExceptionHandler(&handleException);
     }
-     
+
     
     application.idleTimerDisabled = YES;
     guestEnterNumber = 0;
@@ -260,6 +261,7 @@ void handleException(NSException *exception)
     [[self viewController] release];
     
     [self.window makeKeyAndVisible];
+
 
     
 
@@ -364,10 +366,11 @@ void handleException(NSException *exception)
         notificationMessage.userData = userData;
         [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
 
-     //   [DeviceLog deviceLog:@"appMovedBackground" withLecture:nil withContentType:nil];
-
     }
+    
+
 }
+
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
@@ -385,6 +388,7 @@ void handleException(NSException *exception)
       //  [DeviceLog deviceLog:@"appMovedForeground" withLecture:nil withContentType:nil];
     }
 
+
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
@@ -400,8 +404,7 @@ void handleException(NSException *exception)
 - (void)applicationWillTerminate:(UIApplication *)application
 {
     
-   
-    
+
     
     NSLog(@"App will be terminated");
     exitingApp = YES;
@@ -426,7 +429,8 @@ void handleException(NSException *exception)
 - (NSString *) getDeviceUniqueIdentifier
 {
     #if TARGET_IPHONE_SIMULATOR
-        return @"11111-22222-33333-44444-55555";
+//        return @"11111-22222-33333-44444-55555";
+        return @"ertan-simulator";
     #else
         return [[UIDevice currentDevice] uniqueIdentifier];
     #endif  
@@ -451,7 +455,8 @@ void handleException(NSException *exception)
 
 - (void)dealloc
 {
-    
+    [backgroundTime release];
+    [currentTime release];
     [notificationArray release];
     
     if(bonjourBrowserThread)

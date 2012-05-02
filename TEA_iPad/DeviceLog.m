@@ -24,8 +24,12 @@
 }
 */
 
-+ (void) deviceLog:(NSString*)type withLecture:(NSString*)lectureName withContentType:(NSString*)contentType withGuid:(NSString*)guid
++ (void) deviceLog:(NSString*)type withLecture:(NSString*)lectureName withContentType:(NSString*)contentType withGuid:(NSString*)guid withDate:(NSDate*) date
 {
+    
+    if (!guid) {
+        guid = @"";
+    }
     
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*)[[UIApplication sharedApplication]delegate];
     
@@ -58,6 +62,7 @@
         }
         
         [[LocalDatabase sharedInstance] executeQuery:insertSQL];
+
     }
 
 }
@@ -105,6 +110,8 @@
    
 }
 
+
+
 + (void) updateDurationTime:(long)duration withGuid:(NSString*)guid withDate:(NSDate *)openedDate
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*)[[UIApplication sharedApplication]delegate];
@@ -129,9 +136,7 @@
         [[LocalDatabase sharedInstance] executeQuery:updateSQL];
         
         [df release];
-    }
-    
-    
+    }    
 }
 
 @end

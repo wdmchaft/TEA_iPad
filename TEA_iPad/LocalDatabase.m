@@ -165,8 +165,7 @@ static LocalDatabase *sharedInstance;
             
         }
         
-        
-        
+      
         //Check Calendar table
         NSString *calendarTableCheck = @"SELECT name FROM sqlite_master WHERE name='calendar'";
         NSArray *calendarTableResult = [self executeQuery:calendarTableCheck];
@@ -176,6 +175,17 @@ static LocalDatabase *sharedInstance;
             NSString *calendarTableCreate = @"CREATE TABLE calendar (id TEXT, type TEXT, title TEXT, body TEXT, image_name TEXT, image_url TEXT, date_time TEXT, valid_date_time TEXT, alarm_date_time TEXT, repeated TEXT, completed TEXT, homework_ref_id TEXT, alarm_state TEXT, deleted TEXT);";
             [self executeQuery:calendarTableCreate];
         }
+        
+        
+        //Check Notebook Library table
+        NSString *notebookLibraryTableCheck = @"SELECT name FROM sqlite_master WHERE name='notebook_library'";
+        NSArray *notebookLibraryTableResult = [self executeQuery:notebookLibraryTableCheck];
+        if (!notebookLibraryTableResult || [notebookLibraryTableResult count]<=0) 
+        {
+            NSString *notebookLibraryTableCreate = @"CREATE TABLE notebook_library (notebook_guid TEXT, library_item_guid TEXT, notebook_page_number TEXT);";
+            [self executeQuery:notebookLibraryTableCreate];
+        }
+        
         
         openDBFinished = YES;
 	}
