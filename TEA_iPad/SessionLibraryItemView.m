@@ -31,11 +31,12 @@
 
 - (NSString *) getFullPathForFile:(NSString *) file
 {
+    NSString *localFile = [[file componentsSeparatedByString:@"/"] lastObject];
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     
     NSString *documentsPath = [paths objectAtIndex:0];
     
-    NSString *fullPath = [NSString stringWithFormat:@"%@/%@", documentsPath, file];
+    NSString *fullPath = [NSString stringWithFormat:@"%@/%@", documentsPath, localFile];
     
     return fullPath;
     
