@@ -69,6 +69,17 @@
     {
         if(appDelegate.state != kAppStateSyncing)
         {
+            
+            /*
+            NSDateComponents *components;
+            if (!aDate) {
+                components = [[NSCalendar currentCalendar] components: NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit fromDate:[NSDate date]];
+            }
+            else {
+                components = [[NSCalendar currentCalendar] components: NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit fromDate:aDate];
+            }
+            */
+            
             NSDateComponents *components = [[NSCalendar currentCalendar] components: NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit fromDate:[NSDate date]];
             
             int year = [components year];
@@ -337,7 +348,7 @@
     [df setDateFormat:@"yyyy-MM-dd 00:00"];
     NSString *dayTime = [NSString stringWithFormat:@"%d-%d-%d 00:00", self.selectedMonth.year, self.selectedMonth.month, self.selectedDate];
     selectedDayOfLibrary = [df dateFromString:dayTime];
-    
+    [df release];
     
     NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
     NSDate *date = [gregorian dateFromComponents:comps];

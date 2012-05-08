@@ -48,7 +48,10 @@
         
         NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
         [dateFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
-        NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
+        if (!date) {
+            date = [NSDate date];
+        }
+        NSString *dateString = [dateFormatter stringFromDate:date];
         NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
         
         NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
@@ -58,7 +61,7 @@
             insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, lecture, content_type, time, guid, session_name) values ('%@','%@','%@', '%@','%@','%@','%@','%@', '%@')", [appDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"openedLibraryItems",lectureName, contentType, dateString, guid, session_name];
         }
         else{
-            insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, time) values ('%@','%@','%@','%@','%@')", [appDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, type, dateString];
+            insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, time, guid) values ('%@','%@','%@','%@','%@', '%@')", [appDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, type, dateString, guid];
         }
         
         [[LocalDatabase sharedInstance] executeQuery:insertSQL];

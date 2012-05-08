@@ -9,6 +9,7 @@
 #import "Notebook.h"
 #import "LocalDatabase.h"
 #import "DWViewItem.h"
+#import "DWViewItemLlibraryItemClip.h"
 
 @implementation Notebook
 
@@ -83,6 +84,7 @@
  }
  */
 
+
 - (NSString*) getInitialXMLString
 {
     NSString *initalXMLFilePath = [[NSBundle mainBundle] pathForResource:@"notebook" ofType:@"xml"];
@@ -94,9 +96,14 @@
     initialXMLString = [initialXMLString stringByReplacingOccurrencesOfString:@"%type%" withString:self.type];
     initialXMLString = [initialXMLString stringByReplacingOccurrencesOfString:@"%lectureGuid%" withString:self.lectureGuid];
     initialXMLString = [initialXMLString stringByReplacingOccurrencesOfString:@"%lastOpenedPage%" withString:[NSString stringWithFormat:@"%d", currentPageIndex]];
+
+    
+    //delete all objects of current notebook
+    NSString *deleteSql = [NSString stringWithFormat:@"delete from notebook_library where notebook_guid = '%@'", self.guid];
+    [[LocalDatabase sharedInstance] executeQuery:deleteSql];
+    
     
     //initialXMLString = [initialXMLString stringByReplacingOccurrencesOfString:@"%creationDate%" withString:self.creationDate];
-
     int counter = 0;
     if(pages && [pages count] > 0)
     {
@@ -114,7 +121,10 @@
         for(NotebookPage *page in pages)
         {
 
-            counter ++;
+            counter++;
+            
+            page.notebook = self;
+            page.notebookPage = counter;
             
             NSString *pageXML = [page getXML];
             pageXML = [NSString stringWithFormat:pageXML, [NSString stringWithFormat:@"/page%d_%@.png", counter, self.guid]];
@@ -132,8 +142,6 @@
 {
     
     // save notebook
-    
-    
     NSString *notebookXML = [self getInitialXMLString];
     NSData *data = [notebookXML dataUsingEncoding:NSUTF8StringEncoding];
     

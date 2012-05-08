@@ -28,6 +28,9 @@
     
     if(appDelegate.selectedItemView)
     {
+        
+        self.guid = appDelegate.selectedItemView.guid;
+        
         if([appDelegate.selectedItemView.type isEqualToString:@"video"] || [appDelegate.selectedItemView.type isEqualToString:@"audio"]  )
         {
             NSString *htmlPath = [[NSBundle mainBundle] pathForResource:@"video" ofType:@"htm"];
@@ -78,7 +81,7 @@
             NSString *fileString = [NSString stringWithContentsOfFile:htmlPath encoding:NSUTF8StringEncoding error:nil];
             NSString *tmpHTMLString = [NSString stringWithFormat:fileString, imagePath];
             
-            self.htmlString = tmpHTMLString ;
+            self.htmlString = tmpHTMLString;
             
             data = [tmpHTMLString dataUsingEncoding:NSUTF8StringEncoding];
             [webField loadData:data MIMEType:@"text/html" textEncodingName:@"utf-8" baseURL:nil];
@@ -108,7 +111,7 @@
 {
     if(htmlString && [htmlString length] > 0)
     {
-        return [NSString stringWithFormat:@"<libraryitem position=\"%@\"><![CDATA[%@]]></libraryitem>", [self getPosition], htmlString];
+        return [NSString stringWithFormat:@"<libraryitem guid=\"%@\" position=\"%@\"><![CDATA[%@]]></libraryitem>", self.guid, [self getPosition], htmlString];
     }
     
     return @"";
@@ -117,8 +120,10 @@
 
 
 - (void)dealloc {
+    
     if(htmlString)
         [htmlString release];
+    
     [super dealloc];
 }
 
