@@ -299,6 +299,12 @@
                 appDelegate.session.sessionLectureGuid  = nil;
                 appDelegate.session.sessionTeacherName = nil;
                 
+                appDelegate.session.quizPromptTitle = nil;
+                appDelegate.session.quizPromptBGColor = nil;
+                appDelegate.session.quizPromptCancelTitle = nil;
+                appDelegate.session.quizPromptOKTitle = nil;
+                appDelegate.session.quizPromptTextColor = nil;
+                
                 appDelegate.state = kAppStateIdle;
                 @try {
                     [appDelegate.currentQuizWindow finishQuiz];

@@ -309,6 +309,10 @@
     
     [globalSync updateMessage:@"İlk yedek veri arşiv dosyası açılma işlemi tamamlandı..."]; 
     
+    
+    [[LocalDatabase sharedInstance] alterAndCreateTables]; // Extraction işlemi mevcut veritabanını eziyor. Değişikliklerin yeniden yapılması için
+                                                           // bu metod yeniden çağırılıyor.
+    
     [appDelegate.viewController refreshLibraryView];
     [appDelegate.viewController startSyncService:kSyncServiceTypeHomeworkSync];
 }

@@ -499,6 +499,18 @@
  
     [self updateQuizAnswers]; // Load quiz answers from database and update library.
 
+    // Remove tmp backup data
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDir = [paths objectAtIndex:0];
+    directoryPath = [[NSString stringWithFormat:@"%@/%@", documentsDir, [[fileName componentsSeparatedByString:@"."] objectAtIndex:0] ] retain];
+    
+    NSError *error;
+    if([[NSFileManager defaultManager] fileExistsAtPath:directoryPath])
+    {
+        [[NSFileManager defaultManager] removeItemAtPath:directoryPath error:&error];
+    }
+    
+    
     [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
     
     [((LibraryView*) appDelegate.viewController) performSelectorOnMainThread:@selector(refreshDate:) withObject:[NSDate date] waitUntilDone:YES];

@@ -164,7 +164,6 @@ void MyReachabilityCallback(
 
 
 - (void) screenDidConnect:(NSNotification *)aNotification{
-    NSLog(@"A new screen got connected: %@", [aNotification object]);
     [blackScreen setMessage:@"Bu uygulama monitör bağlantısı ile çalışmaz..."];
     [self.viewController.view addSubview:blackScreen];
 
@@ -172,14 +171,14 @@ void MyReachabilityCallback(
 
 
 - (void) screenDidDisconnect:(NSNotification *)aNotification{
-    NSLog(@"A screen got disconnected: %@", [aNotification object]);
-    [blackScreen removeFromSuperview];
+    if( [UIScreen screens].count == 1)
+    {
+        [blackScreen removeFromSuperview];
+    }
 }
 
 - (void) screenModeDidChange:(NSNotification *)aNotification{
-    UIScreen *someScreen = [aNotification object];
-    NSLog(@"The screen mode for a screen did change: %@", [someScreen currentMode]);
-    
+
 }
 
 
@@ -266,14 +265,21 @@ void handleException(NSException *exception)
 
 }
 
+
+
+
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    
+    
+    
+    NSLog(@"didFinishLaunchingWithOptions entered...");
+    
     if ([[ConfigurationManager getConfigurationValueForKey:@"EXCEPTION_ENABLED"] intValue]){
         NSSetUncaughtExceptionHandler(&handleException);
     }
     
-     
-
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     [center addObserver:self selector:@selector(screenDidConnect:) name:UIScreenDidConnectNotification object:nil];
     [center addObserver:self selector:@selector(screenDidDisconnect:) name:UIScreenDidDisconnectNotification object:nil];
@@ -298,10 +304,8 @@ void handleException(NSException *exception)
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizFinishHandler alloc] init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourParametersHandler alloc]init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourUpdateSessionHandler alloc]init] autorelease]];
-    
      
-     self.state = kAppStateIdle;
-    
+    self.state = kAppStateIdle;
     
     Session *tSession = [[Session alloc] init];
     self.session = tSession;
@@ -312,10 +316,12 @@ void handleException(NSException *exception)
     
     [self.window makeKeyAndVisible];
 
-    LocationService *locationService = [[LocationService alloc] init];
     blackScreen = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-    [locationService startService];
-    
+
+    if( [UIScreen screens].count > 1)
+    {
+        [self screenDidConnect:nil];
+    }
     
     self.duration = 0;
     self.bgDuration=0;
@@ -328,6 +334,8 @@ void handleException(NSException *exception)
     NSLog(@"Registering for push notifications...");    
     [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
 
+    
+    NSLog(@"exit");
     return YES;
 }
 
@@ -447,8 +455,9 @@ void handleException(NSException *exception)
 - (void)applicationWillResignActive:(UIApplication *)application
 {    
     NSLog(@"App is not active");
- 
-    /*
+    self.backgroundTime = [NSDate date];
+  
+   /*
      Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
      Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
      */
@@ -468,11 +477,11 @@ void handleException(NSException *exception)
         
     }
     
-    [DeviceLog deviceLog:@"appMovedBackground" withLecture:nil withContentType:nil withGuid:nil withDate:[NSDate date]];
+    [DeviceLog deviceLog:@"appMovedBackground" withLecture:nil withContentType:nil withGuid:self.appGuid withDate:[NSDate date]];
     
-    duration = [[NSDate date] timeIntervalSinceDate:currentTime] - bgDuration;
+    duration = [[NSDate date] timeIntervalSinceDate:self.currentTime] - self.bgDuration;
     
-    [DeviceLog updateDurationTime:duration withGuid:appGuid withDate:currentTime];
+    [DeviceLog updateDurationTime:duration withGuid:self.appGuid withDate:currentTime];
     self.backgroundTime = [NSDate date]; 
 }
 
@@ -490,9 +499,9 @@ void handleException(NSException *exception)
         [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
     }
     
-    [DeviceLog deviceLog:@"appMovedForeground" withLecture:nil withContentType:nil withGuid:nil withDate:[NSDate date]];
+    [DeviceLog deviceLog:@"appMovedForeground" withLecture:nil withContentType:nil withGuid:self.appGuid withDate:[NSDate date]];
     
-    self.bgDuration = [[NSDate date] timeIntervalSinceDate:backgroundTime] + bgDuration;
+    bgDuration = [[NSDate date] timeIntervalSinceDate:self.backgroundTime] + bgDuration;
     
 }
 
@@ -500,7 +509,10 @@ void handleException(NSException *exception)
 {
        
     NSLog(@"App did enter active mode");
-    
+    if (self.backgroundTime) {
+        bgDuration = [[NSDate date] timeIntervalSinceDate:self.backgroundTime] + bgDuration;
+    }
+
     /*
      Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
      */
@@ -509,10 +521,10 @@ void handleException(NSException *exception)
 - (void)applicationWillTerminate:(UIApplication *)application
 {
     
-    [DeviceLog deviceLog:@"appTerminated" withLecture:nil withContentType:nil withGuid:nil withDate:[NSDate date]];
+    [DeviceLog deviceLog:@"appTerminated" withLecture:nil withContentType:nil withGuid:self.appGuid withDate:[NSDate date]];
      
-    duration = [[NSDate date] timeIntervalSinceDate:currentTime] - bgDuration;
-    [DeviceLog updateDurationTime:duration withGuid:appGuid withDate:currentTime];
+    duration = [[NSDate date] timeIntervalSinceDate:self.currentTime] - bgDuration;
+    [DeviceLog updateDurationTime:duration withGuid:self.appGuid withDate:currentTime];
     
     NSLog(@"App will be terminated");
     exitingApp = YES;
@@ -538,6 +550,7 @@ void handleException(NSException *exception)
 {
     #if TARGET_IPHONE_SIMULATOR
         return @"11111-22222-33333-44444-55555";
+
     #else
         return [[UIDevice currentDevice] uniqueIdentifier];
     #endif  

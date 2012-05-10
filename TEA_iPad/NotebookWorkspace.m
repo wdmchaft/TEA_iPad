@@ -71,6 +71,9 @@
 
 - (void) deleteNotebookCover:(NotebookCover*) pCover
 {
+    NSString *deleteSQL = [NSString stringWithFormat:@"delete from notebook_library where notebook_guid = '%@'", pCover.notebookGuid];
+    [[LocalDatabase sharedInstance] executeQuery:deleteSQL];
+    
     [notebookCovers removeObject:pCover];
     [self saveWorkspace];
     [self loadWorkspace];
