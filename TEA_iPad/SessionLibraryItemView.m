@@ -420,10 +420,11 @@
     itemGuidArray = [[[LocalDatabase sharedInstance] executeQuery:selectSQL returnSimpleArray:YES] retain];
 
     if ([itemGuidArray containsObject:guid]) {
-        notebookAnchor = [[UIButton alloc] initWithFrame:CGRectMake(83, 0, 20, 20)];
-        [[notebookAnchor layer] setCornerRadius:8];
+        notebookAnchor = [[UIButton alloc] initWithFrame:CGRectMake(80, -5, 30, 30)];
+       // [[notebookAnchor layer] setCornerRadius:8];
         [notebookAnchor addTarget:self action:@selector(notebookAnchorButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-        [notebookAnchor setBackgroundColor:[UIColor blackColor]];
+      //  [notebookAnchor setBackgroundColor:[UIColor blackColor]];
+        [notebookAnchor setBackgroundImage:[UIImage imageNamed:@"Anchor.png"] forState:UIControlStateNormal];
         [self addSubview:notebookAnchor];
         [notebookAnchor setTag:[itemGuidArray indexOfObject:guid]];
 
@@ -475,8 +476,7 @@
         [parser release];
 
         [notebook release];
-        
-        [appDelegate.viewController refreshDate:appDelegate.viewController.selectedDayOfLibrary];
+
         
     }
 

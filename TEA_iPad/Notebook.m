@@ -10,6 +10,7 @@
 #import "LocalDatabase.h"
 #import "DWViewItem.h"
 #import "DWViewItemLlibraryItemClip.h"
+#import "TEA_iPadAppDelegate.h"
 
 @implementation Notebook
 
@@ -141,6 +142,8 @@
 - (void) notebookClose
 {
     
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
     // save notebook
     NSString *notebookXML = [self getInitialXMLString];
     NSData *data = [notebookXML dataUsingEncoding:NSUTF8StringEncoding];
@@ -162,6 +165,9 @@
     
     state = kStateClosed;
     currentPageIndex = 0;
+    
+    [appDelegate.viewController initSessionNames];
+
 }
 
 - (void) notebookOpen:(NSString*)guid

@@ -164,7 +164,6 @@ void MyReachabilityCallback(
 
 
 - (void) screenDidConnect:(NSNotification *)aNotification{
-    NSLog(@"A new screen got connected: %@", [aNotification object]);
     [blackScreen setMessage:@"Bu uygulama monitör bağlantısı ile çalışmaz..."];
     [self.viewController.view addSubview:blackScreen];
 
@@ -172,14 +171,14 @@ void MyReachabilityCallback(
 
 
 - (void) screenDidDisconnect:(NSNotification *)aNotification{
-    NSLog(@"A screen got disconnected: %@", [aNotification object]);
-    [blackScreen removeFromSuperview];
+    if( [UIScreen screens].count == 1)
+    {
+        [blackScreen removeFromSuperview];
+    }
 }
 
 - (void) screenModeDidChange:(NSNotification *)aNotification{
-    UIScreen *someScreen = [aNotification object];
-    NSLog(@"The screen mode for a screen did change: %@", [someScreen currentMode]);
-    
+
 }
 
 
@@ -266,14 +265,21 @@ void handleException(NSException *exception)
 
 }
 
+
+
+
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    
+    
+    
+    NSLog(@"didFinishLaunchingWithOptions entered...");
+    
     if ([[ConfigurationManager getConfigurationValueForKey:@"EXCEPTION_ENABLED"] intValue]){
         NSSetUncaughtExceptionHandler(&handleException);
     }
     
-     
-
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     [center addObserver:self selector:@selector(screenDidConnect:) name:UIScreenDidConnectNotification object:nil];
     [center addObserver:self selector:@selector(screenDidDisconnect:) name:UIScreenDidDisconnectNotification object:nil];
@@ -298,10 +304,8 @@ void handleException(NSException *exception)
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizFinishHandler alloc] init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourParametersHandler alloc]init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourUpdateSessionHandler alloc]init] autorelease]];
-    
      
-     self.state = kAppStateIdle;
-    
+    self.state = kAppStateIdle;
     
     Session *tSession = [[Session alloc] init];
     self.session = tSession;
@@ -312,10 +316,12 @@ void handleException(NSException *exception)
     
     [self.window makeKeyAndVisible];
 
-    LocationService *locationService = [[LocationService alloc] init];
     blackScreen = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-    [locationService startService];
-    
+
+    if( [UIScreen screens].count > 1)
+    {
+        [self screenDidConnect:nil];
+    }
     
     self.duration = 0;
     self.bgDuration=0;
@@ -328,6 +334,8 @@ void handleException(NSException *exception)
     NSLog(@"Registering for push notifications...");    
     [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
 
+    
+    NSLog(@"exit");
     return YES;
 }
 
@@ -544,8 +552,8 @@ void handleException(NSException *exception)
 - (NSString *) getDeviceUniqueIdentifier
 {
     #if TARGET_IPHONE_SIMULATOR
-//        return @"11111-22222-33333-44444-55555";
-        return @"ertan-simulator";
+        return @"11111-22222-33333-44444-55555";
+//        return @"ertan-simulator";
     #else
         return [[UIDevice currentDevice] uniqueIdentifier];
     #endif  

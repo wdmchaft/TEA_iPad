@@ -843,6 +843,10 @@
     [rightSwipe release];
     
     
+    // Start location service
+    LocationService *locationService = [[LocationService alloc] init];
+    [locationService startService];
+    
     self.globalSyncView = [[[GlobalSync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)] autorelease];
     [self.view addSubview:self.globalSyncView];
 }

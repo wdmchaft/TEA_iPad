@@ -332,6 +332,8 @@
         
         [editModeSwitch setOn:YES];
         [self editModeOnOffChanged:editModeSwitch];
+        
+        
     }
 }
 

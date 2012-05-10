@@ -475,6 +475,9 @@
 		015D625D1524D163004AC27F /* DWDrawingViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 015D62611524D163004AC27F /* DWDrawingViewController.xib */; };
 		015D625E1524D163004AC27F /* DWDrawingViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 015D62611524D163004AC27F /* DWDrawingViewController.xib */; };
 		015D625F1524D163004AC27F /* DWDrawingViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 015D62611524D163004AC27F /* DWDrawingViewController.xib */; };
+		01621A9C155910620022104B /* CustomAlert.m in Sources */ = {isa = PBXBuildFile; fileRef = 01621A9B155910620022104B /* CustomAlert.m */; };
+		01621A9D155910620022104B /* CustomAlert.m in Sources */ = {isa = PBXBuildFile; fileRef = 01621A9B155910620022104B /* CustomAlert.m */; };
+		01621A9E155910620022104B /* CustomAlert.m in Sources */ = {isa = PBXBuildFile; fileRef = 01621A9B155910620022104B /* CustomAlert.m */; };
 		0166488714169D4E00DF6FCC /* NotebookParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 0166488614169D4E00DF6FCC /* NotebookParser.m */; };
 		016648B8141762F100DF6FCC /* QuizViewer.m in Sources */ = {isa = PBXBuildFile; fileRef = 016648B6141762F100DF6FCC /* QuizViewer.m */; };
 		016648B9141762F100DF6FCC /* QuizViewer.xib in Resources */ = {isa = PBXBuildFile; fileRef = 016648B7141762F100DF6FCC /* QuizViewer.xib */; };
@@ -671,6 +674,9 @@
 		01BA6D9414C18C0A008082EF /* LibraryHomeworkItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 01BA6D9314C18C0A008082EF /* LibraryHomeworkItem.m */; };
 		01BA6D9514C18C0A008082EF /* LibraryHomeworkItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 01BA6D9314C18C0A008082EF /* LibraryHomeworkItem.m */; };
 		01BA6D9614C18C0A008082EF /* LibraryHomeworkItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 01BA6D9314C18C0A008082EF /* LibraryHomeworkItem.m */; };
+		01BF5FC4155BB4B900AB53FE /* Anchor.png in Resources */ = {isa = PBXBuildFile; fileRef = 01BF5FC3155BB4B900AB53FE /* Anchor.png */; };
+		01BF5FC5155BB4B900AB53FE /* Anchor.png in Resources */ = {isa = PBXBuildFile; fileRef = 01BF5FC3155BB4B900AB53FE /* Anchor.png */; };
+		01BF5FC6155BB4B900AB53FE /* Anchor.png in Resources */ = {isa = PBXBuildFile; fileRef = 01BF5FC3155BB4B900AB53FE /* Anchor.png */; };
 		01C2752D1482D1ED00051D43 /* SyncBG.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 01C2752C1482D1ED00051D43 /* SyncBG.jpg */; };
 		01C2752E1482D1F500051D43 /* SyncBG.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 01C2752C1482D1ED00051D43 /* SyncBG.jpg */; };
 		01C2752F1482D1F600051D43 /* SyncBG.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 01C2752C1482D1ED00051D43 /* SyncBG.jpg */; };
@@ -1033,6 +1039,8 @@
 		015D62601524D163004AC27F /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/DWDrawingViewController.xib; sourceTree = "<group>"; };
 		015D62621524D168004AC27F /* tr */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = tr; path = tr.lproj/DWDrawingViewController.xib; sourceTree = "<group>"; };
 		015D62631524D16B004AC27F /* cs */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = cs; path = cs.lproj/DWDrawingViewController.xib; sourceTree = "<group>"; };
+		01621A9A155910620022104B /* CustomAlert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CustomAlert.h; sourceTree = "<group>"; };
+		01621A9B155910620022104B /* CustomAlert.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CustomAlert.m; sourceTree = "<group>"; };
 		0166488514169D4E00DF6FCC /* NotebookParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NotebookParser.h; sourceTree = "<group>"; };
 		0166488614169D4E00DF6FCC /* NotebookParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NotebookParser.m; sourceTree = "<group>"; };
 		016648B5141762F100DF6FCC /* QuizViewer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QuizViewer.h; sourceTree = "<group>"; };
@@ -1164,6 +1172,7 @@
 		01BA6D8E14C0B0E8008082EF /* HomeworkBG.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = HomeworkBG.jpg; sourceTree = "<group>"; };
 		01BA6D9214C18C0A008082EF /* LibraryHomeworkItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LibraryHomeworkItem.h; sourceTree = "<group>"; };
 		01BA6D9314C18C0A008082EF /* LibraryHomeworkItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LibraryHomeworkItem.m; sourceTree = "<group>"; };
+		01BF5FC3155BB4B900AB53FE /* Anchor.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Anchor.png; sourceTree = "<group>"; };
 		01C24135150FA43C00081EF8 /* cs */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = cs; path = cs.lproj/Localizable.strings; sourceTree = "<group>"; };
 		01C24136150FA4A500081EF8 /* cs */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = cs; path = cs.lproj/NotebookAddView.xib; sourceTree = "<group>"; };
 		01C2752C1482D1ED00051D43 /* SyncBG.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = SyncBG.jpg; sourceTree = "<group>"; };
@@ -1562,6 +1571,7 @@
 		011FE7A11475323C00124636 /* Service */ = {
 			isa = PBXGroup;
 			children = (
+				01621A98155910500022104B /* CustomAlert */,
 				01FE088914F2822200CA5F1A /* Obscufator */,
 				011FE7B714754E1800124636 /* TouchJSON */,
 				0176194D146289A70016A2B3 /* Config */,
@@ -1753,6 +1763,15 @@
 				011C106B13F55982006ED100 /* Session.m */,
 			);
 			name = Model;
+			sourceTree = "<group>";
+		};
+		01621A98155910500022104B /* CustomAlert */ = {
+			isa = PBXGroup;
+			children = (
+				01621A9A155910620022104B /* CustomAlert.h */,
+				01621A9B155910620022104B /* CustomAlert.m */,
+			);
+			name = CustomAlert;
 			sourceTree = "<group>";
 		};
 		0166488214169CE500DF6FCC /* Parser */ = {
@@ -2001,6 +2020,7 @@
 		01AF489213FBB42200A6021E /* Image */ = {
 			isa = PBXGroup;
 			children = (
+				01BF5FC3155BB4B900AB53FE /* Anchor.png */,
 				01105451150D41CB00C1595B /* LibraryItemQuestionCorrect.png */,
 				01105452150D41CB00C1595B /* LibraryItemQuestionEmpty.png */,
 				01105453150D41CB00C1595B /* LibraryItemQuestionWrong.png */,
@@ -2540,6 +2560,7 @@
 				01B2323C153FED66005B83D4 /* HWAnswerSheetQuestionCorrectAnswer.png in Resources */,
 				01B2323F153FED66005B83D4 /* HWAnswerSheetQuestionWrongAnswer.png in Resources */,
 				0127152115469E6D00DEE300 /* AdminPanel.xib in Resources */,
+				01BF5FC5155BB4B900AB53FE /* Anchor.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2686,6 +2707,7 @@
 				01B2323D153FED66005B83D4 /* HWAnswerSheetQuestionCorrectAnswer.png in Resources */,
 				01B23240153FED66005B83D4 /* HWAnswerSheetQuestionWrongAnswer.png in Resources */,
 				0127152215469E6D00DEE300 /* AdminPanel.xib in Resources */,
+				01BF5FC6155BB4B900AB53FE /* Anchor.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2833,6 +2855,7 @@
 				01B2323B153FED66005B83D4 /* HWAnswerSheetQuestionCorrectAnswer.png in Resources */,
 				01B2323E153FED66005B83D4 /* HWAnswerSheetQuestionWrongAnswer.png in Resources */,
 				0127152015469E6D00DEE300 /* AdminPanel.xib in Resources */,
+				01BF5FC4155BB4B900AB53FE /* Anchor.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2981,6 +3004,7 @@
 				01B23244153FF1C5005B83D4 /* SyncUploadiPadDataService.m in Sources */,
 				0127151E15469E6D00DEE300 /* AdminPanel.m in Sources */,
 				01C7D6821548213200A6A14F /* GlobalSync.m in Sources */,
+				01621A9D155910620022104B /* CustomAlert.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3126,6 +3150,7 @@
 				01B23245153FF1C5005B83D4 /* SyncUploadiPadDataService.m in Sources */,
 				0127151F15469E6D00DEE300 /* AdminPanel.m in Sources */,
 				01C7D6831548213200A6A14F /* GlobalSync.m in Sources */,
+				01621A9E155910620022104B /* CustomAlert.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3271,6 +3296,7 @@
 				01B23243153FF1C5005B83D4 /* SyncUploadiPadDataService.m in Sources */,
 				0127151D15469E6D00DEE300 /* AdminPanel.m in Sources */,
 				01C7D6811548213200A6A14F /* GlobalSync.m in Sources */,
+				01621A9C155910620022104B /* CustomAlert.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
