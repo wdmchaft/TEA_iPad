@@ -18,7 +18,10 @@
     NSMutableArray *pageObjects;
     
     BOOL edited;
+    int notebookPage;
 }
+
+@property (nonatomic, assign) int notebookPage;
 
 @property (nonatomic, assign) Notebook *notebook;
 @property (nonatomic, assign) BOOL edited;

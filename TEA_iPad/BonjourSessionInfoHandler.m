@@ -37,6 +37,12 @@
     appDelegate.session.sessionTeacherName = [aMessage.userData valueForKey:@"teacherName"];
     appDelegate.session.dateInfo = [aMessage.userData valueForKey:@"dateinfo"];
     
+    appDelegate.session.quizPromptTitle = [aMessage.userData valueForKey:@"quizPromptTitle"];
+    appDelegate.session.quizPromptBGColor = [aMessage.userData valueForKey:@"quizPromptBGColor"];
+    appDelegate.session.quizPromptCancelTitle = [aMessage.userData valueForKey:@"quizPromptCancelTitle"];
+    appDelegate.session.quizPromptOKTitle = [aMessage.userData valueForKey:@"quizPromptOKTitle"];
+    appDelegate.session.quizPromptTextColor = [aMessage.userData valueForKey:@"quizPromptTextColor"];
+    
     // Get configuration values from server.
     NSDictionary *iPadConfigDictionary = [aMessage.userData objectForKey:@"iPadConfig"];
     [ConfigurationManager setConfigurationValue:iPadConfigDictionary forKey:@"iPadConfig"];

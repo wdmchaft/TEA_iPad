@@ -30,162 +30,150 @@ static LocalDatabase *sharedInstance;
 }
 
 
+- (void) alterAndCreateTables
+{
+    // Check userlog table
+    NSString *userLogTableCheck = @"SELECT name FROM sqlite_master WHERE name='userlog'";
+    NSArray *userLogTableResult = [self executeQuery:userLogTableCheck];
+    if(!userLogTableResult || [userLogTableResult count] <= 0)
+    {
+        NSString *messageTableCreate = @"CREATE TABLE userlog (deviceid TEXT, system_version TEXT, version TEXT, session_name TEXT, session_guid TEXT, battery_life TEXT, message TEXT, log TEXT);";
+        [self executeQuery:messageTableCreate];
+    }
+    
+    // Check system messages table
+    NSString *systemMessagesCheck = @"SELECT name FROM sqlite_master WHERE name='system_messages'";
+    NSArray *systemMessagesTableResult = [self executeQuery:systemMessagesCheck];
+    if(!systemMessagesTableResult || [systemMessagesTableResult count] <= 0)
+    {
+        NSString *systemMessagesCreate = @"CREATE TABLE system_messages (guid TEXT, date TEXT, type TEXT, deleted TEXT);";
+        [self executeQuery:systemMessagesCreate];
+    }
+    else 
+    {
+        
+        NSArray *columnExistsResult = [self executeQuery:@"SELECT sql FROM sqlite_master where name='system_messages' and sql like '%deleted%'"]; // check column exists.
+        
+        if([columnExistsResult count] <= 0)
+        {
+            NSString *systemMessagesAlterTable = @"ALTER TABLE system_messages ADD deleted CHAR(25) NULL;";
+            [self executeQuery:systemMessagesAlterTable];
+            
+            NSString *updateSystemMessages = @"update system_messages set deleted='0' where deleted is NULL";
+            [self executeQuery:updateSystemMessages];
+        }
+    }
+    
+    // Check homework table
+    NSString *homeworkTableCheck = @"SELECT name FROM sqlite_master WHERE name='homework'";
+    NSArray *homeworkTableResult = [self executeQuery:homeworkTableCheck];
+    if(!homeworkTableResult || [homeworkTableResult count] <= 0)
+    {
+        NSString *homeworkTableCreate = @"CREATE TABLE homework (guid TEXT, lecture_id TEXT, name TEXT, type TEXT, date TEXT, file TEXT, delivered TEXT, total_time TEXT, deleted TEXT);";
+        [self executeQuery:homeworkTableCreate];
+    }
+    else 
+    {
+        NSArray *columnExistsResult = [self executeQuery:@"SELECT sql FROM sqlite_master where name='homework' and sql like '%deleted%'"]; // check column exists.
+        
+        if([columnExistsResult count] <= 0)
+        {
+            NSString *homeworkTableCreate = @"ALTER TABLE homework ADD deleted CHAR(25) NULL;";
+            [self executeQuery:homeworkTableCreate];
+        }
+        
+    }
+    
+    // Check homework asnwers table
+    NSString *homeworkAnswersCheck = @"SELECT name FROM sqlite_master WHERE name='homework_answer'";
+    NSArray *homeworkAnswerTableResult = [self executeQuery:homeworkAnswersCheck];
+    if(!homeworkAnswerTableResult || [homeworkAnswerTableResult count] <= 0)
+    {
+        NSString *homeworkAnswerTableCreate = @"CREATE TABLE homework_answer (homework TEXT, question TEXT, answer TEXT, correct_answer TEXT, time TEXT);";
+        [self executeQuery:homeworkAnswerTableCreate];
+    }
+    else 
+    {
+        NSArray *columnExistsResult = [self executeQuery:@"SELECT sql FROM sqlite_master where name='homework_answer' and sql like '%time%'"]; // check column exists.
+        
+        if([columnExistsResult count] <= 0)
+        {
+            NSString *homeworkAnswerAlterTable = @"ALTER TABLE homework_answer ADD time CHAR(25) NULL;";
+            [self executeQuery:homeworkAnswerAlterTable];
+        }
+        
+    }
+    
+    
+    // Check Device Log table
+    NSString *deviceLogTableCheck = @"SELECT name FROM sqlite_master WHERE name='device_log'";
+    NSArray *deviceLogTableResult = [self executeQuery:deviceLogTableCheck];
+    if (!deviceLogTableResult || [deviceLogTableResult count]<= 0) 
+    {
+        NSString *deviceLogTableCreate = @"CREATE TABLE device_log (device_id TEXT, system_version TEXT, version TEXT, key TEXT, lecture TEXT, content_type TEXT, time TEXT, data TEXT, lat TEXT, long TEXT, duration TEXT, guid TEXT, session_name TEXT);";
+        [self executeQuery:deviceLogTableCreate];
+    }
+    else 
+    {
+        NSString *deviceLogAlterTable=@"";
+        NSArray *columnExistsResult = [self executeQuery:@"SELECT sql FROM sqlite_master where name='device_log' and sql like '%duration%'"]; // check column exists.
+        if([columnExistsResult count] <= 0)
+        {
+            deviceLogAlterTable = @"ALTER TABLE device_log ADD duration CHAR(25) NULL;";
+            [self executeQuery:deviceLogAlterTable];
+        }
+        
+        columnExistsResult = [self executeQuery:@"SELECT sql FROM sqlite_master where name='device_log' and sql like '%guid%'"]; // check column exists.
+        if([columnExistsResult count] <= 0)
+        {
+            deviceLogAlterTable = @"ALTER TABLE device_log ADD guid char(255);";
+            [self executeQuery:deviceLogAlterTable];
+        }
+        
+        columnExistsResult = [self executeQuery:@"SELECT sql FROM sqlite_master where name='device_log' and sql like '%session_name%'"]; // check column exists.
+        if([columnExistsResult count] <= 0)
+        {
+            deviceLogAlterTable = @"ALTER TABLE device_log ADD session_name char(255);";
+            [self executeQuery:deviceLogAlterTable];
+        }
+        
+    }
+    
+    
+    //Check Calendar table
+    NSString *calendarTableCheck = @"SELECT name FROM sqlite_master WHERE name='calendar'";
+    NSArray *calendarTableResult = [self executeQuery:calendarTableCheck];
+    
+    if (!calendarTableResult || [calendarTableResult count]<=0) 
+    {
+        NSString *calendarTableCreate = @"CREATE TABLE calendar (id TEXT, type TEXT, title TEXT, body TEXT, image_name TEXT, image_url TEXT, date_time TEXT, valid_date_time TEXT, alarm_date_time TEXT, repeated TEXT, completed TEXT, homework_ref_id TEXT, alarm_state TEXT, deleted TEXT);";
+        [self executeQuery:calendarTableCreate];
+    }
+    
+    
+    //Check Notebook Library table
+    NSString *notebookLibraryTableCheck = @"SELECT name FROM sqlite_master WHERE name='notebook_library'";
+    NSArray *notebookLibraryTableResult = [self executeQuery:notebookLibraryTableCheck];
+    if (!notebookLibraryTableResult || [notebookLibraryTableResult count]<=0) 
+    {
+        NSString *notebookLibraryTableCreate = @"CREATE TABLE notebook_library (notebook_guid TEXT, library_item_guid TEXT, notebook_page_number TEXT);";
+        [self executeQuery:notebookLibraryTableCreate];
+    }
+
+}
+
 - (void) openDatabase
 {
 
-    NSFileManager *fileManager = [NSFileManager defaultManager];
     NSString *databaseName = @"library.sqlite";
 	NSArray  *documentPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
 	NSString *documentsDir = (NSString*) [documentPaths objectAtIndex:0];
     
-    
-    if(![fileManager fileExistsAtPath:documentsDir])
-    {
-        [fileManager createDirectoryAtPath:documentsDir withIntermediateDirectories:YES attributes:nil error:nil];
-    }
-    
 	NSString *databasePath = [documentsDir stringByAppendingPathComponent:databaseName];
-	BOOL success = [fileManager fileExistsAtPath:databasePath];
-	
-	if(success)
-    {
-    }
-    else
-    {
-        NSString *databasePathFromApp = [[NSBundle mainBundle] pathForResource:@"library" ofType:@"sqlite"];
-        [fileManager copyItemAtPath:databasePathFromApp toPath:databasePath error:nil];
-    }
     
 	if(sqlite3_open([databasePath UTF8String], &database) == SQLITE_OK) 
 	{
-        // Check userlog table
-        NSString *userLogTableCheck = @"SELECT name FROM sqlite_master WHERE name='userlog'";
-        NSArray *userLogTableResult = [self executeQuery:userLogTableCheck];
-        if(!userLogTableResult || [userLogTableResult count] <= 0)
-        {
-            NSString *messageTableCreate = @"CREATE TABLE userlog (deviceid TEXT, system_version TEXT, version TEXT, session_name TEXT, session_guid TEXT, battery_life TEXT, message TEXT, log TEXT);";
-            [self executeQuery:messageTableCreate];
-        }
-        
-        // Check system messages table
-        NSString *systemMessagesCheck = @"SELECT name FROM sqlite_master WHERE name='system_messages'";
-        NSArray *systemMessagesTableResult = [self executeQuery:systemMessagesCheck];
-        if(!systemMessagesTableResult || [systemMessagesTableResult count] <= 0)
-        {
-            NSString *systemMessagesCreate = @"CREATE TABLE system_messages (guid TEXT, date TEXT, type TEXT, deleted TEXT);";
-            [self executeQuery:systemMessagesCreate];
-        }
-        else 
-        {
-            
-            NSArray *columnExistsResult = [self executeQuery:@"SELECT sql FROM sqlite_master where name='system_messages' and sql like '%deleted%'"]; // check column exists.
-            
-            if([columnExistsResult count] <= 0)
-            {
-                NSString *systemMessagesAlterTable = @"ALTER TABLE system_messages ADD deleted CHAR(25) NULL;";
-                [self executeQuery:systemMessagesAlterTable];
                 
-                NSString *updateSystemMessages = @"update system_messages set deleted='0' where deleted is NULL";
-                [self executeQuery:updateSystemMessages];
-            }
-        }
-        
-        // Check homework table
-        NSString *homeworkTableCheck = @"SELECT name FROM sqlite_master WHERE name='homework'";
-        NSArray *homeworkTableResult = [self executeQuery:homeworkTableCheck];
-        if(!homeworkTableResult || [homeworkTableResult count] <= 0)
-        {
-            NSString *homeworkTableCreate = @"CREATE TABLE homework (guid TEXT, lecture_id TEXT, name TEXT, type TEXT, date TEXT, file TEXT, delivered TEXT, total_time TEXT, deleted TEXT);";
-            [self executeQuery:homeworkTableCreate];
-        }
-        else 
-        {
-            NSArray *columnExistsResult = [self executeQuery:@"SELECT sql FROM sqlite_master where name='homework' and sql like '%deleted%'"]; // check column exists.
-            
-            if([columnExistsResult count] <= 0)
-            {
-                NSString *homeworkTableCreate = @"ALTER TABLE homework ADD deleted CHAR(25) NULL;";
-                [self executeQuery:homeworkTableCreate];
-            }
-            
-        }
-        
-        // Check homework asnwers table
-        NSString *homeworkAnswersCheck = @"SELECT name FROM sqlite_master WHERE name='homework_answer'";
-        NSArray *homeworkAnswerTableResult = [self executeQuery:homeworkAnswersCheck];
-        if(!homeworkAnswerTableResult || [homeworkAnswerTableResult count] <= 0)
-        {
-            NSString *homeworkAnswerTableCreate = @"CREATE TABLE homework_answer (homework TEXT, question TEXT, answer TEXT, correct_answer TEXT, time TEXT);";
-            [self executeQuery:homeworkAnswerTableCreate];
-        }
-        else 
-        {
-            NSArray *columnExistsResult = [self executeQuery:@"SELECT sql FROM sqlite_master where name='homework_answer' and sql like '%time%'"]; // check column exists.
-            
-            if([columnExistsResult count] <= 0)
-            {
-                NSString *homeworkAnswerAlterTable = @"ALTER TABLE homework_answer ADD time CHAR(25) NULL;";
-                [self executeQuery:homeworkAnswerAlterTable];
-            }
-            
-        }
-            
-        
-        // Check Device Log table
-        NSString *deviceLogTableCheck = @"SELECT name FROM sqlite_master WHERE name='device_log'";
-        NSArray *deviceLogTableResult = [self executeQuery:deviceLogTableCheck];
-        if (!deviceLogTableResult || [deviceLogTableResult count]<= 0) 
-        {
-            NSString *deviceLogTableCreate = @"CREATE TABLE device_log (device_id TEXT, system_version TEXT, version TEXT, key TEXT, lecture TEXT, content_type TEXT, time TEXT, data TEXT, lat TEXT, long TEXT, duration TEXT, guid TEXT, session_name TEXT);";
-            [self executeQuery:deviceLogTableCreate];
-        }
-        else 
-        {
-            NSString *deviceLogAlterTable=@"";
-            NSArray *columnExistsResult = [self executeQuery:@"SELECT sql FROM sqlite_master where name='device_log' and sql like '%duration%'"]; // check column exists.
-            if([columnExistsResult count] <= 0)
-            {
-                deviceLogAlterTable = @"ALTER TABLE device_log ADD duration CHAR(25) NULL;";
-                [self executeQuery:deviceLogAlterTable];
-            }
-            
-            columnExistsResult = [self executeQuery:@"SELECT sql FROM sqlite_master where name='device_log' and sql like '%guid%'"]; // check column exists.
-            if([columnExistsResult count] <= 0)
-            {
-                deviceLogAlterTable = @"ALTER TABLE device_log ADD guid char(255);";
-                [self executeQuery:deviceLogAlterTable];
-            }
-            
-            columnExistsResult = [self executeQuery:@"SELECT sql FROM sqlite_master where name='device_log' and sql like '%session_name%'"]; // check column exists.
-            if([columnExistsResult count] <= 0)
-            {
-                deviceLogAlterTable = @"ALTER TABLE device_log ADD session_name char(255);";
-                [self executeQuery:deviceLogAlterTable];
-            }
-            
-        }
-        
-      
-        //Check Calendar table
-        NSString *calendarTableCheck = @"SELECT name FROM sqlite_master WHERE name='calendar'";
-        NSArray *calendarTableResult = [self executeQuery:calendarTableCheck];
-        
-        if (!calendarTableResult || [calendarTableResult count]<=0) 
-        {
-            NSString *calendarTableCreate = @"CREATE TABLE calendar (id TEXT, type TEXT, title TEXT, body TEXT, image_name TEXT, image_url TEXT, date_time TEXT, valid_date_time TEXT, alarm_date_time TEXT, repeated TEXT, completed TEXT, homework_ref_id TEXT, alarm_state TEXT, deleted TEXT);";
-            [self executeQuery:calendarTableCreate];
-        }
-        
-        
-        //Check Notebook Library table
-        NSString *notebookLibraryTableCheck = @"SELECT name FROM sqlite_master WHERE name='notebook_library'";
-        NSArray *notebookLibraryTableResult = [self executeQuery:notebookLibraryTableCheck];
-        if (!notebookLibraryTableResult || [notebookLibraryTableResult count]<=0) 
-        {
-            NSString *notebookLibraryTableCreate = @"CREATE TABLE notebook_library (notebook_guid TEXT, library_item_guid TEXT, notebook_page_number TEXT);";
-            [self executeQuery:notebookLibraryTableCreate];
-        }
-        
         
         openDBFinished = YES;
 	}
@@ -203,7 +191,29 @@ static LocalDatabase *sharedInstance;
         if(!sharedInstance)
         {
             sharedInstance = [[LocalDatabase alloc] init];
-            [sharedInstance openDatabase];
+            
+            
+            // Move database file from bundle directory to application's documents directory if it is not exist
+            NSFileManager *fileManager = [NSFileManager defaultManager];
+            NSString *databaseName = @"library.sqlite";
+            NSArray  *documentPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+            NSString *documentsDir = (NSString*) [documentPaths objectAtIndex:0];
+            
+            if(![fileManager fileExistsAtPath:documentsDir])
+            {
+                [fileManager createDirectoryAtPath:documentsDir withIntermediateDirectories:YES attributes:nil error:nil];
+            }
+            
+            NSString *databasePath = [documentsDir stringByAppendingPathComponent:databaseName];
+            BOOL success = [fileManager fileExistsAtPath:databasePath];
+            
+            if(!success)
+            {
+                NSString *databasePathFromApp = [[NSBundle mainBundle] pathForResource:@"library" ofType:@"sqlite"];
+                [fileManager copyItemAtPath:databasePathFromApp toPath:databasePath error:nil];
+            }
+            
+            [sharedInstance alterAndCreateTables];
         }
         
         return sharedInstance;
@@ -236,9 +246,13 @@ static LocalDatabase *sharedInstance;
 {
     @synchronized(self)
     {
-        sqlite3_close(database);
-        database = nil;
-        openDBFinished = NO;
+        if(database)
+        {
+            sqlite3_close(database);
+            database = nil;
+            openDBFinished = NO;
+        }
+        
     }
     
 }
@@ -329,7 +343,8 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
             }
             
             sqlite3_finalize(compiledStatement);
-            
+            [self closeDatabase];
+
             return [returnArray autorelease];
         }
         else 
@@ -339,7 +354,8 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
             [self sendError:dbError];
         }
     }
-    
+    [self closeDatabase];
+
     
     return nil;
 }
@@ -385,6 +401,9 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
             }
             
             sqlite3_finalize(compiledStatement);
+            
+            [self closeDatabase];
+            
             return [returnArray autorelease];
         }
         else 
@@ -394,6 +413,8 @@ int rowCallBack(void *a_param, int argc, char **argv, char **column)
             [self sendError:dbError];
         }
     }
+    
+    [self closeDatabase];
     
     return nil;
 }

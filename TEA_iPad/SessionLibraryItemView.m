@@ -415,14 +415,17 @@
     [self addGestureRecognizer:longPresRec];
     [longPresRec release];
     
+    
+    //add anchor button to library item view
     NSString *selectSQL = [NSString stringWithFormat:@"select library_item_guid from notebook_library"];
     itemGuidArray = [[[LocalDatabase sharedInstance] executeQuery:selectSQL returnSimpleArray:YES] retain];
 
     if ([itemGuidArray containsObject:guid]) {
-        notebookAnchor = [[UIButton alloc] initWithFrame:CGRectMake(83, 0, 20, 20)];
-        [[notebookAnchor layer] setCornerRadius:8];
+        notebookAnchor = [[UIButton alloc] initWithFrame:CGRectMake(80, -5, 30, 30)];
+       // [[notebookAnchor layer] setCornerRadius:8];
         [notebookAnchor addTarget:self action:@selector(notebookAnchorButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-        [notebookAnchor setBackgroundColor:[UIColor blackColor]];
+      //  [notebookAnchor setBackgroundColor:[UIColor blackColor]];
+        [notebookAnchor setBackgroundImage:[UIImage imageNamed:@"Anchor.png"] forState:UIControlStateNormal];
         [self addSubview:notebookAnchor];
         [notebookAnchor setTag:[itemGuidArray indexOfObject:guid]];
 
@@ -432,6 +435,7 @@
         
 }
 
+//anchor button clicked action
 - (IBAction)notebookAnchorButtonClicked:(id)sender
 {
     NSLog(@"notebookAnchorButtonClicked");    
@@ -442,14 +446,21 @@
     if (result && [result count]>0) 
     {
         NSString *notebookGuid;
-        int lastOpenedPage;
+        int lastAddedPage;
         TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
         Notebook *notebook = [[Notebook alloc] init];
         
+        // if result has more then one object, get the last object 
+        if ([result count]>1) {
+            notebookGuid = [[result lastObject] objectForKey:@"notebook_guid"];
+            lastAddedPage = [[[result lastObject] objectForKey:@"notebook_page_number"]intValue];
+        }
+        else {
+            notebookGuid = [[result objectAtIndex:0] objectForKey:@"notebook_guid"];
+            lastAddedPage = [[[result objectAtIndex:0] objectForKey:@"notebook_page_number"]intValue];
+        }
         
-        notebookGuid = [[result objectAtIndex:0] objectForKey:@"notebook_guid"];
-        lastOpenedPage = [[[result objectAtIndex:0] objectForKey:@"notebook_page_number"]intValue];
-        
+                
         [notebook notebookOpen:notebookGuid];
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
         NSString *fileName = [NSString stringWithFormat:@"%@/notebook_%@.xml", [paths objectAtIndex:0], notebookGuid];
@@ -458,7 +469,7 @@
         [parser getNotebookWithXMLData:[NSData dataWithContentsOfFile:fileName]];
         
         appDelegate.viewController.notebook.guid = notebookGuid;
-        appDelegate.viewController.notebook.lastOpenedPage = lastOpenedPage;
+        appDelegate.viewController.notebook.lastOpenedPage = lastAddedPage;
         
         [appDelegate.viewController setNotebookHidden:NO];
         
@@ -466,24 +477,20 @@
         [parser release];
 
         [notebook release];
-        
-        [appDelegate.viewController refreshDate:appDelegate.viewController.selectedDayOfLibrary];
+
         
     }
-    
-}
 
+}
 
 - (void) menuAddToNotebookClicked:(id) sender {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     appDelegate.selectedItemView = self;
 }
 
-
 - (void) menuChangeNameClicked:(id) sender {
     [self changeState:kStateEditMode];
 }
-
 
 - (void) longPress:(UILongPressGestureRecognizer *) gestureRecognizer {
     if ([gestureRecognizer state] == UIGestureRecognizerStateBegan) {
@@ -573,8 +580,7 @@
 
 - (void) logDeviceModule:(NSString*)itemType
 {
-  
-    
+
     NSString *selectSQL = [NSString stringWithFormat:@"select lecture_name from lecture, library, session where library.guid = '%@' and library.session_guid = session.session_guid and session.lecture_guid = lecture.lecture_guid", guid ];
     
     NSArray *result = [[LocalDatabase sharedInstance] executeQuery:selectSQL];
@@ -585,7 +591,6 @@
 
         [DeviceLog deviceLog:@"openedLibraryItems" withLecture:lectureName withContentType:itemType withGuid:guid withDate:[NSDate date]];
     }
-    
     
 }
 
@@ -715,7 +720,6 @@
         sessionView.libraryViewController.currentContentsIndex = self.index;
         sessionView.libraryViewController.displayingSessionContent = YES;
     }
-
 }
 
 /*
@@ -729,12 +733,12 @@
 
 - (void)dealloc
 {
+
     if (itemGuidArray) {
         [itemGuidArray release];
     }
 
-    
-    
+
     if(previewWebView)
     {
         [previewWebView setDelegate:nil];

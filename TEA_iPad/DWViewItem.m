@@ -141,7 +141,7 @@
 
 - (void)dealloc
 {
-    [guid dealloc];
+    [guid release];
     [super dealloc];
 }
 

@@ -159,7 +159,6 @@ void MyReachabilityCallback(
 
 
 - (void) screenDidConnect:(NSNotification *)aNotification{
-    NSLog(@"A new screen got connected: %@", [aNotification object]);
     [blackScreen setMessage:@"Bu uygulama monitör bağlantısı ile çalışmaz..."];
     [self.viewController.view addSubview:blackScreen];
 
@@ -167,14 +166,14 @@ void MyReachabilityCallback(
 
 
 - (void) screenDidDisconnect:(NSNotification *)aNotification{
-    NSLog(@"A screen got disconnected: %@", [aNotification object]);
-    [blackScreen removeFromSuperview];
+    if( [UIScreen screens].count == 1)
+    {
+        [blackScreen removeFromSuperview];
+    }
 }
 
 - (void) screenModeDidChange:(NSNotification *)aNotification{
-    UIScreen *someScreen = [aNotification object];
-    NSLog(@"The screen mode for a screen did change: %@", [someScreen currentMode]);
-    
+
 }
 
 
@@ -223,11 +222,14 @@ void handleException(NSException *exception)
         [alertView show];
         return NO;
     }
+
 #endif
+
     
     if ([[ConfigurationManager getConfigurationValueForKey:@"EXCEPTION_ENABLED"] intValue]){
         NSSetUncaughtExceptionHandler(&handleException);
     }
+
 
     
     application.idleTimerDisabled = YES;
@@ -248,10 +250,8 @@ void handleException(NSException *exception)
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizFinishHandler alloc] init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourParametersHandler alloc]init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourUpdateSessionHandler alloc]init] autorelease]];
-    
      
-     self.state = kAppStateIdle;
-    
+    self.state = kAppStateIdle;
     
     Session *tSession = [[Session alloc] init];
     self.session = tSession;
@@ -261,7 +261,6 @@ void handleException(NSException *exception)
     [[self viewController] release];
     
     [self.window makeKeyAndVisible];
-
 
     
 
@@ -347,8 +346,9 @@ void handleException(NSException *exception)
 - (void)applicationWillResignActive:(UIApplication *)application
 {    
     NSLog(@"App is not active");
- 
-    /*
+    self.backgroundTime = [NSDate date];
+  
+   /*
      Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
      Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
      */
@@ -388,14 +388,16 @@ void handleException(NSException *exception)
       //  [DeviceLog deviceLog:@"appMovedForeground" withLecture:nil withContentType:nil];
     }
 
-
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
        
     NSLog(@"App did enter active mode");
-    
+    if (self.backgroundTime) {
+        bgDuration = [[NSDate date] timeIntervalSinceDate:self.backgroundTime] + bgDuration;
+    }
+
     /*
      Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
      */
@@ -429,8 +431,8 @@ void handleException(NSException *exception)
 - (NSString *) getDeviceUniqueIdentifier
 {
     #if TARGET_IPHONE_SIMULATOR
-//        return @"11111-22222-33333-44444-55555";
-        return @"ertan-simulator";
+        return @"11111-22222-33333-44444-55555";
+//        return @"ertan-simulator";
     #else
         return [[UIDevice currentDevice] uniqueIdentifier];
     #endif  

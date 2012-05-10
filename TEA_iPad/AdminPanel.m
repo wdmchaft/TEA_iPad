@@ -85,10 +85,7 @@
 
 - (void) uploadSyncFile
 {
-    
-    
-    
-    
+
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsDir = [paths objectAtIndex:0];
@@ -133,19 +130,14 @@
             [fileHandle seekToFileOffset:totalSentBytes];
             NSData *data = [fileHandle readDataOfLength:10000000];
             
-            
             [postData appendData: data];
-            
             
             // Add the closing boundry:
             [postData appendData: [[NSString stringWithFormat:@"\r\n--%@--", boundry] dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES]];
-            
-            
-            
+
             NSString *postLength = [NSString stringWithFormat:@"%d", [postData length]];
             
             NSString *uploadURL = [NSString stringWithFormat: @"%@/adminFileUpload.jsp", [ConfigurationManager getConfigurationValueForKey:@"SYNC_URL"]]; 
-            
             
             // Setup the request:
             NSMutableURLRequest *uploadRequest = [[[NSMutableURLRequest alloc]

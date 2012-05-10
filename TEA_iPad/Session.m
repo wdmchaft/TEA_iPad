@@ -11,6 +11,7 @@
 
 @implementation Session
 @synthesize sessionGuid, sessionName, sessionLectureGuid, sessionLectureName, sessionTeacherName, dateInfo;
+@synthesize quizPromptTitle, quizPromptBGColor, quizPromptOKTitle, quizPromptTextColor, quizPromptCancelTitle;
 
 - (id) init
 {
@@ -32,6 +33,12 @@
     [sessionLectureName release];
     [sessionName release];
     [sessionTeacherName release];
+    
+    [quizPromptOKTitle release];
+    [quizPromptBGColor release];
+    [quizPromptCancelTitle release];
+    [quizPromptTextColor release];
+    [quizPromptTitle release];
     
     [super dealloc];
 }
