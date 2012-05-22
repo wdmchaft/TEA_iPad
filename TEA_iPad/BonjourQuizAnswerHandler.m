@@ -24,6 +24,12 @@
     return self;
 }
 
+- (void) updateQuizItem:(NSString*) guid withAnswer:(int) answer
+{
+    NSString *sql = [NSString stringWithFormat:@"update library set quizCorrectAnswer = '%d' where guid = '%@'", answer, guid];
+    [[LocalDatabase sharedInstance] executeQuery:sql];
+}
+
 - (void) handleMessage:(BonjourMessage *)aMessage
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -39,22 +45,69 @@
     NSArray *libraryRows = [[LocalDatabase sharedInstance] executeQuery:sql];
     if(libraryRows && [libraryRows count] > 0)
     {
-       // NSDictionary *library = [libraryRows objectAtIndex:0];
-        //int quizType = [[library valueForKey:@"quizExpType"] intValue];
-        
-       /* if(quizType == 0)  // Delete if true
         {
-            // get
-        }
-        else*/
-        {
-            sql = [NSString stringWithFormat:@"update library set quizCorrectAnswer = '%d' where guid = '%@'", answer, guid];
-            [[LocalDatabase sharedInstance] executeQuery:sql];
+            // get creation date
+            if([aMessage.userData valueForKey:@"creationDate"])
+            {
+                sql = [NSString stringWithFormat:@"select * from library where guid = '%@'",  guid];
+                NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql];
+
+                if(result && [result count] == 1)
+                {
+                    int studentAnswerForQuestion = [[[result objectAtIndex:0] valueForKey:@"quizAnswer"] intValue];
+                    int quizExpType = [[[result objectAtIndex:0] valueForKey:@"quizExpType"] intValue];
+                    if(studentAnswerForQuestion == answer && quizExpType == 0) // delete if true
+                    {
+                        // Show message to student
+                        if(appDelegate.state != kAppStateSyncing)
+                        {
+                            UIAlertView *alertView = [[[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Caution", nil) message:NSLocalizedString(@"DeleteIfTrue", nil) delegate:nil cancelButtonTitle:NSLocalizedString(@"OK", nil) otherButtonTitles:nil, nil] autorelease];
+                            
+                            [alertView show];
+                        }
+ 
+                        // Delete question preview and image
+                        NSString *previewImage = [[result objectAtIndex:0] valueForKey:@"previewPath"];
+                        NSString *quizImage = [[result objectAtIndex:0] valueForKey:@"quizImagePath"];
+
+                        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+                        NSString *documentsDir = [paths objectAtIndex:0];
+                        
+                        NSString *prevImagePath = [NSString stringWithFormat:@"%@/%@", documentsDir, previewImage];
+                        NSString *quizImagePath = [NSString stringWithFormat:@"%@/%@", documentsDir, quizImage];
+
+                        if(previewImage && [previewImage length] > 3)
+                            [[NSFileManager defaultManager] removeItemAtPath:prevImagePath error:nil];
+                        
+                        if(quizImage && [quizImage length] > 3)
+                            [[NSFileManager defaultManager] removeItemAtPath:quizImagePath error:nil];
+
+                        // Delete record
+                        sql = [NSString stringWithFormat:@"delete from library where guid = '%@'",  guid];
+                        
+                        [[LocalDatabase sharedInstance] executeQuery:sql];
+                        
+                    }
+                    else 
+                    {
+                        [self updateQuizItem:guid withAnswer:answer];
+
+                    }
+                }
+                else 
+                {
+                    [self updateQuizItem:guid withAnswer:answer];
+                }
+                
+            }
+            else 
+            {
+                [self updateQuizItem:guid withAnswer:answer];
+            }
+            
         }
     }
-    
-
-    
+ 
     [((LibraryView*) appDelegate.viewController) performSelectorOnMainThread:@selector(refreshDate:) withObject:[NSDate date] waitUntilDone:YES];
     
     [pool release];

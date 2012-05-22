@@ -42,3 +42,4 @@
 "SearchQuestion" = "soru";
 "SearchHomework" = "odev";
 "SearchHomework2" = "Ödev";
+"DeleteIfTrue" = "Your answer is correct. Quiz item will be removed from 'Library'";

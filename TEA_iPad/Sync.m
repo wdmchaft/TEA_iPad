@@ -397,6 +397,48 @@
     
 }
 
+- (void) applyQuizAnswers
+{
+
+    // process every message
+    int totalCount = [fileList count];
+    for(int i=0; i < totalCount; i++)
+    {
+        NSAutoreleasePool *arPool = [[NSAutoreleasePool alloc] init];
+        NSString *localFileName = [[fileList objectAtIndex:i] valueForKey:@"name"];
+
+        NSString *filePath = [NSString stringWithFormat:@"%@/%@", directoryPath, [[localFileName componentsSeparatedByString:@"/"] lastObject]];
+        
+        NSData *bonjourMessageData = [NSData dataWithContentsOfFile:filePath];
+        if(bonjourMessageData)
+        {
+            NSDictionary *bonjourMessageDict = [NSPropertyListSerialization propertyListWithData:bonjourMessageData options:NSPropertyListImmutable format:nil error:nil];
+            
+            
+            if (![[[fileList objectAtIndex:i] valueForKey:@"deleted"] intValue]) 
+            {
+                BonjourMessage *aMessage = [[BonjourMessage alloc] init];
+                aMessage.guid = [bonjourMessageDict valueForKey:@"guid"];
+                aMessage.messageType = [[bonjourMessageDict valueForKey:@"messageType"] intValue];
+                aMessage.userData = [bonjourMessageDict valueForKey:@"userData"];
+                
+                BonjouClientDataHandler *dataHandler = [[BonjouClientDataHandler alloc] init];
+                BonjourMessageHandler *handler = [dataHandler findMessageHandlerForMessage:aMessage];
+                                
+                if(aMessage.messageType == kMessageTypeQuizAnswer)
+                {
+                    [handler handleMessage:aMessage];
+                }
+
+                [dataHandler release];
+                [aMessage release];
+            }
+        }
+
+        [arPool release];
+    }
+}
+
 - (void) applySyncing
 {
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
@@ -436,7 +478,7 @@
                     
                     //NSLog(@"Processing file[%d] %@ with handler %@", i, localFileName, NSStringFromClass([handler class]) );
                     
-                    if(aMessage.messageType != kMessageTypePauseQuiz)
+                    if(aMessage.messageType != kMessageTypePauseQuiz && aMessage.messageType != kMessageTypeQuizAnswer)
                     {
                         
                         if(aMessage.messageType != kMessageTypeSessionInfo)
@@ -491,14 +533,17 @@
 
         [arPool release];
     }
-    
-    
-    
+
     // remove sync view...
-    appDelegate.state = previousState;
  
     [self updateQuizAnswers]; // Load quiz answers from database and update library.
 
+    [self applyQuizAnswers];
+    
+    
+    appDelegate.state = previousState;
+
+    
     // Remove tmp backup data
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsDir = [paths objectAtIndex:0];
@@ -509,7 +554,6 @@
     {
         [[NSFileManager defaultManager] removeItemAtPath:directoryPath error:&error];
     }
-    
     
     [appDelegate performSelectorInBackground:@selector(startBonjourBrowser) withObject:nil];
     

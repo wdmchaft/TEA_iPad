@@ -42,3 +42,4 @@
 "SearchQuestion" = "soru";
 "SearchHomework" = "odev";
 "SearchHomework2" = "Ödev";
+"DeleteIfTrue" = "Cevabınız doğru. Gönderilen soru 'Kütüphane' bölümünden kaldırılacaktır.";

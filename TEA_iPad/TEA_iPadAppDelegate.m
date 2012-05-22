@@ -184,8 +184,11 @@ void MyReachabilityCallback(
 
 void handleException(NSException *exception) 
 {
-      
+    
+    
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+    
+    
     
     NSString *iPadAppVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
     NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
