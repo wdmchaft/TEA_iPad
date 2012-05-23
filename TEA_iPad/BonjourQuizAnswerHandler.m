@@ -58,13 +58,6 @@
                     int quizExpType = [[[result objectAtIndex:0] valueForKey:@"quizExpType"] intValue];
                     if(studentAnswerForQuestion == answer && quizExpType == 0) // delete if true
                     {
-                        // Show message to student
-                        if(appDelegate.state != kAppStateSyncing)
-                        {
-                            UIAlertView *alertView = [[[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Caution", nil) message:NSLocalizedString(@"DeleteIfTrue", nil) delegate:nil cancelButtonTitle:NSLocalizedString(@"OK", nil) otherButtonTitles:nil, nil] autorelease];
-                            
-                            [alertView show];
-                        }
  
                         // Delete question preview and image
                         NSString *previewImage = [[result objectAtIndex:0] valueForKey:@"previewPath"];
