@@ -317,6 +317,11 @@
     {
         DWViewItemLlibraryItemClip *viewItemWebClip = [[DWViewItemLlibraryItemClip alloc] initWithFrame:CGRectMake(150, 15, 200, 200)];
         
+        if (!viewItemWebClip.htmlString) {
+            [viewItemWebClip release];
+            return;
+        }
+        
         int pageIndex = appDelegate.viewController.notebook.currentPageIndex - 1;
         NotebookPage *page = (NotebookPage*) [appDelegate.viewController.notebook.pages objectAtIndex:pageIndex];
         [page.pageObjects addObject:viewItemWebClip];
@@ -327,6 +332,8 @@
         
         [editModeSwitch setOn:YES];
         [self editModeOnOffChanged:editModeSwitch];
+        
+        
     }
 }
 

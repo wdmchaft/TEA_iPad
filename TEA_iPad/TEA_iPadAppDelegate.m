@@ -45,6 +45,7 @@
 @synthesize window=_window, bonjourBrowser, session, state, connectedHost, guestEnterNumber;
 @synthesize currentQuizWindow;
 @synthesize viewController=_viewController, bonjourBrowserThread, selectedItemView, notificationArray;
+@synthesize duration, bgDuration, backgroundTime, currentTime, appGuid;
 
 void PrintReachabilityFlags(
                             const char *                hostname, 
@@ -117,6 +118,8 @@ void MyReachabilityCallback(
 
 - (void) startBonjourBrowser
 {
+     [self.viewController.globalSyncView setHidden:YES];
+    
     NSLog(@"bonjour browser started!!!! ");
     
     NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
@@ -129,6 +132,7 @@ void MyReachabilityCallback(
     [pool release];
     
     NSLog(@"Bonjur service started...");
+   
 }
 
 - (void) restartBonjourBrowser
@@ -160,7 +164,6 @@ void MyReachabilityCallback(
 
 
 - (void) screenDidConnect:(NSNotification *)aNotification{
-    NSLog(@"A new screen got connected: %@", [aNotification object]);
     [blackScreen setMessage:@"Bu uygulama monitör bağlantısı ile çalışmaz..."];
     [self.viewController.view addSubview:blackScreen];
 
@@ -168,14 +171,14 @@ void MyReachabilityCallback(
 
 
 - (void) screenDidDisconnect:(NSNotification *)aNotification{
-    NSLog(@"A screen got disconnected: %@", [aNotification object]);
-    [blackScreen removeFromSuperview];
+    if( [UIScreen screens].count == 1)
+    {
+        [blackScreen removeFromSuperview];
+    }
 }
 
 - (void) screenModeDidChange:(NSNotification *)aNotification{
-    UIScreen *someScreen = [aNotification object];
-    NSLog(@"The screen mode for a screen did change: %@", [someScreen currentMode]);
-    
+
 }
 
 
@@ -184,7 +187,7 @@ void handleException(NSException *exception)
       
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
-    NSString *iPadAppVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
+    NSString *iPadAppVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
     NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
     NSString *subject = [NSString stringWithFormat:@"[iPad ERROR] %@ - %@ - %@", [appDelegate getDeviceUniqueIdentifier],  iPadAppVersion, iPadOSVersion];
     NSString *body =  [NSString stringWithFormat:@"%@ \n\n%@", exception.reason, [exception.callStackSymbols description]]; 
@@ -262,13 +265,19 @@ void handleException(NSException *exception)
 
 }
 
+
+
+
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    if ([[ConfigurationManager getConfigurationValueForKey:@"EXCEPTION_ENABLED"] intValue]){
-        NSSetUncaughtExceptionHandler(&handleException);
-    }
+    
+
  
 /*
+=======
+    
+
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     [center addObserver:self selector:@selector(screenDidConnect:) name:UIScreenDidConnectNotification object:nil];
     [center addObserver:self selector:@selector(screenDidDisconnect:) name:UIScreenDidDisconnectNotification object:nil];
@@ -293,34 +302,38 @@ void handleException(NSException *exception)
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourQuizFinishHandler alloc] init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourParametersHandler alloc]init] autorelease]];
     [handlerManager.bonjourMessageHandlers addObject:[[[BonjourUpdateSessionHandler alloc]init] autorelease]];
-    
      
-     self.state = kAppStateIdle;
-    
+    self.state = kAppStateIdle;
     
     Session *tSession = [[Session alloc] init];
     self.session = tSession;
     [tSession release];
    
     self.window.rootViewController = self.viewController;
+    [[self viewController] release];
+    
     [self.window makeKeyAndVisible];
 
-    LocationService *locationService = [[LocationService alloc] init];
     blackScreen = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-    [locationService startService];
 
+    if( [UIScreen screens].count > 1)
+    {
+        [self screenDidConnect:nil];
+    }
+    
+    self.duration = 0;
+    self.bgDuration=0;
+    self.appGuid = [LocalDatabase stringWithUUID];
+    self.currentTime = [NSDate date];
+    [DeviceLog deviceLog:@"appRunTime" withLecture:nil withContentType:nil withGuid:self.appGuid withDate:self.currentTime];
     
     self.notificationArray = [[NSMutableArray alloc] init];
 
-    
-    NSUserDefaults *userToken = [NSUserDefaults standardUserDefaults];
+    NSLog(@"Registering for push notifications...");    
+    [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
 
-//    if ([userToken stringForKey:@"token"]) 
-    {
-        NSLog(@"Registering for push notifications...");    
-        [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
-    }
     
+    NSLog(@"exit");
     return YES;
 }
 
@@ -328,6 +341,8 @@ void handleException(NSException *exception)
     
     NSString *str = [NSString stringWithFormat:@"Device Token=%@",deviceToken];
     NSLog(@"%@", str);
+    
+    NSString *protocolURL = [ConfigurationManager getConfigurationValueForKey:@"ProtocolRemoteURL"];
     
     NSString *justToken = [NSString stringWithFormat:@"%@",deviceToken];
     justToken = [justToken stringByReplacingOccurrencesOfString:@"<" withString:@""];
@@ -338,10 +353,10 @@ void handleException(NSException *exception)
     
     
     NSString *deviceTokenSQL = [NSString stringWithFormat:@"select device_token from DeviceTokens where device_id = '%@'", [self getDeviceUniqueIdentifier]];
-    NSArray *array = [[DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:deviceTokenSQL]retain];
+    NSArray *array = [[DWDatabase getResultFromURL:[NSURL URLWithString:protocolURL] withSQL:deviceTokenSQL]retain];
     if (!array || ![array count]>0) {
         NSString *insertDeviceTokenSQL = [NSString stringWithFormat:@"insert into DeviceTokens (device_id, device_token) values ('%@', '%@');", [self getDeviceUniqueIdentifier], justToken];
-       [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:insertDeviceTokenSQL];
+       [DWDatabase getResultFromURL:[NSURL URLWithString:protocolURL] withSQL:insertDeviceTokenSQL];
     }
     [array release];
 }
@@ -412,7 +427,7 @@ void handleException(NSException *exception)
             
             for(BonjourClient *client in clientsToRemove)
             {
-                [bonjourBrowser.services removeObject:client];
+                [bonjourBrowser.services removeObject:client.netService];
                 [[bonjourBrowser bonjourServers] removeObject:client];
             }
         }
@@ -438,8 +453,9 @@ void handleException(NSException *exception)
 - (void)applicationWillResignActive:(UIApplication *)application
 {    
     NSLog(@"App is not active");
- 
-    /*
+    self.backgroundTime = [NSDate date];
+  
+   /*
      Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
      Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
      */
@@ -447,8 +463,7 @@ void handleException(NSException *exception)
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
-    NSLog(@"App did enter background");
-    if(!exitingApp)
+    if( !exitingApp && state == kAppStateLogon )
     {
         BonjourMessage *notificationMessage = [[[BonjourMessage alloc] init] autorelease];
         notificationMessage.messageType = kMessageTypeNotificaiton;
@@ -459,39 +474,35 @@ void handleException(NSException *exception)
         [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
         
         
-/***********************************************
-        
-        NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
-        [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
-        NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
-        NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
-        
-        NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-        NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, time) values ('%@','%@','%@','%@','%@')", [self getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"appMovedBackground", dateString];
-        
-        [[LocalDatabase sharedInstance] executeQuery:insertSQL];
-        
-//***********************************************/
-        
-        [DeviceLog deviceLog:@"appMovedBackground" withLecture:nil withContentType:nil];
-        
     }
+    
+    [DeviceLog deviceLog:@"appMovedBackground" withLecture:nil withContentType:nil withGuid:self.appGuid withDate:[NSDate date]];
+    
+    duration = [[NSDate date] timeIntervalSinceDate:self.currentTime] - self.bgDuration;
+    
+    [DeviceLog updateDurationTime:duration withGuid:self.appGuid withDate:currentTime];
+    self.backgroundTime = [NSDate date]; 
 }
+
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
-    NSLog(@"App did enter foreground");
-   
-    BonjourMessage *notificationMessage = [[[BonjourMessage alloc] init] autorelease];
-    notificationMessage.messageType = kMessageTypeNotificaiton;
+    if( state == kAppStateLogon )
+    {
+        BonjourMessage *notificationMessage = [[[BonjourMessage alloc] init] autorelease];
+        notificationMessage.messageType = kMessageTypeNotificaiton;
+        
+        NSMutableDictionary *userData = [[[NSMutableDictionary alloc] init] autorelease];
+        [userData setValue:[NSNumber numberWithInt:kNotificationCodeAppInFg] forKey:@"NotificationCode"];
+        notificationMessage.userData = userData;
+        [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
+        
+        
+    }
     
-    NSMutableDictionary *userData = [[[NSMutableDictionary alloc] init] autorelease];
-    [userData setValue:[NSNumber numberWithInt:kNotificationCodeAppInFg] forKey:@"NotificationCode"];
-    notificationMessage.userData = userData;
-    [bonjourBrowser sendBonjourMessageToAllClients:notificationMessage];
+    [DeviceLog deviceLog:@"appMovedForeground" withLecture:nil withContentType:nil withGuid:self.appGuid withDate:[NSDate date]];
     
-    
-    [DeviceLog deviceLog:@"appMovedForeground" withLecture:nil withContentType:nil];
+    bgDuration = [[NSDate date] timeIntervalSinceDate:self.backgroundTime] + bgDuration;
     
 }
 
@@ -499,7 +510,10 @@ void handleException(NSException *exception)
 {
        
     NSLog(@"App did enter active mode");
-    
+    if (self.backgroundTime) {
+        bgDuration = [[NSDate date] timeIntervalSinceDate:self.backgroundTime] + bgDuration;
+    }
+
     /*
      Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
      */
@@ -508,9 +522,10 @@ void handleException(NSException *exception)
 - (void)applicationWillTerminate:(UIApplication *)application
 {
     
-   
-    [DeviceLog deviceLog:@"appTerminated" withLecture:nil withContentType:nil];
-    
+    [DeviceLog deviceLog:@"appTerminated" withLecture:nil withContentType:nil withGuid:self.appGuid withDate:[NSDate date]];
+     
+    duration = [[NSDate date] timeIntervalSinceDate:self.currentTime] - bgDuration;
+    [DeviceLog updateDurationTime:duration withGuid:self.appGuid withDate:currentTime];
     
     NSLog(@"App will be terminated");
     exitingApp = YES;
@@ -536,6 +551,7 @@ void handleException(NSException *exception)
 {
     #if TARGET_IPHONE_SIMULATOR
         return @"11111-22222-33333-44444-55555";
+//        return @"ertan-simulator";
     #else
         return [[UIDevice currentDevice] uniqueIdentifier];
     #endif  
@@ -560,7 +576,8 @@ void handleException(NSException *exception)
 
 - (void)dealloc
 {
-    
+    [backgroundTime release];
+    [currentTime release];
     [notificationArray release];
     
     if(bonjourBrowserThread)

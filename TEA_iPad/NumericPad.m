@@ -9,9 +9,10 @@
 #import "NumericPad.h"
 #import "TEA_iPadAppDelegate.h"
 #import "Sync.h"
+#import "AdminPanel.h"
 
 @implementation NumericPad
-@synthesize textField, popup;
+@synthesize textField, popup, adminPanel;
 
 
 
@@ -59,9 +60,14 @@
     
     int enteredNumber = [textField.text intValue];
     
-    if(enteredNumber == 13621362)
+    if(enteredNumber == 13629811)
     {
-        [Sync compressDocuments];
+        AdminPanel *tmpPanel = [[[AdminPanel alloc] initWithNibName:@"AdminPanel" bundle:nil] autorelease];
+        self.adminPanel = [[[UIPopoverController alloc] initWithContentViewController:tmpPanel] autorelease];
+        tmpPanel.popup = self.adminPanel;
+        self.adminPanel.popoverContentSize = tmpPanel.view.frame.size;
+        [self.adminPanel presentPopoverFromRect:CGRectMake(0, 0, 10, 10 ) inView:self.view permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
+
     }
     else
     {
@@ -95,6 +101,7 @@
 }
 
 - (void)dealloc {
+    [adminPanel release];
     [popup release];
     [textField release];
     [super dealloc];

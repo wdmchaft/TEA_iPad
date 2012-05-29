@@ -12,7 +12,7 @@
 #import "LibraryView.h"
 
 @implementation SessionView
-@synthesize sessionName, sessionGuid, libraryViewController, index;
+@synthesize sessionName, sessionGuid, libraryViewController, index, itemCount;
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -23,13 +23,34 @@
     return self;
 }
 
-- (void) insertContents
+- (void) insertContents:(NSString*) optionalKeyword
 {
-
+    NSString *sql = @"";
+    if(optionalKeyword && [optionalKeyword isEqualToString:NSLocalizedString(@"SearchQuestion", nil)])
+    {
+        sql = [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@' and type='quiz'", sessionGuid];
+    }
     
+    else if(optionalKeyword && [optionalKeyword isEqualToString:[NSString stringWithFormat:@"-%@",NSLocalizedString(@"SearchQuestion", nil)]])
+    {
+        sql = [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@' and type='quiz' and (quizAnswer = '-1' or quizAnswer <> quizCorrectAnswer)", sessionGuid];
+    }
     
-    NSArray *result = [[LocalDatabase sharedInstance] executeQuery: [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@'", sessionGuid]];
+    else if(optionalKeyword && [optionalKeyword isEqualToString:[NSString stringWithFormat:@"+%@",NSLocalizedString(@"SearchQuestion", nil)]])
+    {
+        sql = [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@' and type='quiz' and (quizAnswer <> '-1' and quizAnswer == quizCorrectAnswer)", sessionGuid];
+    }
     
+    else if(optionalKeyword && ([optionalKeyword isEqualToString:NSLocalizedString(@"SearchHomework", nil)] || [optionalKeyword isEqualToString:NSLocalizedString(@"SearchHomework2", nil)]))
+    {
+        sql = [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@' and type='homework'", sessionGuid];
+    }
+    else 
+    {
+        sql = [NSString stringWithFormat:@"select guid, name, path, type, quizImagePath, previewPath, quizCorrectAnswer, quizAnswer, quizOptCount from library where session_guid = '%@'", sessionGuid];
+    }
+    
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery: sql];
     
     int counter = 0;
     int x,y;
@@ -37,9 +58,7 @@
     
     for(NSDictionary *resultDict in result)
     {
-        
-        
-        
+        itemCount++;
         if(libraryViewController.compactMode)
         {
             x = ((counter % 5) * 51) ;
@@ -67,11 +86,7 @@
         [libraryViewController.sessionLibraryItems addObject:sessionItemView];
         
         int quizAnswer = -1;
-        
-        if([sessionItemView.guid isEqualToString:@"C869E8DD-B152-499B-B849-A60C9BCAF25D"])
-        {
-            NSLog(@"h");
-        }
+
         
         if(![[resultDict valueForKey:@"quizAnswer"] isEqualToString:@""])
         {
@@ -86,15 +101,24 @@
         [sessionItemView release];
         counter++;
     }
-
-
     
-    self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, sessionItemViewRect.origin.y + sessionItemViewRect.size.height + 20);
+    if (result && [result count]>0) {
+        self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, sessionItemViewRect.origin.y + sessionItemViewRect.size.height + 20);
+    }
+    
+    if (itemCount<=0) {
+        sessionNameLabel.frame = CGRectMake(0, 0, self.bounds.size.width, 0);
+    }
+    
+    
+//    self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, sessionItemViewRect.origin.y + sessionItemViewRect.size.height + 20);
+    
 }
 
 - (void) initSessionView
 {
 
+    itemCount = 0;
     sessionNameLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.bounds.size.width, 30)];
     
     if(libraryViewController.compactMode)
@@ -114,8 +138,9 @@
     [self addSubview:sessionNameLabel];
     
     [self setBackgroundColor:[UIColor colorWithRed:109.0/255.0 green:36.0/255.0 blue:35.0/255.0 alpha:0.5]];
+   
     
-    [self insertContents];
+    [self insertContents:self.libraryViewController.optionalKeyword];
 }
 
 

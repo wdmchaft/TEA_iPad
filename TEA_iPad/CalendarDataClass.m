@@ -10,6 +10,7 @@
 #import "LocalDatabase.h"
 #import "DWDatabase.h"
 #import "TEA_iPadAppDelegate.h"
+#import "ConfigurationManager.h"
 
 @implementation CalendarDataClass
 
@@ -68,32 +69,33 @@ static CalendarDataClass *_sharedInstance;
 
     
     NSString *selectSQL = [NSString stringWithFormat:@"select * from notification where guid = '%@'", guid];
-    NSArray *result = [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:selectSQL];
+    NSString *protocolURL = [ConfigurationManager getConfigurationValueForKey:@"ProtocolRemoteURL"];
+    NSArray *result = [DWDatabase getResultFromURL:[NSURL URLWithString:protocolURL] withSQL:selectSQL];
     
     if (result && [result count]>0) {
         NSString *deleteSQL = [NSString stringWithFormat:@"delete from notification where guid = '%@'", guid];
-        [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:deleteSQL];
+        [DWDatabase getResultFromURL:[NSURL URLWithString:protocolURL] withSQL:deleteSQL];
     }
     
     NSString *insertRemoteNotificationSQL = [NSString stringWithFormat:@"insert into `notification` (`guid`, `title`, `summary`, `date`, `valid_date`, `alarm_date`,  `file_url`, `repeated`, `completed`, `alarm_state`, `related_hw`, `type`) values ('%@', '%@', '%@', '%@','%@', '%@', '%@', %d, %d, %d, '%@', %d);", guid, eventTitle, body, dateString, validDateString, alarmDate, imageURL, repeated, completed, alarmState, homework_ref_id, type];
-    [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:insertRemoteNotificationSQL];
+    [DWDatabase getResultFromURL:[NSURL URLWithString:protocolURL] withSQL:insertRemoteNotificationSQL];
     
     
     
     
     
     NSString *selectSQLOfReceived = [NSString stringWithFormat:@"select * from receivedNotifications where guid = '%@'", guid];
-    NSArray *resultOfReceived = [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:selectSQLOfReceived];
+    NSArray *resultOfReceived = [DWDatabase getResultFromURL:[NSURL URLWithString:protocolURL] withSQL:selectSQLOfReceived];
     
     if (resultOfReceived && [resultOfReceived count]>0) {
         NSString *deleteSQLOfReceived = [NSString stringWithFormat:@"delete from receivedNotifications where guid = '%@'", guid];
-        [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:deleteSQLOfReceived];
+        [DWDatabase getResultFromURL:[NSURL URLWithString:protocolURL] withSQL:deleteSQLOfReceived];
     }
     
     
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     NSString *insertRemoteReceivedNotificationSQL = [NSString stringWithFormat:@"insert into `receivedNotifications` (`guid`,`student_device_id`,`date`,`valid_date`,`is_read`, `deleted`) values ('%@', '%@', '%@', '%@', 1, 0);", guid, [appDelegate getDeviceUniqueIdentifier], dateString, validDateString];
-    [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:insertRemoteReceivedNotificationSQL];
+    [DWDatabase getResultFromURL:[NSURL URLWithString:protocolURL] withSQL:insertRemoteReceivedNotificationSQL];
     
 }
 

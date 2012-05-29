@@ -31,6 +31,6 @@
 - (void) stopBrowse;
 - (void) restartBrowse;
 - (void) startBrowse;
-- (void) sendBonjourMessage:(BonjourMessage*) aMessage toClient:(BonjourClient*) aClient;
+- (BOOL) sendBonjourMessage:(BonjourMessage*) aMessage toClient:(BonjourClient*) aClient;
 - (void) sendBonjourMessageToAllClients:(BonjourMessage*) aMessage;
 @end

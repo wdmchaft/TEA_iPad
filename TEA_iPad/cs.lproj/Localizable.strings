@@ -11,8 +11,8 @@
 "Delete"="Odstranit"; 
 "Yes"="Ano"; 
 "No"="Ne"; 
-"Cancel"="Storno";
-"Caution"="Výstraha"; 
+"Cancel"="Zrušit";
+"Caution"="Upozorněni"; 
 "Send"="Odeslat";
 "Answer Send Message"="Vybrali jste možnost „%c“. Opravdu chcete odeslat tuto odpověď?"; "Move To Notebook"="Přesunout do zápisníku"; 
 "Rename"="Přejmenovat"; 
@@ -20,24 +20,32 @@
 "Finish"="Dokončit";
 "FinishHomeworkWarning" = "Když je domácí úkol „Dokončen“, již jej nelze upravovat. Opravdu chcete domácí úkol „dokončit“?";
 
-// Bunlar da lokalize edilecek...
-
-"AddCalendar" = "Add Entry";
-"DeleteCalendar" = "Delete Entry";
-"EditCalendar" = "Edit Entry";
-"WeeklyTitle" = "Upcoming Events";
-"DailyTitle" = "Events";
-"Today" = "Today";
-"Monday" = "Mon";
-"Tuesday" = "Tue";
-"Wednesday" = "Wed";
-"Thursday" = "Thu";
-"Friday" = "Fri";
-"Saturday" = "Sat";
-"Sunday" = "Sun";
-"Add Entry" = "Marked field should be entered correctly.";
-"Delete Entry" = "Are you sure you want to delete the entry?";
-"System Entry" = "System entries cannot be deleted";
+"AddCalendar" = "Přidat událost";
+"DeleteCalendar" = "Smazat událost";
+"EditCalendar" = "Upravit událost";
+"WeeklyTitle" = "Nadcházející události";
+"DailyTitle" = "Události";
+"Today" = "Dnes";
+"Monday" = "Po";
+"Tuesday" = "Út";
+"Wednesday" = "St";
+"Thursday" = "Čt";
+"Friday" = "Pá";
+"Saturday" = "So";
+"Sunday" = "Ne";
+"Add Entry" = "Označená políčka by měla být vložena správně.";
+"Delete Entry" = "Opravdu chcete smazat tento záznam?";
+"System Entry" = "Systémové záznamy nemohou být smazány.";
 "OK" = "OK";
-"New Notification" = "You have new notification(s).";
-"Info" = "Announcement";
+"New Notification" = "Máte nové upozornění.";
+"Info" = "Oznámení";
+
+"Library" = "Knihovna";
+"Notebook" = "Sešit";
+"Calendar" = "Kalendář";
+"Guest" = "Host";
+"Edit" = "Upravit";
+
+"SearchQuestion" = "question";
+"SearchHomework" = "odev";
+"SearchHomework2" = "Ödev";

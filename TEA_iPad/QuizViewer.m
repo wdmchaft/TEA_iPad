@@ -9,6 +9,7 @@
 #import "QuizViewer.h"
 #import <QuartzCore/QuartzCore.h>
 #import "TEA_iPadAppDelegate.h"
+#import "DeviceLog.h"
 
 @implementation QuizViewer
 @synthesize answerA;
@@ -16,12 +17,14 @@
 @synthesize answerC;
 @synthesize answerD;
 @synthesize answerE;
-
+@synthesize guid;
 @synthesize answer;
 @synthesize correctAnswer;
 @synthesize quizImage;
 @synthesize quizImageView;
 @synthesize optionCount;
+
+@synthesize activeTime, currentTime;
 
 - (void) setupView
 {
@@ -117,11 +120,29 @@
 - (void) closeFinished:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context
 {
     [self.view removeFromSuperview];
-    ((TEA_iPadAppDelegate*) [[UIApplication sharedApplication]delegate]).viewController.displayingSessionContent = NO;
+    if(contentSetFlag)
+        ((TEA_iPadAppDelegate*) [[UIApplication sharedApplication]delegate]).viewController.displayingSessionContent = NO;
+
+    [((TEA_iPadAppDelegate*) [[UIApplication sharedApplication]delegate]).viewController contentViewClosed:self];
 }
+
 
 - (void) closeContentViewWithDirection:(ContentViewOpenDirection)direction
 {
+    [self closeContentViewWithDirection:direction dontSetDisplayingContent:YES];
+}
+
+
+- (void) closeContentViewWithDirection:(ContentViewOpenDirection)direction dontSetDisplayingContent:(BOOL)setFlag
+{
+    //getting view active time
+    activeTime = (long)[[NSDate date] timeIntervalSinceDate:currentTime];
+
+    //update duration of view 
+    [DeviceLog updateDurationTime:activeTime withGuid:self.guid withDate:currentTime];
+    
+    contentSetFlag = setFlag;
+
     CGRect closeRect;
     if(direction == kContentViewOpenDirectionToLeft)
     {
@@ -140,6 +161,7 @@
     [UIView beginAnimations:nil context:nil];
     [UIView setAnimationDuration:0.3];
     [UIView setAnimationCurve:UIViewAnimationCurveEaseOut];
+    [UIView setAnimationDelegate:self];
     [UIView setAnimationDidStopSelector:@selector(closeFinished:finished:context:)];
     
     self.view.frame = closeRect;
@@ -149,30 +171,66 @@
     
 }
 
+
+- (IBAction)showAnswersButtonClicked:(id)sender
+{
+    NSLog(@"showAnswersButtonClicked");
+   
+    [hideAnswerImageView setHidden:YES];
+    [showAnswersButton removeFromSuperview];
+    
+    [UIView transitionWithView:hideAnswerImageView 
+                      duration:0.4 
+                       options:UIViewAnimationOptionTransitionCurlUp 
+                    animations:^ { hideAnswerImageView.alpha = 0.5; } 
+                    completion:^ (BOOL finish) { [hideAnswerImageView removeFromSuperview]; }];
+    
+
+}
+
 - (void) loadContentView:(UIView *)view withDirection :(ContentViewOpenDirection)direction
 {
-    CGRect initialRect;
-    if(direction == kContentViewOpenDirectionToLeft)
-    {
-        initialRect = CGRectMake(view.frame.size.width * 2, 0, view.frame.size.width, view.frame.size.height);
-    }
-    else if(direction == kContentViewOpenDirectionToRight)
-    {
-        initialRect = CGRectMake(- view.frame.size.width * 2, 0, view.frame.size.width, view.frame.size.height);
-    }
-    else if(direction == kContentViewOpenDirectionNormal)
-    {
-        initialRect = view.frame;
-    }
-    view.frame = initialRect;
     
-    [UIView beginAnimations:nil context:nil];
-    [UIView setAnimationDuration:0.3];
-    [UIView setAnimationCurve:UIViewAnimationCurveEaseOut];
+    TEA_iPadAppDelegate *appDelegete = (TEA_iPadAppDelegate*)[[UIApplication sharedApplication]delegate];
     
-    view.frame = CGRectMake(0, 0, 1024, 768);
-
-    [UIView commitAnimations];
+    if (appDelegete.state != kAppStateLogon)
+    {
+        hideAnswerImageView = [[UIImageView alloc] initWithFrame:CGRectMake(237, 555, 541, 94)];
+        [hideAnswerImageView setImage:[UIImage imageNamed:@"QuestionCover.png"]];
+        [hideAnswerImageView setContentMode:UIViewContentModeScaleAspectFit];
+        [view addSubview:hideAnswerImageView];
+        showAnswersButton = [[UIButton alloc] initWithFrame:CGRectMake(712, 596, 50, 50)];
+        [showAnswersButton setBackgroundColor:[UIColor clearColor]];
+        [showAnswersButton addTarget:self action:@selector(showAnswersButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+        [view addSubview:showAnswersButton];
+        
+    }
+    else 
+    {
+        CGRect initialRect;
+        if(direction == kContentViewOpenDirectionToLeft)
+        {
+            initialRect = CGRectMake(view.frame.size.width * 2, 0, view.frame.size.width, view.frame.size.height);
+        }
+        else if(direction == kContentViewOpenDirectionToRight)
+        {
+            initialRect = CGRectMake(- view.frame.size.width * 2, 0, view.frame.size.width, view.frame.size.height);
+        }
+        else if(direction == kContentViewOpenDirectionNormal)
+        {
+            initialRect = view.frame;
+        }
+        view.frame = initialRect;
+        
+        [UIView beginAnimations:nil context:nil];
+        [UIView setAnimationDuration:0.3];
+        [UIView setAnimationCurve:UIViewAnimationCurveEaseOut];
+        
+        view.frame = CGRectMake(0, 0, 1024, 768);
+        
+        [UIView commitAnimations];
+    }
+    
 }
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -180,6 +238,11 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) 
     {
+        
+        //set duration started time
+        self.currentTime = [NSDate date];
+        
+        
         [self.view setBackgroundColor:[UIColor clearColor]];
         
         UIView *bg = [[UIView alloc] initWithFrame:self.view.frame];
@@ -194,6 +257,18 @@
 
 - (void)dealloc
 {
+    
+    [currentTime release];
+    
+    if (hideAnswerImageView) {
+        [hideAnswerImageView release]; 
+    }
+    
+    if (showAnswersButton) {
+        [showAnswersButton release];
+    }
+    
+    
     [answerA release];
     [answerB release];
     [answerC release];

@@ -8,9 +8,13 @@
 
 #import "NotebookPage.h"
 #import "Notebook.h"
+#import "DWViewItemLlibraryItemClip.h"
+#import "LocalDatabase.h"
 
 @implementation NotebookPage
 @synthesize image, edited, notebook, pageObjects; //drawingViewController
+@synthesize notebookPage;
+
 
 - (id)init {
     self = [super init];
@@ -30,10 +34,18 @@
 - (NSString*) getXML
 {
     NSString *xml = @"<page image=\"%@\">";
-    
+   
     for(DWViewItem *item in pageObjects)
     {
         xml = [xml stringByAppendingString:[item getXML]];
+        
+        if ([item isKindOfClass:[DWViewItemLlibraryItemClip class]]) {
+            
+            NSString *insertSQL = [NSString stringWithFormat:@"insert into notebook_library ('notebook_guid', 'library_item_guid', 'notebook_page_number') values ('%@','%@','%d')", notebook.guid, item.guid, self.notebookPage];
+            
+            [[LocalDatabase sharedInstance] executeQuery:insertSQL];
+        }
+         
     }
     
     xml = [xml stringByAppendingString:@"</page>"];

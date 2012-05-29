@@ -10,21 +10,41 @@
 #import "LibraryDocumentItem.h"
 #import <QuartzCore/QuartzCore.h>
 #import "TEA_iPadAppDelegate.h"
+#import "DeviceLog.h"
 
 @implementation DocumentViewer
 @synthesize webView;
 @synthesize libraryItem;
+@synthesize activeTime;
+@synthesize currentTime;
 
 
 
 - (void) closeFinished:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context
 {
     [self removeFromSuperview];
-    ((TEA_iPadAppDelegate*) [[UIApplication sharedApplication]delegate]).viewController.displayingSessionContent = NO;
+    if(contentSetFlag)
+        ((TEA_iPadAppDelegate*) [[UIApplication sharedApplication]delegate]).viewController.displayingSessionContent = NO;
+
+    [((TEA_iPadAppDelegate*) [[UIApplication sharedApplication]delegate]).viewController contentViewClosed:self];
 }
 
 - (void) closeContentViewWithDirection:(ContentViewOpenDirection)direction
 {
+    [self closeContentViewWithDirection:direction dontSetDisplayingContent:YES];
+}
+
+
+- (void) closeContentViewWithDirection:(ContentViewOpenDirection)direction dontSetDisplayingContent:(BOOL)setFlag
+{
+    //getting view active time
+    activeTime = (long)[[NSDate date] timeIntervalSinceDate:currentTime];
+    
+    
+    //update duration of view 
+    [DeviceLog updateDurationTime:activeTime withGuid:libraryItem.guid withDate:currentTime];
+    
+    contentSetFlag = setFlag;
     CGRect closeRect;
     if(direction == kContentViewOpenDirectionToLeft)
     {
@@ -42,6 +62,7 @@
     
     [UIView beginAnimations:nil context:nil];
     [UIView setAnimationDuration:0.3];
+    [UIView setAnimationDelegate:self];
     [UIView setAnimationCurve:UIViewAnimationCurveEaseOut];
     [UIView setAnimationDidStopSelector:@selector(closeFinished:finished:context:)];
     
@@ -54,6 +75,8 @@
 
 - (void) loadContentView:(UIView *)view withDirection :(ContentViewOpenDirection)direction
 {
+    
+    
     CGRect initialRect;
     if(direction == kContentViewOpenDirectionToLeft)
     {
@@ -91,6 +114,10 @@
     
     if(self)
     {
+        //set duration started time
+        self.currentTime = [NSDate date];
+        
+        
         [self setBackgroundColor:[UIColor clearColor]];
         
         UIView *bg = [[UIView alloc] initWithFrame:self.frame];
@@ -106,6 +133,9 @@
         
         [webView loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:libraryItem.path]]];
         [webView setScalesPageToFit:YES];
+        
+
+        
     }
     
     return self;
@@ -115,6 +145,8 @@
 
 - (void)dealloc
 {
+    [currentTime release];
+    
     [libraryItem release];
     [webView release];
     [super dealloc];

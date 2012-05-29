@@ -33,6 +33,7 @@
 
 @implementation Homework
 @synthesize dictionary, libraryViewController;
+@synthesize globalSync;
 
 - (NSString*) getSystemMessages
 {
@@ -48,20 +49,12 @@
     return [NSString stringWithFormat:@"{'system_messages': %@ }", returnValue];
 }
 
-- (void) startSyncingAfterHomework
-{
-    NSLog(@"**** starting sync service");
-    
-    libraryViewController.syncView = [[Sync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-    [libraryViewController.syncView setHidden:YES];
-    [libraryViewController.view addSubview:libraryViewController.syncView];
-    [libraryViewController.syncView requestForSync];
-    [libraryViewController.syncView release];
-    
-}
+
 
 - (void) downloadHomeworkFile
 {
+    
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
     self.dictionary = [[[NSMutableDictionary alloc] init] autorelease];
     
@@ -118,16 +111,15 @@
         }
         else
         {
-            [self setHidden:YES];
-            [self startSyncingAfterHomework];
+             [appDelegate.viewController startSyncService:kSyncServiceTypeNotebookSync];
             
         }
         
     }
     else
     {
-        [self setHidden:YES];
-        [self startSyncingAfterHomework];
+        [appDelegate.viewController startSyncService:kSyncServiceTypeNotebookSync];
+
         
     }
     
@@ -137,21 +129,21 @@
 - (void) requestForHomework
 {
     
-    
-    [self setHidden:NO];
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
     // NSDictionary *iPadConfigDictionary = [ConfigurationManager getConfigurationValueForKey:@"iPadConfig"];
     BOOL homeworkEnabled = [[ConfigurationManager getConfigurationValueForKey:@"HOMEWORK_ENABLED"] boolValue];// [[iPadConfigDictionary valueForKey:@"iPadSyncEnabled"] boolValue];
     
-    NSString *homeworkURL = [NSString stringWithFormat: @"http://www.terrabilgiislem.com/index.html", [ConfigurationManager getConfigurationValueForKey:@"HOMEWORK_URL"]]; //[iPadConfigDictionary valueForKey:@"syncURL"];
+    NSString *homeworkURL = [NSString stringWithFormat: @"http://www.terrabilgiislem.com/tea", [ConfigurationManager getConfigurationValueForKey:@"HOMEWORK_URL"]]; //[iPadConfigDictionary valueForKey:@"syncURL"];
     
     NSURLResponse *response = nil;
     NSError **error=nil; 
     
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:homeworkURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
     
-    NSData *tmpData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
     
+    [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error];
+
     
     if(homeworkEnabled && response)
     {
@@ -162,25 +154,23 @@
         @catch (NSException *exception) 
         {
             //NSLog(@"Exception :: %@",  [exception description]);
-            [self startSyncingAfterHomework];
-            [self setHidden:YES];
+            [appDelegate.viewController startSyncService:kSyncServiceTypeNotebookSync];
+
         }
     }
     else
     {
-        [self setHidden:YES];
-        [self startSyncingAfterHomework];
+        [appDelegate.viewController startSyncService:kSyncServiceTypeNotebookSync];
     }
     
-    [tmpData release];
     
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
-    [self setHidden:YES];
-    [self startSyncingAfterHomework];
-    
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+
+    [appDelegate.viewController startSyncService:kSyncServiceTypeNotebookSync];
 }
 
 
@@ -191,29 +181,7 @@
     [super dealloc];
 }
 
-- (id)initWithFrame:(CGRect)frame
-{
-    self = [super initWithFrame:frame];
-    if (self) {
-        
-        UIImageView *imageView = [[[UIImageView alloc] initWithFrame:self.bounds] autorelease];
-        [imageView setImage:[UIImage imageNamed:@"HomeworkBG.jpg"]];
-        [self addSubview:imageView];
-        
-        
-        
-        progressView = [[[UIProgressView alloc] initWithFrame:CGRectMake(100, 480, 824, 25)] autorelease];
-        [self addSubview:progressView];
-        
-        progressLabel = [[[UILabel alloc] initWithFrame:CGRectMake(0, 480, 1024, 25)] autorelease];
-        [progressLabel setTextColor:[UIColor whiteColor]];
-        [progressLabel setTextAlignment:UITextAlignmentCenter];
-        //  [self addSubview:progressLabel]; 
-        
-        
-    }
-    return self;
-}
+
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
 {

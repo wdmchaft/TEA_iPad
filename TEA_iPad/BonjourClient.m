@@ -126,7 +126,7 @@
     [self sendData:[NSData dataWithBytes:&dataInt length:sizeof(int)]  groupCode:groupCode groupCodeType:groupCodetype dataType:dataType];
 }
 
-- (void) sendBonjourMessageWithNewThread:(BonjourMessage *)aMessage
+- (BOOL) sendBonjourMessageWithNewThread:(BonjourMessage *)aMessage
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
@@ -146,7 +146,8 @@
             if(sentBytes < 0)
             {
                 NSLog(@"******* Data göndermede problem oluştu!!!!");
-                break;
+                [pool release];
+                return NO;
             }
             
             [_data replaceBytesInRange:NSMakeRange(0, sentBytes) withBytes:NULL length:0];
@@ -160,13 +161,14 @@
     }
     
     [pool release];
+    return YES;
 }
 
-- (void) sendBonjourMessage:(BonjourMessage*) aMessage
+- (BOOL) sendBonjourMessage:(BonjourMessage*) aMessage
 {
     
     //[NSThread detachNewThreadSelector:@selector(sendBonjourMessageWithNewThread:) toTarget:self withObject:aMessage];
-    [self sendBonjourMessageWithNewThread:aMessage];
+    return [self sendBonjourMessageWithNewThread:aMessage];
 
 }
 
@@ -296,6 +298,12 @@
                 appDelegate.session.sessionLectureName = nil;
                 appDelegate.session.sessionLectureGuid  = nil;
                 appDelegate.session.sessionTeacherName = nil;
+                
+                appDelegate.session.quizPromptTitle = nil;
+                appDelegate.session.quizPromptBGColor = nil;
+                appDelegate.session.quizPromptCancelTitle = nil;
+                appDelegate.session.quizPromptOKTitle = nil;
+                appDelegate.session.quizPromptTextColor = nil;
                 
                 appDelegate.state = kAppStateIdle;
                 @try {

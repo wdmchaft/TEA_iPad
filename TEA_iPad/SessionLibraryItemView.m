@@ -23,6 +23,7 @@
 #import "ConfigurationManager.h"
 
 #import "DeviceLog.h"
+#import "NotebookParser.h"
 
 @implementation SessionLibraryItemView
 @synthesize name, path, type, sessionView, quizImagePath, previewPath, correctAnswer, answer, guid, quizOptCount, direction;
@@ -86,6 +87,7 @@
                 [previewWebView.layer setCornerRadius:10];
                 [previewWebView.layer setMasksToBounds:YES];
                 [self addSubview:previewWebView];
+                [previewWebView release];
             }
             [previewWebView setHidden:NO];
             [previewWebView setDelegate:[self retain]];
@@ -250,9 +252,10 @@
         [self bringSubviewToFront:borderImage];
     }
     
-    [previewWebView setHidden:YES];
+   // [previewWebView setHidden:YES];
     [previewWebView setDelegate:nil];
-    [previewWebView release];
+    [previewWebView removeFromSuperview];
+  //  [previewWebView release];
     previewWebView = nil;
     
     [imageData release];
@@ -315,7 +318,7 @@
     
     if(sessionView.libraryViewController.compactMode)
     {
-        [borderImage setFrame:CGRectMake(0, 0, 41 , 45)];
+        [borderImage setFrame:CGRectMake(0, 0, 41, 45)];
         [previewImage setFrame:CGRectMake(0, 0, 41, 45)];
         
     }
@@ -350,7 +353,28 @@
     }
     else if ([type isEqualToString:@"homework"]) 
     {
-        [borderImage setImage:[UIImage imageNamed:@"LibraryItemQuiz.png"]];
+        NSString *sql = [NSString stringWithFormat:@"select delivered from homework where guid = '%@'", guid];
+        NSArray *result = [[LocalDatabase sharedInstance] executeQuery:sql];
+        if(result && [result count] == 1)
+        {
+            int delivered = [[[result objectAtIndex:0] valueForKey:@"delivered"] intValue];
+            
+            if(delivered)
+            {
+                [borderImage setImage:[UIImage imageNamed:@"LibraryItemQuizDelivered.png"]];
+            }
+            else {
+                [borderImage setImage:[UIImage imageNamed:@"LibraryItemQuizNotDelivered.png"]];
+            }
+        }
+        else 
+        {
+            [borderImage setImage:[UIImage imageNamed:@"LibraryItemQuizNotDelivered.png"]];
+        }
+        
+        
+        
+        
     }
     else if ([type isEqualToString:@"document"]) 
     {
@@ -391,7 +415,71 @@
     [longPresRec release];
     
     
+    //add anchor button to library item view
+    NSString *selectSQL = [NSString stringWithFormat:@"select library_item_guid from notebook_library"];
+    itemGuidArray = [[[LocalDatabase sharedInstance] executeQuery:selectSQL returnSimpleArray:YES] retain];
+
+    if ([itemGuidArray containsObject:guid]) {
+        notebookAnchor = [[UIButton alloc] initWithFrame:CGRectMake(80, -5, 30, 30)];
+       // [[notebookAnchor layer] setCornerRadius:8];
+        [notebookAnchor addTarget:self action:@selector(notebookAnchorButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+      //  [notebookAnchor setBackgroundColor:[UIColor blackColor]];
+        [notebookAnchor setBackgroundImage:[UIImage imageNamed:@"Anchor.png"] forState:UIControlStateNormal];
+        [self addSubview:notebookAnchor];
+        [notebookAnchor setTag:[itemGuidArray indexOfObject:guid]];
+
+        [notebookAnchor release];
+    }
+
+        
+}
+
+//anchor button clicked action
+- (IBAction)notebookAnchorButtonClicked:(id)sender
+{
+    NSLog(@"notebookAnchorButtonClicked");    
     
+    NSString *selectSQL = [NSString stringWithFormat:@"select * from notebook_library where library_item_guid = '%@'", [itemGuidArray objectAtIndex:[sender tag]]];
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:selectSQL];
+    
+    if (result && [result count]>0) 
+    {
+        NSString *notebookGuid;
+        int lastAddedPage;
+        TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+        Notebook *notebook = [[Notebook alloc] init];
+        
+        // if result has more then one object, get the last object 
+        if ([result count]>1) {
+            notebookGuid = [[result lastObject] objectForKey:@"notebook_guid"];
+            lastAddedPage = [[[result lastObject] objectForKey:@"notebook_page_number"]intValue];
+        }
+        else {
+            notebookGuid = [[result objectAtIndex:0] objectForKey:@"notebook_guid"];
+            lastAddedPage = [[[result objectAtIndex:0] objectForKey:@"notebook_page_number"]intValue];
+        }
+        
+                
+        [notebook notebookOpen:notebookGuid];
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString *fileName = [NSString stringWithFormat:@"%@/notebook_%@.xml", [paths objectAtIndex:0], notebookGuid];
+        NotebookParser *parser = [[NotebookParser alloc] init];
+        parser.notebook = appDelegate.viewController.notebook;
+        [parser getNotebookWithXMLData:[NSData dataWithContentsOfFile:fileName]];
+        
+        appDelegate.viewController.notebook.guid = notebookGuid;
+        appDelegate.viewController.notebook.lastOpenedPage = lastAddedPage;
+        
+        [appDelegate.viewController setNotebookHidden:NO];
+        
+        [appDelegate.viewController.notebook notebookOpen:notebookGuid];
+        [parser release];
+
+        [notebook release];
+
+        
+    }
+
 }
 
 - (void) menuAddToNotebookClicked:(id) sender {
@@ -491,45 +579,32 @@
 
 - (void) logDeviceModule:(NSString*)itemType
 {
-    /******************************************************************
-    
-    TEA_iPadAppDelegate *logAppDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-    
-    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
-    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
-    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
-    
-    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
-    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-    
-    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key, lecture, content_type, time) values ('%@','%@','%@', '%@','%@','%@','%@')", [logAppDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"openedLibraryItems",lectureName, itemType, dateString];
-     
-    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
 
-     
-     /******************************************************************/
-    
-   
-    
     NSString *selectSQL = [NSString stringWithFormat:@"select lecture_name from lecture, library, session where library.guid = '%@' and library.session_guid = session.session_guid and session.lecture_guid = lecture.lecture_guid", guid ];
-    NSString *lectureName = [[[[LocalDatabase sharedInstance] executeQuery:selectSQL] objectAtIndex:0] objectForKey:@"lecture_name"];
     
+    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:selectSQL];
     
-    [DeviceLog deviceLog:@"openedLibraryItems" withLecture:lectureName withContentType:itemType];
+    if(result && [result count] > 0)
+    {
+        NSString *lectureName = [[result objectAtIndex:0] objectForKey:@"lecture_name"];
+
+        [DeviceLog deviceLog:@"openedLibraryItems" withLecture:lectureName withContentType:itemType withGuid:guid withDate:[NSDate date]];
+    }
     
 }
 
 -(void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
+
     if(state == kStateNormalMode)
     {
-        
         [self logDeviceModule:type];
         
         if([type isEqualToString:@"video"])
         {
             MediaPlayer *player = [[MediaPlayer alloc] initWithFrame:CGSizeMake(500, 500) andVideoPath:[self getFullPathForFile:self.path]];
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+            player.guid = self.guid;
             
             sessionView.libraryViewController.currentContentView = player;
             
@@ -541,7 +616,7 @@
         {
             MediaPlayer *player = [[MediaPlayer alloc] initWithFrame:CGSizeMake(500, 500) andVideoPath:[self getFullPathForFile:self.path]];
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-            
+            player.guid = self.guid;
             
             sessionView.libraryViewController.currentContentView = player;
             
@@ -556,7 +631,7 @@
             
             QuizViewer *quiz = [[QuizViewer alloc] initWithNibName:@"QuizViewer" bundle:nil];
             [appDelegate.viewController.view addSubview:quiz.view];
-            
+            quiz.guid = self.guid;
             [quiz loadContentView:quiz.view withDirection:direction];
             
             //[quiz.quizImage setImage:[UIImage imageWithContentsOfFile:self.quizImagePath]];
@@ -564,6 +639,7 @@
             quiz.correctAnswer = self.correctAnswer;
             quiz.optionCount = self.quizOptCount;
             quiz.answer = self.answer;
+            
             
             sessionView.libraryViewController.currentContentView = quiz;
             
@@ -576,23 +652,24 @@
             LibraryDocumentItem *libraryDocumentItem = [[LibraryDocumentItem alloc] init];
             libraryDocumentItem.path = [self getFullPathForFile:self.path];
             libraryDocumentItem.name = self.name;
+            libraryDocumentItem.guid = self.guid;
             
             DocumentViewer *documentViewer = [[DocumentViewer alloc] initWithLibraryItem:libraryDocumentItem];
             TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
             
             sessionView.libraryViewController.currentContentView = documentViewer;
-            
+
             [appDelegate.viewController.view addSubview:documentViewer];
             [documentViewer loadContentView:documentViewer withDirection:direction];
             [libraryDocumentItem release];
             [documentViewer release];
-            
  
         }
         else if([type isEqualToString:@"document"])
         {
             LibraryDocumentItem *libraryDocumentItem = [[LibraryDocumentItem alloc] init];
             libraryDocumentItem.path = [self getFullPathForFile:self.path];
+            libraryDocumentItem.guid = self.guid;
             libraryDocumentItem.name = name;
             
             DocumentViewer *documentViewer = [[DocumentViewer alloc] initWithLibraryItem:libraryDocumentItem];
@@ -642,8 +719,6 @@
         sessionView.libraryViewController.currentContentsIndex = self.index;
         sessionView.libraryViewController.displayingSessionContent = YES;
     }
-    
-    
 }
 
 /*
@@ -657,10 +732,17 @@
 
 - (void)dealloc
 {
+
+    if (itemGuidArray) {
+        [itemGuidArray release];
+    }
+
+
     if(previewWebView)
     {
         [previewWebView setDelegate:nil];
-        [previewWebView release];
+        [previewWebView removeFromSuperview];
+        previewWebView = nil;
     }
     
     [guid release];

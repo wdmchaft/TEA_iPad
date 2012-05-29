@@ -9,7 +9,8 @@
 #import <Foundation/Foundation.h>
 #import "BonjourMessageHandler.h"
 
-@interface BonjourParametersHandler : BonjourMessageHandler {
+@interface BonjourParametersHandler : BonjourMessageHandler 
+{
   }
 
 @end

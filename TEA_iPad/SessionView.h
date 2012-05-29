@@ -16,13 +16,16 @@
     UILabel *sessionNameLabel;
     int index;
     LibraryView *libraryViewController;
+    int itemCount;
 }
 
 @property (nonatomic, retain) NSString *sessionGuid; 
 @property (nonatomic, retain) NSString *sessionName; 
 @property (nonatomic, assign) LibraryView *libraryViewController; 
 @property (nonatomic, assign) int index; 
+@property (nonatomic, assign) int itemCount; 
 
 - (void) initSessionView;
+- (void) insertContents:(NSString*) optionalKeyword;
 
 @end

@@ -40,7 +40,7 @@
 @synthesize selectedDate;
 @synthesize logonGlow;
 @synthesize guestEnterButton;
-@synthesize syncView;
+@synthesize syncService;
 @synthesize notebookSyncService;
 @synthesize homeworkService;
 @synthesize numericPadPopover;
@@ -50,40 +50,64 @@
 @synthesize currentSessionListIndex;
 @synthesize displayingSessionContent;
 @synthesize currentContentView;
+@synthesize optionalKeyword;
+@synthesize swipeItems;
+@synthesize syncUploadiPadService;
+@synthesize globalSyncView;
+@synthesize selectedDayOfLibrary;
 
 - (void) refreshDate:(NSDate*)aDate
 {
     
     TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
     
-    if(appDelegate.state != kAppStateSyncing)
+    if(displayingSessionContent)
     {
-        NSDateComponents *components = [[NSCalendar currentCalendar] components: NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit fromDate:[NSDate date]];
-        
-        int year = [components year];
-        int month = [components month];
-        int day = [components day];
-        
-        for(MonthView *monthView in [monthsScrollView subviews])
-        {
-            if(monthView.month == month && monthView.year == year)
-            {
-                [monthView touchesEnded:nil withEvent:nil];
-                self.selectedMonth = monthView;
-                break;
-            }
-        }
-        
-        self.selectedDate = day;
-        [self.dateView selectDate:day - 1];
-        
-        [self initSessionNames];
-        
-        searchTextField.text = @"";
-        
+        refreshDateSkipped = YES;
     }
-    
-    
+    else
+    {
+        if(appDelegate.state != kAppStateSyncing)
+        {
+            
+            /*
+            NSDateComponents *components;
+            if (!aDate) {
+                components = [[NSCalendar currentCalendar] components: NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit fromDate:[NSDate date]];
+            }
+            else {
+                components = [[NSCalendar currentCalendar] components: NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit fromDate:aDate];
+            }
+            */
+            
+            NSDateComponents *components = [[NSCalendar currentCalendar] components: NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit fromDate:[NSDate date]];
+            
+            int year = [components year];
+            int month = [components month];
+            int day = [components day];
+            
+            for(MonthView *monthView in [monthsScrollView subviews])
+            {
+                if(monthView.month == month && monthView.year == year)
+                {
+                    [monthView touchesEnded:nil withEvent:nil];
+                    self.selectedMonth = monthView;
+                    break;
+                }
+            }
+            
+            self.selectedDate = day;
+            [self.dateView selectDate:day - 1];
+            
+            [self initSessionNames];
+            
+            searchTextField.text = @"";
+            
+            refreshDateSkipped = NO;
+            
+            
+        }
+    }
 }
 
 
@@ -101,6 +125,13 @@
     [calendarController setHiddenComponents:hidden];
 }
 
+- (void) contentViewClosed:(id)contentView
+{
+    if(refreshDateSkipped)
+    {
+        [self refreshDate:[NSDate date]];
+    }
+}
 
 
 - (void) setLibraryViewHidden:(BOOL) hidden
@@ -222,7 +253,16 @@
 {
     
     NSString *sessionNameFilter = [filterObject valueForKey:@"libraryFilter"];
-    NSString *sql = [NSString stringWithFormat: @"select * from session where name like '%%%@%%'", sessionNameFilter];
+    NSString *sql = @"";
+    
+    if([optionalKeyword isEqualToString:NSLocalizedString(@"SearchHomework", nil)] || [optionalKeyword isEqualToString:NSLocalizedString(@"SearchHomework2", nil)])
+    {
+        sql = @"select session.* from library,session where type='homework' and library.session_guid = session.session_guid";
+    }
+    else 
+    {
+        sql = [NSString stringWithFormat: @"select * from session where name like '%%%@%%'", sessionNameFilter];
+    }
 
     // Clean up 
     for(SessionView *sessionV in contentsScrollView.subviews)
@@ -231,20 +271,26 @@
         [sessionV removeFromSuperview];
     }
     
-    if(sessionList)
+    @synchronized(sessionList)
     {
-        [sessionList release];
-        sessionList = nil;
+        if(sessionList)
+        {
+            [sessionList release];
+            sessionList = nil;
+        }
+        sessionList = [[[LocalDatabase sharedInstance] executeQuery:sql] retain];
     }
     
-    if(sessionLibraryItems)
+    @synchronized(sessionLibraryItems)
     {
-        [sessionLibraryItems release];
-        sessionLibraryItems = nil;
+        if(sessionLibraryItems)
+        {
+            [sessionLibraryItems release];
+            sessionLibraryItems = nil;
+        }
+        sessionLibraryItems = [[NSMutableArray alloc] init];
     }
     
-    sessionList = [[[LocalDatabase sharedInstance] executeQuery:sql] retain];
-    sessionLibraryItems = [[NSMutableArray alloc] init];
     
     int counter = 0;
     CGRect sessionViewRect = CGRectMake(0, 0, 0, 0);
@@ -259,14 +305,22 @@
         
         [contentsScrollView addSubview:sessionView];
         [sessionView initSessionView];
+        
+        //if session does not content any items
+        if (sessionView.itemCount <= 0) {
+            sessionView.frame = CGRectMake(sessionView.frame.origin.x, sessionView.frame.origin.y-20, 0, 0);
+        }
+        
+        
         [sessionView release];
         counter++;
         sessionViewRect = sessionView.frame;
+        
     }
     
     
     
-   // remove old date marks
+    // remove old date marks
     for(UIView *view in self.dateView.subviews)
     {
         if(view.tag == 100)
@@ -281,13 +335,22 @@
 - (void) initSessionNames
 {
     
+    self.optionalKeyword = @"";
+    
     NSDateComponents *comps = [[[NSDateComponents alloc] init] autorelease];
     [comps setDay:self.selectedDate];
     [comps setMonth:self.selectedMonth.month];
     [comps setYear:self.selectedMonth.year];
     
-    NSCalendar *gregorian = [[NSCalendar alloc]
-                             initWithCalendarIdentifier:NSGregorianCalendar];
+    
+    //setting selected day of library
+    NSDateFormatter *df = [[NSDateFormatter alloc] init];
+    [df setDateFormat:@"yyyy-MM-dd 00:00"];
+    NSString *dayTime = [NSString stringWithFormat:@"%d-%d-%d 00:00", self.selectedMonth.year, self.selectedMonth.month, self.selectedDate];
+    selectedDayOfLibrary = [df dateFromString:dayTime];
+    [df release];
+    
+    NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
     NSDate *date = [gregorian dateFromComponents:comps];
     [gregorian release];
     
@@ -306,7 +369,6 @@
         sql = [sql stringByAppendingFormat:@" and lecture_guid='%@'", lectureGuid];
     }
     
-    // NSString *lectureGuid = 
     
     // Clean up lecture names
     for(SessionView *sessionV in contentsScrollView.subviews)
@@ -315,21 +377,28 @@
         [sessionV removeFromSuperview];
     }
     
-    
-    if(sessionList)
+    @synchronized(sessionList)
     {
-        [sessionList release];
-        sessionList = nil;
+        if(sessionList)
+        {
+            [sessionList release];
+            sessionList = nil;
+        }
+        sessionList = [[[LocalDatabase sharedInstance] executeQuery:sql] retain];
     }
     
-    if(sessionLibraryItems)
+    
+    @synchronized(sessionLibraryItems)
     {
-        [sessionLibraryItems release];
-        sessionLibraryItems = nil;
+        if(sessionLibraryItems)
+        {
+            [sessionLibraryItems release];
+            sessionLibraryItems = nil;
+        }
+        
+        sessionLibraryItems = [[NSMutableArray alloc] init];
     }
     
-    sessionList = [[[LocalDatabase sharedInstance] executeQuery:sql] retain];
-    sessionLibraryItems = [[NSMutableArray alloc] init];
     
     int counter = 0;
     CGRect sessionViewRect = CGRectMake(0, 0, 0, 0);
@@ -396,31 +465,37 @@
 {
     
     // Clean up lecture names
-    for(UIView *lectureV in lectureNamesScrollView.subviews)
+    
+    @synchronized(lectureViews)
     {
-        [lectureV removeFromSuperview];
+        for(UIView *lectureV in lectureNamesScrollView.subviews)
+        {
+            [lectureV removeFromSuperview];
+        }
+        
+        
+        
+        NSArray *result = [[LocalDatabase sharedInstance] executeQuery:@"select * from lecture"];
+        
+        int counter = 0;
+        for(NSDictionary *resultDict in result)
+        {
+            CGRect lectureViewRect = CGRectMake(0, counter * 52, 177, 52);
+            LectureView *lectureView = [[LectureView alloc] initWithFrame:lectureViewRect];
+            lectureView.lectureName = [resultDict valueForKey:@"lecture_name"];
+            lectureView.lecture_guid = [resultDict valueForKey:@"lecture_guid"];
+            lectureView.viewController = self;
+            
+            [lectureNamesScrollView addSubview:lectureView];
+            [lectureView release];
+            
+            [lectureViews addObject:lectureView];
+            counter++;
+        }
+        lectureNamesScrollView.contentSize = CGSizeMake(177, 52 * counter);
     }
     
     
-    
-    NSArray *result = [[LocalDatabase sharedInstance] executeQuery:@"select * from lecture"];
-    
-    int counter = 0;
-    for(NSDictionary *resultDict in result)
-    {
-        CGRect lectureViewRect = CGRectMake(0, counter * 52, 177, 52);
-        LectureView *lectureView = [[LectureView alloc] initWithFrame:lectureViewRect];
-        lectureView.lectureName = [resultDict valueForKey:@"lecture_name"];
-        lectureView.lecture_guid = [resultDict valueForKey:@"lecture_guid"];
-        lectureView.viewController = self;
-        
-        [lectureNamesScrollView addSubview:lectureView];
-        [lectureView release];
-        
-        [lectureViews addObject:lectureView];
-        counter++;
-    }
-    lectureNamesScrollView.contentSize = CGSizeMake(177, 52 * counter);
 }
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -435,6 +510,9 @@
 
 - (void)dealloc
 {
+    [globalSyncView release];
+    
+    [optionalKeyword release];
     
     if(sessionList)
     {
@@ -452,7 +530,8 @@
         [notebookWorkspace release];
     
     [numericPadPopover release];
-    [syncView release];
+    [syncService release];
+    [syncUploadiPadService release];
     [notebookSyncService release];
     [homeworkService release];
     [lectureViews release];
@@ -507,9 +586,10 @@
     }
     else
     {
-        NSArray *words = [aText componentsSeparatedByString:@" "];
+        NSMutableArray *words = [NSMutableArray arrayWithArray:[aText componentsSeparatedByString:@" "]];
         
         aText = @"";
+        self.optionalKeyword = @"";
         
         for (int i=0; i < [words count]; i++) 
         {
@@ -527,21 +607,39 @@
                 
                 word = [word stringByReplacingCharactersInRange:NSMakeRange(0, 1) withString:firstLetter];
                 
-                aText = [aText stringByAppendingString:word];
-                if(i < [words count] - 1)
+                if([word isEqualToString:NSLocalizedString(@"SearchQuestion", nil)])
                 {
-                    aText = [aText stringByAppendingString:@" "];
+                    self.optionalKeyword = word;
                 }
+                else if([word isEqualToString:[NSString stringWithFormat:@"-%@",NSLocalizedString(@"SearchQuestion", nil)]])
+                {
+                    self.optionalKeyword = word;
+                }
+                else if([word isEqualToString:[NSString stringWithFormat:@"+%@",NSLocalizedString(@"SearchQuestion", nil)]])
+                {
+                    self.optionalKeyword = word;
+                }
+                else if([word isEqualToString:NSLocalizedString(@"SearchHomework", nil)] || [word isEqualToString:NSLocalizedString(@"SearchHomework2", nil)])
+                {
+                    self.optionalKeyword = word;
+                }
+                else 
+                {
+                    aText = [aText stringByAppendingString:word];
+                    
+                    if(i < [words count] - 1)
+                    {
+                        aText = [aText stringByAppendingString:@" "];
+                    }
+                }
+                
+                
             }
         }
         
-        for (int i=0; i < [words count]; i++) 
-        {
-            
-        }
+
         
-        
-        NSMutableDictionary *parameters = [[NSMutableDictionary alloc] init];
+        NSMutableDictionary *parameters = [[[NSMutableDictionary alloc] init] autorelease];
         [parameters setValue:aText forKey:@"libraryFilter"];
         [self initSessionNamesWithFilter:parameters];
     }
@@ -549,34 +647,105 @@
 
 - (void)handleSwipe:(UISwipeGestureRecognizer *)gestureRecognizer
 {
-    if(displayingSessionContent)
+    @synchronized(sessionLibraryItems)
     {
-        if(gestureRecognizer.direction == UISwipeGestureRecognizerDirectionRight)
+        if(displayingSessionContent)
         {
-            // Get previous item
-            if(currentContentsIndex > 0)
+            if(gestureRecognizer.direction == UISwipeGestureRecognizerDirectionRight)
             {
-                [currentContentView closeContentViewWithDirection:kContentViewOpenDirectionToRight];
+                // Get previous item
+                if(currentContentsIndex > 0)
+                {
+                    [currentContentView closeContentViewWithDirection:kContentViewOpenDirectionToRight dontSetDisplayingContent:NO];
+                    
+                    SessionLibraryItemView *currentLibraryItem = [sessionLibraryItems objectAtIndex:currentContentsIndex - 1];
+                    currentLibraryItem.direction = kContentViewOpenDirectionToRight;
+                    [currentLibraryItem touchesEnded:nil withEvent:nil];
+                }
                 
-                SessionLibraryItemView *currentLibraryItem = [sessionLibraryItems objectAtIndex:currentContentsIndex - 1];
-                currentLibraryItem.direction = kContentViewOpenDirectionToRight;
-                [currentLibraryItem touchesEnded:nil withEvent:nil];
             }
-
-        }
-        else if(gestureRecognizer.direction == UISwipeGestureRecognizerDirectionLeft)
-        {
-            // Get next item
+            else if(gestureRecognizer.direction == UISwipeGestureRecognizerDirectionLeft)
+            {
+                // Get next item
+                
+                if(currentContentsIndex < [sessionLibraryItems count] - 1)
+                {
+                    [currentContentView closeContentViewWithDirection:kContentViewOpenDirectionToLeft dontSetDisplayingContent:NO];
+                    
+                    SessionLibraryItemView *currentLibraryItem = [sessionLibraryItems objectAtIndex:currentContentsIndex + 1];
+                    currentLibraryItem.direction = kContentViewOpenDirectionToLeft;
+                    [currentLibraryItem touchesEnded:nil withEvent:nil];
+                }
+            }
             
-            if(currentContentsIndex < [sessionLibraryItems count] - 1)
-            {
-                [currentContentView closeContentViewWithDirection:kContentViewOpenDirectionToLeft];
-                
-                SessionLibraryItemView *currentLibraryItem = [sessionLibraryItems objectAtIndex:currentContentsIndex + 1];
-                currentLibraryItem.direction = kContentViewOpenDirectionToLeft;
-                [currentLibraryItem touchesEnded:nil withEvent:nil];
-            }
+            displayingSessionContent = YES;
+            NSLog(@"Displaying session content2 %d", displayingSessionContent);
         }
+    }
+ 
+}
+
+- (void) refreshLibraryView
+{
+    
+    [[LocalDatabase sharedInstance] closeDatabase];
+    
+    [self initMonthView];
+    [self initLectureNames];
+    [self refreshDate:[NSDate date]];
+}
+
+
+- (void) startSyncService:(int) syncServiceType
+{
+    
+    NSLog(@"********** startSyncService %d ***************", syncServiceType);
+    
+    switch (syncServiceType) 
+    {
+        case kSyncServiceTypeiPadSync:
+            self.globalSyncView.currentPhase = 0;
+            self.syncUploadiPadService = [[SyncUploadiPadDataService alloc] init];
+            syncUploadiPadService.globalSync = self.globalSyncView;
+            [syncUploadiPadService requestForSync];
+            [syncUploadiPadService release];
+            
+            break;
+        
+        
+        case kSyncServiceTypeHomeworkSync:
+            
+            self.globalSyncView.currentPhase = 1;
+            self.homeworkService = [[Homework alloc] init];
+            homeworkService.libraryViewController = self;
+            homeworkService.globalSync = self.globalSyncView;
+            [homeworkService requestForHomework];
+            [homeworkService release];
+            
+            break;
+       
+        
+        case kSyncServiceTypeNotebookSync:
+            self.globalSyncView.currentPhase = 2;
+            self.notebookSyncService = [[NotebookSync alloc] init];
+            self.notebookSyncService.libraryView = self;
+            self.notebookSyncService.globalSync = self.globalSyncView;
+            [notebookSyncService requestForNotebookSync];
+            [notebookSyncService release];
+            
+            break;
+            
+        case kSyncServiceTypeSync:
+            self.globalSyncView.currentPhase = 3;
+            self.syncService = [[Sync alloc] init];
+            self.syncService.globalSync = self.globalSyncView;
+            [self.syncService requestForSync];
+            [self.syncService release];
+            
+            [self refreshLibraryView];
+            
+            break;
+           
     }
     
 }
@@ -625,9 +794,7 @@
         [calendarButton addTarget:self action:@selector(calendarButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
         [self.view addSubview:calendarButton];
         [calendarButton release];
-        
-        
-        
+
 #ifdef HAS_GUEST_ENTER
         guestEnterButton = [[UIButton alloc] initWithFrame:CGRectMake(19, 400, 62, 71)];
         [guestEnterButton setImage:[UIImage imageNamed:@"LibraryGuestEnter.png"] forState:UIControlStateNormal];
@@ -648,19 +815,9 @@
         
         [sessionNameScrollView setHidden:NO];
         
-/*        UIView *viewCalendar = [[[UIView alloc] initWithFrame:CGRectMake(93, 0, 1024, 748)] autorelease];
-        [viewCalendar setBackgroundColor:[UIColor grayColor]];
- */      
         calendarController = [[CalendarDataController alloc] init];
         [self.view addSubview:calendarController.containerVeiw];
         [calendarController setHiddenComponents:YES];
-        
-        
-/*        [viewCalendar addSubview:calendarController.containerVeiw];
-        [self.view addSubview:viewCalendar];
-*/
-        
-        
         
     }
     else
@@ -668,28 +825,8 @@
         [sessionNameScrollView setHidden:YES];
     }
     dateView.controller = self;
-    [self initMonthView];
-    [self initLectureNames];
     
-    blackScreen = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-    [blackScreen setBackgroundColor:[UIColor blackColor]];
-    
-    self.notebookSyncService = [[NotebookSync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-    self.notebookSyncService.libraryView = self;
-    [notebookSyncService setHidden:YES];
-    [self.view addSubview:notebookSyncService];
-    [notebookSyncService requestForNotebookSync];
-    [notebookSyncService release];
-    
-    self.homeworkService = [[Homework alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
-    [homeworkService setHidden:YES];
-    homeworkService.libraryViewController = self;
-    [self.view addSubview:homeworkService];
-    [homeworkService requestForHomework];
-    [homeworkService release];
-    
-    [self refreshDate:[NSDate date]];
-
+  
     
     // Add swipe gesture for library view
     UISwipeGestureRecognizer *rightSwipe = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipe:)];
@@ -705,17 +842,40 @@
     [leftSwipe release];
     [rightSwipe release];
     
+    
+    // Start location service
+    LocationService *locationService = [[LocationService alloc] init];
+    [locationService startService];
+    
+    self.globalSyncView = [[[GlobalSync alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)] autorelease];
+    [self.view addSubview:self.globalSyncView];
+}
+
+- (void) viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    
+    
+    
+
+    
+    // Start syncing saga
+    [self startSyncService:kSyncServiceTypeiPadSync];
 }
 
 - (void) selectLecture:(LectureView *) lecture
 {
-    for(LectureView *lectureView in lectureViews)
+    @synchronized(lectureViews)
     {
-        [lectureView selectLecture:NO];
+        for(LectureView *lectureView in lectureViews)
+        {
+            [lectureView selectLecture:NO];
+        }
+        
+        [lecture selectLecture:YES];
+        self.selectedLecture = lecture;
     }
     
-    [lecture selectLecture:YES];
-    self.selectedLecture = lecture;
 }
 
 - (void) receivedContentBytes:(NSDictionary*) userInfo;
@@ -728,8 +888,6 @@
     CGFloat progress = (CGFloat)bytes / (CGFloat)totalBytes;
     contentProgress.progress = progress;
     [contentProgress setNeedsDisplay];
-    
-    NSLog(@"current progress is %f", progress); 
     
     if( fabsf(1.0 - progress) <= 0.1 )
     {
@@ -761,24 +919,7 @@
 
 - (IBAction) libraryButtonClicked:(id) sender
 {
-    /*********************************************************    
-    TEA_iPadAppDelegate *logAppDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-    
-    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
-    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
-    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
-    
-    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
-    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-    
-    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key,  time) values ('%@','%@','%@','%@','%@')", [logAppDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"openedLibrary", dateString];
-    [[LocalDatabase sharedInstance] executeQuery:insertSQL];
-    //*********************************************************/
-    
-    
-    [DeviceLog deviceLog:@"openedLibrary" withLecture:nil withContentType:nil];
-    
-    //********************************************************* 
+    [DeviceLog deviceLog:@"openedLibrary" withLecture:nil withContentType:nil withGuid:nil withDate:[NSDate date]];
     
     
     [self setNotebookViewHidden:YES];
@@ -789,22 +930,7 @@
 - (IBAction) notebookButtonClicked:(id) sender
 {
     
-/*********************************************************    
-    TEA_iPadAppDelegate *logAppDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-    
-    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init]autorelease];
-    [dateFormatter setDateFormat:@"MM-dd-yyyy HH:mm:ss"];
-    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
-    
-    NSString *iPadOSVersion = [[UIDevice currentDevice] systemVersion];
-    NSString *iPadVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-    
-    NSString *insertSQL = [NSString stringWithFormat:@"insert into device_log (device_id, system_version, version, key,  time) values ('%@','%@','%@','%@','%@')", [logAppDelegate getDeviceUniqueIdentifier], iPadOSVersion, iPadVersion, @"openedNotebook", dateString];
-    [[LocalDatabase sharedInstance] executeQuery:insertSQL];*/
-//*********************************************************/    
-
-     [DeviceLog deviceLog:@"openedNotebook" withLecture:nil withContentType:nil];
-    
+    [DeviceLog deviceLog:@"openedNotebook" withLecture:nil withContentType:nil withGuid:nil withDate:[NSDate date]];
     
     [self setNotebookViewHidden:NO];
     [self setLibraryViewHidden:YES];
@@ -847,7 +973,8 @@
     [self performSelectorInBackground:@selector(showIndicator) withObject:nil];
    
     NSLog(@"Calendar Button Clicked:");
-    [DeviceLog deviceLog:@"openedCalendar" withLecture:nil withContentType:nil];
+    
+    [DeviceLog deviceLog:@"openedCalendar" withLecture:nil withContentType:nil withGuid:nil withDate:[NSDate date]];
     
     [self setNotebookViewHidden:YES];
     [self setLibraryViewHidden:YES];

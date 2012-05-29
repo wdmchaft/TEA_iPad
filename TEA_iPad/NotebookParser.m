@@ -191,6 +191,7 @@
     {
         DWViewItemLlibraryItemClip *libraryItemClip = [[DWViewItemLlibraryItemClip alloc] initWithFrame:CGRectMake(150, 15, 200, 200)];
         libraryItemClip.frame = [libraryItemClip getPositionByString:[attributeDict valueForKey:@"position"]];
+        libraryItemClip.guid = [attributeDict valueForKey:@"guid"];
         libraryItemClip.selected = NO;
         
         NotebookPage *page = (NotebookPage *) [notebook.pages objectAtIndex:[notebook.pages count] -1];

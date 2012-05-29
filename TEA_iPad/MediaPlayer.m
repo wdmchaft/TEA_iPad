@@ -9,8 +9,12 @@
 #import "MediaPlayer.h"
 #import <QuartzCore/QuartzCore.h>
 #import "TEA_iPadAppDelegate.h"
+#import "DeviceLog.h"
 
 @implementation MediaPlayer
+
+@synthesize guid, activeTime, currentTime;
+
 
 - (void) playbackStoped 
 {
@@ -35,6 +39,9 @@
     self = [super initWithFrame:CGRectMake(0, 0, 1024, 768)];
     if(self)
     {
+        //set start time of duration
+        self.currentTime = [NSDate date];
+        
         [self setBackgroundColor:[UIColor clearColor]];
         
         UIView *bg = [[UIView alloc] initWithFrame:self.frame];
@@ -69,14 +76,36 @@
 
 - (void) closeFinished:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context
 {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
     [player stop];
     [self playbackStoped];
     
-    ((TEA_iPadAppDelegate*) [[UIApplication sharedApplication]delegate]).viewController.displayingSessionContent = NO;
+    if(contentSetFlag)
+        ((TEA_iPadAppDelegate*) [[UIApplication sharedApplication]delegate]).viewController.displayingSessionContent = NO;
+    
+    [((TEA_iPadAppDelegate*) [[UIApplication sharedApplication]delegate]).viewController contentViewClosed:self];
 }
+
 
 - (void) closeContentViewWithDirection:(ContentViewOpenDirection)direction
 {
+    [self closeContentViewWithDirection:direction dontSetDisplayingContent:YES];
+}
+
+
+
+- (void) closeContentViewWithDirection:(ContentViewOpenDirection)direction dontSetDisplayingContent:(BOOL)setFlag
+{
+    //getting view active time
+    activeTime = (long)[[NSDate date] timeIntervalSinceDate:currentTime];
+    
+    
+    //update duration of view 
+    [DeviceLog updateDurationTime:activeTime withGuid:self.guid withDate:currentTime];
+    
+    contentSetFlag = setFlag;
+
     CGRect closeRect;
     if(direction == kContentViewOpenDirectionToLeft)
     {
@@ -94,6 +123,7 @@
     
     [UIView beginAnimations:nil context:nil];
     [UIView setAnimationDuration:0.3];
+    [UIView setAnimationDelegate:self];
     [UIView setAnimationCurve:UIViewAnimationCurveEaseOut];
     [UIView setAnimationDidStopSelector:@selector(closeFinished:finished:context:)];
     
@@ -106,6 +136,9 @@
 
 - (void) loadContentView:(UIView *)view withDirection :(ContentViewOpenDirection)direction
 {
+    //getting duration started time
+//    currentTime = [[NSDate date] retain];
+    
     CGRect initialRect;
     if(direction == kContentViewOpenDirectionToLeft)
     {
@@ -146,7 +179,9 @@
 
 - (void)dealloc
 {
-    NSLog(@"player released");
+
+    [currentTime release];
+    
     [player release];
     player = nil;
     

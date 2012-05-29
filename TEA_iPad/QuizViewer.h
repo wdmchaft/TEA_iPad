@@ -21,6 +21,15 @@
     int correctAnswer;
     UIWebView *quizImage;
     int optionCount;
+    BOOL contentSetFlag;
+    NSString *guid;
+    
+    UIImageView *hideAnswerImageView;
+    UIButton *showAnswersButton;
+    
+    NSDate *currentTime;
+    long activeTime;
+
     
 }
 @property (nonatomic, retain) IBOutlet UIButton *answerA;
@@ -29,6 +38,7 @@
 @property (nonatomic, retain) IBOutlet UIButton *answerD;
 @property (nonatomic, retain) IBOutlet UIButton *answerE;
 
+@property (nonatomic, retain) NSString *guid;
 @property (nonatomic, assign) int answer;
 @property (nonatomic, assign) int optionCount;
 @property (nonatomic, assign) int correctAnswer;
@@ -37,5 +47,8 @@
 
 - (void) setupView;
 - (UIImage *) captureImage;
+
+@property (nonatomic, assign) long activeTime;
+@property (nonatomic, retain) NSDate *currentTime;
 
 @end

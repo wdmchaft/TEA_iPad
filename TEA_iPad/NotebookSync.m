@@ -31,12 +31,8 @@
 #import "LibraryView.h"
 
 @implementation NotebookSync
-@synthesize libraryView;
+@synthesize libraryView, globalSync;
 
-- (void) updateMessage:(NSString*) message
-{
-    [progressLabel setText:message];
-}
 
 
 - (NSString*) getNotebookFiles
@@ -63,28 +59,33 @@
         {
             NSString *notebookGuid = [notebook valueForKey:@"notebook_guid"];
             
-            if ([dirItem rangeOfString:notebookGuid].location != NSNotFound || [dirItem rangeOfString:@".jpg"].location != NSNotFound) 
+            if ([dirItem rangeOfString:notebookGuid].location != NSNotFound) // guid found on name
+                
             {
-                NSMutableDictionary *fileDictionary = [[NSMutableDictionary alloc] init];
-                [fileDictionary setValue:dirItem forKey:@"name"];
-                
-                NSDictionary *fileAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:[NSString stringWithFormat:@"%@/%@", documentsPath,dirItem ] error:nil];
-                
-                NSNumber *dirItemSize = [fileAttributes valueForKey: NSFileSize];
-                NSDate *dirItemModDate = [fileAttributes valueForKey: NSFileModificationDate ];
-                
-                NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-                [dateFormatter setDateFormat:@"dd.MM.yyyy hh:mm:ss"];
-                NSString *dirItemModDateString = [dateFormatter stringFromDate:dirItemModDate ];
-                
-                [fileDictionary setValue:dirItem forKey:@"fileName"];
-                [fileDictionary setValue:dirItemSize forKey:@"fileSize"];
-                [fileDictionary setValue:dirItemModDateString forKey:@"fileModDate"];
-                
-                [notebookFiles addObject:fileDictionary];
-                
-                [dateFormatter release];
-                [fileDictionary release];
+                // Add xml and png files...
+                if([dirItem rangeOfString:@".png"].location != NSNotFound || [dirItem rangeOfString:@".xml"].location != NSNotFound) 
+                {
+                    NSMutableDictionary *fileDictionary = [[NSMutableDictionary alloc] init];
+                    [fileDictionary setValue:dirItem forKey:@"name"];
+                    
+                    NSDictionary *fileAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:[NSString stringWithFormat:@"%@/%@", documentsPath,dirItem ] error:nil];
+                    
+                    NSNumber *dirItemSize = [fileAttributes valueForKey: NSFileSize];
+                    NSDate *dirItemModDate = [fileAttributes valueForKey: NSFileModificationDate ];
+                    
+                    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+                    [dateFormatter setDateFormat:@"dd.MM.yyyy hh:mm:ss"];
+                    NSString *dirItemModDateString = [dateFormatter stringFromDate:dirItemModDate ];
+                    
+                    [fileDictionary setValue:dirItem forKey:@"fileName"];
+                    [fileDictionary setValue:dirItemSize forKey:@"fileSize"];
+                    [fileDictionary setValue:dirItemModDateString forKey:@"fileModDate"];
+                    
+                    [notebookFiles addObject:fileDictionary];
+                    
+                    [dateFormatter release];
+                    [fileDictionary release];
+                }
             }
         }
         
@@ -98,14 +99,7 @@
     [notebookFiles release];
     [jsonDictionary release];
     
-  //  return [NSString stringWithFormat:@"{'notebooks': %@ }", returnValue];
     return returnValue;
-}
-
-
-- (void) updateProgress:(NSNumber*) progressValue
-{
-    [progressView setProgress: [progressValue floatValue]];
 }
 
 - (void) downloadNotebookSyncFile
@@ -139,17 +133,22 @@
 
 - (void) requestForNotebookSync
 {
+    TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+
+
     
     // Check notebook workspace. If there is no notebook in current workspace that means
     // application is recently installed. Full backup is required.
     
-    NSMutableArray *notebooks = [[LocalDatabase sharedInstance] executeQuery:@"select * from notebookworkspace"];
-    if(!notebooks || [notebooks count] <=0)
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSString *restoreNotebooksRequired = [defaults objectForKey:@"restoreNotebooksRequired"];
+    
+    if(!restoreNotebooksRequired || [restoreNotebooksRequired isEqualToString:@"false"])
+
     {
         
-        TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-        
-        [self setHidden:NO];
+        [defaults setObject:@"true" forKey:@"restoreNotebooksRequired"];
+        [defaults synchronize];
         
         // NSDictionary *iPadConfigDictionary = [ConfigurationManager getConfigurationValueForKey:@"iPadConfig"];
         BOOL syncEnabled = [[ConfigurationManager getConfigurationValueForKey:@"SYNC_ENABLED"] boolValue];// [[iPadConfigDictionary valueForKey:@"iPadSyncEnabled"] boolValue];
@@ -159,16 +158,16 @@
         NSURLResponse *response = nil;
         NSError **error=nil; 
         
-        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:syncURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:syncURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:1];
         
         NSData *tmpData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
-        
+    
         
         if(syncEnabled && response)
         {
             @try 
             {
-                
+                [globalSync updateMessage:@"Defter verileri senkronize ediliyor..."];
                 NSString *downloadURL = [NSString stringWithFormat: @"device_id=%@", [appDelegate getDeviceUniqueIdentifier]];
                 
                 NSData *postData = [downloadURL dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
@@ -194,12 +193,14 @@
                     fileName = [[dictionary valueForKey:@"fileName"] retain];
                     fileSize = [[dictionary valueForKey:@"size"] intValue];
                     
+                    [globalSync updateMessage:@"Defter verileri sunucudan yükleniyor..."];
+                    
                     // Download file
                     [self downloadNotebookSyncFile];
                 }
                 else
                 {
-                    [self setHidden:YES];
+                    [appDelegate.viewController startSyncService:kSyncServiceTypeSync];
                 }
                 
                 
@@ -208,29 +209,21 @@
             @catch (NSException *exception) 
             {
                 NSLog(@"Exception :: %@",  [exception description]);
-                [self setHidden:YES];
+                [appDelegate.viewController startSyncService:kSyncServiceTypeSync];
             }
         }
         else
         {
-            [self setHidden:YES];
-            
+            [appDelegate.viewController startSyncService:kSyncServiceTypeSync];
         }
-        [self setHidden:YES];
+        
         [tmpData release];
 
-
-        
-        
-        
-        
 
     }
     else // Notebooks found, sync to server
     {
-        TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
         
-        [self setHidden:NO];
         
         // NSDictionary *iPadConfigDictionary = [ConfigurationManager getConfigurationValueForKey:@"iPadConfig"];
         BOOL syncEnabled = [[ConfigurationManager getConfigurationValueForKey:@"SYNC_ENABLED"] boolValue];// [[iPadConfigDictionary valueForKey:@"iPadSyncEnabled"] boolValue];
@@ -240,7 +233,7 @@
         NSURLResponse *response = nil;
         NSError **error=nil; 
         
-        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:syncURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:5];
+        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:syncURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:1];
         
         NSData *tmpData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
         
@@ -277,14 +270,16 @@
                     fileList = [[dictionary valueForKey:@"files"] retain];
                     if(fileList && [fileList count] > 0)
                     {
+                        [globalSync updateMessage:@"Defter verileri sunucuya yedekleniyor..."];
                         [self compressDocuments];
                         [self uploadSyncFile];
                     }
                     
+                    [appDelegate.viewController startSyncService:kSyncServiceTypeSync];
                 }
                 else
                 {
-                    [self setHidden:YES];
+                    [appDelegate.viewController startSyncService:kSyncServiceTypeSync];
                 }
                 
                 
@@ -293,15 +288,15 @@
             @catch (NSException *exception) 
             {
                 NSLog(@"Exception :: %@",  [exception description]);
-                [self setHidden:YES];
+                [appDelegate.viewController startSyncService:kSyncServiceTypeSync];
             }
         }
         else
         {
-            [self setHidden:YES];
+            [appDelegate.viewController startSyncService:kSyncServiceTypeSync];
             
         }
-        [self setHidden:YES];
+
         [tmpData release];
     }
        
@@ -311,7 +306,6 @@
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
     NSLog(@"timout");
-    [self setHidden:YES];
 }
 
 
@@ -440,8 +434,8 @@
 {
     NSString *filePath = [NSString stringWithFormat:@"%@/%@", directoryPath, fileName];
     
-    [self performSelectorInBackground:@selector(updateMessage:) withObject:@"Notebook veri arşiv dosyası açılıyor..."];
-    [self performSelectorInBackground:@selector(updateProgress:) withObject:[NSNumber numberWithFloat: 0.0]];
+    [globalSync updateMessage:@"Notebook veri arşiv dosyası açılıyor..."];
+
     
     ZipFile *zippedFile = [[[ZipFile alloc] initWithFileName:filePath mode:ZipFileModeUnzip] autorelease];
     float numberOfZippedFile = (float) [zippedFile numFilesInZip];
@@ -477,11 +471,9 @@
         
         counter ++;
         
-        [self performSelectorInBackground:@selector(updateProgress:) withObject:[NSNumber numberWithFloat: (float) counter / numberOfZippedFile]];
+        [globalSync updateProgress:[NSNumber numberWithFloat: (float) counter / numberOfZippedFile]];
         
     }
-    [self updateProgress:[NSNumber numberWithFloat:100.0 ]];
-    
     [zippedFile close];
     
     
@@ -493,7 +485,7 @@
     
     // extract zip file.
     [self extractZipFile];
-    [self performSelectorInBackground:@selector(updateMessage:) withObject:@"Defter veri sayfaları işleniyor..."];
+    [globalSync updateMessage:@"Defter veri sayfaları işleniyor..."];
     
     
     // Insert notebooks into database
@@ -517,8 +509,7 @@
     [libraryView.notebookWorkspace loadWorkspace];
     
     // remove sync view...
-    [self setHidden:YES];
-
+    [appDelegate.viewController startSyncService:kSyncServiceTypeSync];
 }
 
 
@@ -531,13 +522,13 @@
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
     [downloadData appendData:data];
-    [progressView setProgress: (float) downloadData.length / (float) fileSize];
+    [globalSync updateProgress:[NSNumber numberWithFloat:(float) downloadData.length / (float) fileSize]];
 }
 
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
-    [progressView setProgress:1.0];
+    [globalSync updateProgress:[NSNumber numberWithFloat:1.0]];
     
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsDir = [paths objectAtIndex:0];
@@ -552,6 +543,7 @@
     [downloadData release];
     
     [self applyNotebookSyncing];
+    
 }
 
 
@@ -562,29 +554,6 @@
     [super dealloc];
 }
 
-- (id)initWithFrame:(CGRect)frame
-{
-    self = [super initWithFrame:frame];
-    if (self) {
-        
-        UIImageView *imageView = [[[UIImageView alloc] initWithFrame:self.bounds] autorelease];
-        [imageView setImage:[UIImage imageNamed:@"SyncBG.jpg"]];
-        [self addSubview:imageView];
-        
-        
-        
-        progressView = [[[UIProgressView alloc] initWithFrame:CGRectMake(100, 480, 824, 25)] autorelease];
-        [self addSubview:progressView];
-        
-        progressLabel = [[[UILabel alloc] initWithFrame:CGRectMake(0, 480, 1024, 25)] autorelease];
-        [progressLabel setTextColor:[UIColor whiteColor]];
-        [progressLabel setTextAlignment:UITextAlignmentCenter];
-        [self addSubview:progressLabel]; 
-        
-        
-    }
-    return self;
-}
 
 
 

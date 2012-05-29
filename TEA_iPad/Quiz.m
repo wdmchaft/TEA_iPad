@@ -11,6 +11,7 @@
 #import "LibraryQuizItem.h"
 #import "LocalDatabase.h"
 #import "BonjourService.h"
+#import "CustomAlert.h"
 
 @implementation Quiz
 @synthesize timerLabel;
@@ -48,27 +49,56 @@
         [userData setValue:[NSNumber numberWithInt:time] forKey:@"solutionTime"];
         solutionMessage.userData = userData;
         [appDelegate.bonjourBrowser sendBonjourMessageToAllClients:solutionMessage];
+        //[appDelegate.bonjourBrowser sendBonjourMessage:solutionMessage toClient:<#(BonjourClient *)#>
         
         [appDelegate.viewController dismissModalViewControllerAnimated:YES];
     }
-    else if(buttonIndex == 0 && quizFinished) //ok
+    else if(buttonIndex == 0 ) //ok
     {
-        // Send empty answer
-        TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
-        BonjourMessage *solutionMessage = [[[BonjourMessage alloc] init] autorelease];
-        solutionMessage.messageType = kMessageTypeQuizAnswer;
+        displayingAlert = NO;
         
-        int time = solveTime - timerControl.currentSecond;
+        if(quizFinished)
+        {
+            // Send empty answer
+            TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+            BonjourMessage *solutionMessage = [[[BonjourMessage alloc] init] autorelease];
+            solutionMessage.messageType = kMessageTypeQuizAnswer;
+            
+            int time = solveTime - timerControl.currentSecond;
+            
+            NSMutableDictionary *userData = [[[NSMutableDictionary alloc] init] autorelease];
+            [userData setValue:self.guid forKey:@"guid"];
+            [userData setValue:[NSNumber numberWithInt:-1] forKey:@"answer"];
+            [userData setValue:[NSNumber numberWithInt:time] forKey:@"solutionTime"];
+            solutionMessage.userData = userData;
+            [appDelegate.bonjourBrowser sendBonjourMessageToAllClients:solutionMessage];
+            
+            [appDelegate.viewController dismissModalViewControllerAnimated:YES];
+        }
         
-        NSMutableDictionary *userData = [[[NSMutableDictionary alloc] init] autorelease];
-        [userData setValue:self.guid forKey:@"guid"];
-        [userData setValue:[NSNumber numberWithInt:-1] forKey:@"answer"];
-        [userData setValue:[NSNumber numberWithInt:time] forKey:@"solutionTime"];
-        solutionMessage.userData = userData;
-        [appDelegate.bonjourBrowser sendBonjourMessageToAllClients:solutionMessage];
-        
-        [appDelegate.viewController dismissModalViewControllerAnimated:YES];
     }
+}
+
+- (UIColor*) getColorNamed:(NSString*) colorName
+{
+    if ([colorName isEqualToString:@"Red"]) 
+        return [UIColor redColor];
+    else if ([colorName isEqualToString:@"Green"]) 
+        return [UIColor greenColor];
+    else if ([colorName isEqualToString:@"Blue"]) 
+        return [UIColor blueColor];
+    else if ([colorName isEqualToString:@"White"]) 
+        return [UIColor whiteColor];
+    else if ([colorName isEqualToString:@"Black"]) 
+        return [UIColor blackColor];
+    else if ([colorName isEqualToString:@"Yellow"]) 
+        return [UIColor yellowColor];
+    else if ([colorName isEqualToString:@"Cyan"]) 
+        return [UIColor cyanColor];
+    else if ([colorName isEqualToString:@"Purple"]) 
+        return [UIColor purpleColor];
+    else
+        return  nil;
 }
 
 - (void) sendSolution
@@ -98,18 +128,39 @@
     else
     {
         displayingAlert = YES;
-        
+        TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
+
         int asciiCode = 97; // ascii code of a
-        NSString *alertString = [NSString stringWithFormat:NSLocalizedString(@"Answer Send Message", NULL), asciiCode + currentAnswer]; 
-        
+        NSString *alertString = [NSString stringWithFormat:NSLocalizedString(@"Answer Send Message", NULL), asciiCode + currentAnswer];   
         NSString *cancel = NSLocalizedString(@"Cancel", NULL);
         NSString *send = NSLocalizedString(@"Send", NULL);
         NSString *caution = NSLocalizedString(@"Caution", NULL);
         
+        if(appDelegate.session.quizPromptTitle)
+            alertString = appDelegate.session.quizPromptTitle;
         
-        UIAlertView *alertView = [[[UIAlertView alloc] initWithTitle:caution message:alertString delegate:self cancelButtonTitle:cancel otherButtonTitles: send, nil] autorelease];
+        if(appDelegate.session.quizPromptCancelTitle)
+            cancel = appDelegate.session.quizPromptCancelTitle;
         
-        [alertView show];
+        if(appDelegate.session.quizPromptOKTitle)
+            send = appDelegate.session.quizPromptOKTitle;
+        
+        
+        
+        if([self getColorNamed:appDelegate.session.quizPromptBGColor] && [self getColorNamed:appDelegate.session.quizPromptTextColor])
+        {
+            CustomAlert *alertView = [[[CustomAlert alloc] initWithTitle:caution message:alertString delegate:self cancelButtonTitle:cancel otherButtonTitles: send, nil] autorelease];
+            [alertView setBackgroundColor:[self getColorNamed:appDelegate.session.quizPromptBGColor] withStrokeColor:[self getColorNamed:appDelegate.session.quizPromptTextColor]];
+            [alertView show];
+        }
+        else {
+            UIAlertView *alertView = [[[UIAlertView alloc] initWithTitle:caution message:alertString delegate:self cancelButtonTitle:cancel otherButtonTitles: send, nil] autorelease];
+            [alertView show];
+        }
+        
+        //[alertView setBackgroundColor:<#(UIColor *)#> withStrokeColor:<#(UIColor *)#>]
+        
+        
     }
     
 }
@@ -130,7 +181,7 @@
 - (void) continueTimer
 {
     quizFinished = NO;
-    displayingAlert = NO;
+   // displayingAlert = NO;
     
     timerControl.paused = NO;
     [self lockQuizOptions:NO];
@@ -333,8 +384,12 @@
     
     // save image
     NSData *jpegImageData = UIImageJPEGRepresentation(image, 1.0);
-    [jpegImageData writeToFile:quizImagePath atomically:YES];
-    [quizItem saveLibraryItem];
+    
+    if([jpegImageData writeToFile:quizImagePath atomically:YES])
+    {
+        [quizItem saveLibraryItem];
+    }
+    
     [quizItem release];
 }
 

@@ -16,9 +16,12 @@
 #import "DWDatabase.h"
 #import "ConfigurationManager.h"
 
+#import "DeviceLog.h"
+
 @implementation HWView 
 
 @synthesize answerSheetView, parser, questionImageURL, currentQuestion, timer, zipFileName, titleOfHomework, homeworkGuid, delivered, questionTimer;
+@synthesize cloneExamAnswers, activeTime, currentTime;
 
 - (int) getCurrentQuestionTimer
 {
@@ -152,11 +155,36 @@
     return NO;
 }
 
+
+
+- (void) getCloneQuestionAnswers:(NSString*)lectureGuid withLectureID:(int)lectureID
+{
+    NSString *examAnswersURL = [NSString stringWithFormat: @"%@/examAnswer.jsp?exam_guid=%@&lecture_id=%d", [ConfigurationManager getConfigurationValueForKey:@"PUBLIC_HOMEWORK_URL"], lectureGuid, lectureID]; 
+    
+    NSURLResponse *response = nil;
+    NSError **error=nil; 
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:examAnswersURL] cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:1];
+    
+    NSData *examAnswerData = [[NSData alloc] initWithData:[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:error]];
+    
+    NSDictionary *examAnswersDictionary = [[CJSONDeserializer deserializer] deserializeAsDictionary:examAnswerData error:nil];
+    cloneExamAnswers = [[examAnswersDictionary objectForKey:@"rows"] retain];
+    
+    [examAnswerData release];
+//    NSLog(@"clone exam answers - %@", [cloneExamAnswers description]);
+    
+   
+}
+
+
 - (id)initWithFrame:(CGRect)frame andZipFileName:(NSString*) aZipFileName andHomeworkId:(NSString*) aHomeworkGUID
 {
     self = [super initWithFrame:frame];
     if (self) {
         
+        //set duration start time
+        self.currentTime = [NSDate date];
         previousQuestionNumber = -1;
         
        // TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate*) [[UIApplication sharedApplication] delegate];
@@ -185,12 +213,16 @@
 
         
         
-        //currentQuestion = [[[[parser.quiz objectForKey:@"questions"] objectAtIndex:0] objectForKey:@"number"] intValue];
         
-
-        [self removeFromSuperview];
+        // Clone Question Answers Request
         
         
+        
+        sql = [NSString stringWithFormat:@"select lecture_id from homework where guid='%@'", homeworkGuid];
+        int lectureID = [[[[[LocalDatabase sharedInstance] executeQuery:sql] objectAtIndex:0] valueForKey:@"lecture_id"] intValue];
+        [self getCloneQuestionAnswers:homeworkGuid withLectureID:lectureID];
+        
+    
         backGroundView = [[UIView alloc] initWithFrame:frame];
         [backGroundView setBackgroundColor:[UIColor blackColor]];
         [backGroundView setAlpha:0.7];
@@ -353,6 +385,12 @@
 
 - (IBAction)closeButtonClicked:(id)sender
 {
+    //get view active time
+    activeTime = (long)[[NSDate date] timeIntervalSinceDate:currentTime];
+    
+    //update duration of view 
+    [DeviceLog updateDurationTime:activeTime withGuid:homeworkGuid withDate:currentTime];
+    
     [self closeContentView];
 }
 
@@ -391,8 +429,8 @@
             {
                 NSString *insertSQL = [NSString stringWithFormat:@"insert into DWHomeworkResult (homework_guid, device_id, question_number,answer,correct_answer, time) values ('%@','%@', '%@','%@','%@','%@')", [[result objectAtIndex:i] objectForKey:@"homework"], [appDelegate getDeviceUniqueIdentifier], [[result objectAtIndex:i] objectForKey:@"question"],[[result objectAtIndex:i] objectForKey:@"answer"],[[result objectAtIndex:i] objectForKey:@"correct_answer"], [[result objectAtIndex:i] objectForKey:@"time"]];
                 
-                
-                [DWDatabase getResultFromURL:[NSURL URLWithString:@"http://www.dualware.com/Service/EU/protocol.php"] withSQL:insertSQL];
+                NSString *protocolURL = [ConfigurationManager getConfigurationValueForKey:@"ProtocolRemoteURL"];
+                [DWDatabase getResultFromURL:[NSURL URLWithString:protocolURL] withSQL:insertSQL];
             }
             
             NSString *updateRemoteNotificationTable = [NSString stringWithFormat:@"update notification set completed = 1 where file_url = '%@'", zipFileName];
@@ -419,17 +457,27 @@
 }
 
 - (void)dealloc {
+    
+    [currentTime release];
+    
+    
+    if (cloneExamAnswers) {
+        [cloneExamAnswers release];
+    }
+    
+    [downloadData release];
+    
     [homeworkGuid release];
     [titleOfHomework release];
     [zipFileName release];
-    [timer release];
+//    [timer release];
     [parser release];
     [hwView release];
     [questionView release];
     [prevQuestion release];
     [nextQuestion release];
     [closeButton release];
-    [answerSheetView release];
+//    [answerSheetView release];
     [backGroundView release];
      
     [super dealloc];

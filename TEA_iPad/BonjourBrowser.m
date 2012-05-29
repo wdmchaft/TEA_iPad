@@ -80,7 +80,10 @@
     //   [service release];
     [netServiceBrowser stop];
     [netServiceBrowser release];
-    [clients release];
+    @synchronized(clients)
+    {
+        [clients release];
+    }
     [services release];
     
     [super dealloc];
@@ -88,7 +91,10 @@
 
 - (void) restartBrowse
 {
-    [clients release];
+    @synchronized(clients)
+    {
+        [clients release];
+    }
     //[service release];
     [netServiceBrowser stop];
     [netServiceBrowser release];
@@ -297,8 +303,13 @@
     
     [self.netServiceBrowser stop];
     [self.services removeAllObjects];
-    [clients removeAllObjects];
     
+    @synchronized(clients)
+    {
+        [clients removeAllObjects];
+    }
+    
+
     
     NSLog(@"Bonjour service stoped...");
 }
@@ -319,6 +330,12 @@
         appDelegate.session.sessionLectureName = nil;
         appDelegate.session.sessionLectureGuid  = nil;
         appDelegate.session.sessionTeacherName = nil;
+        
+        appDelegate.session.quizPromptTitle = nil;
+        appDelegate.session.quizPromptBGColor = nil;
+        appDelegate.session.quizPromptCancelTitle = nil;
+        appDelegate.session.quizPromptOKTitle = nil;
+        appDelegate.session.quizPromptTextColor = nil;
         
         appDelegate.state = kAppStateIdle;
         
@@ -428,23 +445,39 @@
 		case NSStreamEventEndEncountered:
 		{
             NSLog(@"[BONJOUR] Event end %d", (int) eventCode);
+            
+            TEA_iPadAppDelegate *appDelegate = (TEA_iPadAppDelegate * )[[UIApplication sharedApplication] delegate];
+            
+            [appDelegate restartBonjourBrowser];
+            
 			break;
 		}
 	}
 }
 
-- (void) sendBonjourMessage:(BonjourMessage*) aMessage toClient:(BonjourClient*) aClient
+- (BOOL) sendBonjourMessage:(BonjourMessage*) aMessage toClient:(BonjourClient*) aClient
 {
-    [aClient sendBonjourMessage:aMessage];
+    return [aClient sendBonjourMessage:aMessage];
 }
 
 
 - (void) sendBonjourMessageToAllClients:(BonjourMessage*) aMessage 
 {
-    for(BonjourClient *client in clients)
+    
+    @synchronized(clients)
     {
-        [self sendBonjourMessage:aMessage toClient:client];
+        BOOL retVal = YES;
+        for(BonjourClient *client in clients)
+        {
+            retVal = [self sendBonjourMessage:aMessage toClient:client];
+            if(retVal == NO)
+            {
+               NSLog(@"out");
+            }
+        }
+        
     }
+    
 }
 
 @end

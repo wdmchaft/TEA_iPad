@@ -14,9 +14,18 @@
 #import "Sync.h"
 #import "Homework.h"
 #import "NotebookSync.h"
+#import "SyncUploadiPadDataService.h"
 #import "ActivityIndicator.h"
 #import "ContentViewerInterface.h"
 #import "CalendarDataController.h"
+#import "GlobalSync.h"
+
+enum kSyncServiceType {
+    kSyncServiceTypeiPadSync = 0,
+    kSyncServiceTypeHomeworkSync = 1,
+    kSyncServiceTypeNotebookSync = 2,
+    kSyncServiceTypeSync = 3
+    };
 
 @class DWDrawingViewController, LectureView, MonthView, DWSearchBar;
 @interface LibraryView : UIViewController <UIAccelerometerDelegate, UITextFieldDelegate> {
@@ -42,36 +51,52 @@
     NotebookWorkspace *notebookWorkspace;
     Notebook *notebook;
     BOOL compactMode;
-    
-    NSMutableArray *lectureViews;
-    
+
     LectureView *selectedLecture;
     MonthView *selectedMonth;
     int selectedDate;
     UIImageView *logonGlow;
     
     UIView *blackScreen;
-    Sync *syncView;
+    
+    // SYNC Services...
+    GlobalSync *globalSyncView;
+    Sync *syncService;
+    SyncUploadiPadDataService *syncUploadiPadService;
     Homework *homeworkService;
     NotebookSync *notebookSyncService;
+
     
     BOOL screenClosed;
 
     CalendarDataController *calendarController;
     ActivityIndicator *activity;
     
-    
+    NSMutableArray *lectureViews;
     NSMutableArray *sessionList;
     NSMutableArray *sessionLibraryItems;
+    NSMutableArray *swipeItems;
+    
     int currentSessionListIndex;
     int currentContentsIndex;
     BOOL displayingSessionContent;
+    BOOL refreshDateSkipped;
     id<ContentViewerInterface> currentContentView;
+    NSString *optionalKeyword;
+    
+    NSDate *selectedDayOfLibrary;
+    
 }
+
+@property (nonatomic, retain) NSDate *selectedDayOfLibrary;
 
 //Calendar
 @property (nonatomic, assign) CalendarDataController *calendarController;
 - (void) setCalendarViewHidden:(BOOL) hidden;
+- (void) refreshLibraryView;
+- (void) startSyncService:(int) syncServiceType;
+- (void) refreshDate:(NSDate*)aDate;
+
 
 @property (nonatomic, assign) int currentSessionListIndex;
 @property (nonatomic, assign) BOOL displayingSessionContent;
@@ -86,8 +111,12 @@
 @property (nonatomic, retain) IBOutlet UIScrollView *contentsScrollView;
 @property (nonatomic, retain) IBOutlet DateView *dateView;
 @property (nonatomic, assign) BOOL compactMode;
-@property (nonatomic, assign) NotebookWorkspace *notebookWorkspace;;
-@property (nonatomic, retain) Sync *syncView;
+
+@property (nonatomic, assign) NotebookWorkspace *notebookWorkspace;
+
+@property (nonatomic, retain) GlobalSync *globalSyncView;
+@property (nonatomic, retain) Sync *syncService;
+@property (nonatomic, retain) SyncUploadiPadDataService *syncUploadiPadService;
 @property (nonatomic, retain) Homework *homeworkService;
 @property (nonatomic, retain) NotebookSync *notebookSyncService;
 @property (nonatomic, assign) Notebook *notebook;
@@ -99,14 +128,18 @@
 @property (nonatomic, retain) IBOutlet UIImageView *logonGlow;
 
 @property (nonatomic, retain) NSMutableArray *sessionLibraryItems;
+@property (nonatomic, assign) NSMutableArray *swipeItems;
 
 @property (nonatomic, retain) IBOutlet UIImageView *backgroundView;
 @property (retain, nonatomic) IBOutlet DWSearchBar *searchTextField;
+@property (nonatomic, retain) NSString *optionalKeyword;
+
 
 - (void) receivedContentBytes:(NSDictionary*) userInfo ;
 - (void) initLectureNames;
 - (void) initSessionNames;
-
+- (void) contentViewClosed:(id)contentView;
+- (void) fillSwipeItems;
 
 - (IBAction) libraryButtonClicked:(id) sender;
 - (IBAction) notebookButtonClicked:(id) sender;
