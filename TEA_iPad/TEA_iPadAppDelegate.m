@@ -164,17 +164,12 @@ void MyReachabilityCallback(
 
 
 - (void) screenDidConnect:(NSNotification *)aNotification{
-    [blackScreen setMessage:@"Bu uygulama monitör bağlantısı ile çalışmaz..."];
-    [self.viewController.view addSubview:blackScreen];
 
 }
 
 
 - (void) screenDidDisconnect:(NSNotification *)aNotification{
-    if( [UIScreen screens].count == 1)
-    {
-        [blackScreen removeFromSuperview];
-    }
+
 }
 
 - (void) screenModeDidChange:(NSNotification *)aNotification{
@@ -316,10 +311,10 @@ void handleException(NSException *exception)
 
     blackScreen = [[LocationServiceMessageView alloc] initWithFrame:CGRectMake(0, 0, 1024, 768)];
 
-    if( [UIScreen screens].count > 1)
+    /*if( [UIScreen screens].count > 1)
     {
         [self screenDidConnect:nil];
-    }
+    }*/
     
     self.duration = 0;
     self.bgDuration=0;
